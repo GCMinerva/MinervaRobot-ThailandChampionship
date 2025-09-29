@@ -31,10 +31,7 @@ public class Constants {
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
-            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
-            .forwardTicksToInches(7247.308607292948)
-            .lateralTicksToInches(73726.48057616322)
-            .turningTicksToInches(0.9942);
+            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(5);
 
