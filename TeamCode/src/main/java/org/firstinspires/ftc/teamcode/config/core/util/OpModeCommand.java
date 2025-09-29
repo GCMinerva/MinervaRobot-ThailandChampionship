@@ -1,0 +1,43 @@
+package org.firstinspires.ftc.teamcode.config.core.util;
+
+import com.arcrobotics.ftclib.command.Command;
+import com.arcrobotics.ftclib.command.CommandScheduler;
+import com.arcrobotics.ftclib.command.Subsystem;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+
+public abstract class OpModeCommand extends OpMode {
+
+    public void reset() {
+        CommandScheduler.getInstance().reset();
+    }
+
+    public void run() {
+        CommandScheduler.getInstance().run();
+    }
+
+    public void schedule(Command... commands) { CommandScheduler.getInstance().schedule(commands); }
+
+    public void register(Subsystem... subsystems) { CommandScheduler.getInstance().registerSubsystem(subsystems); }
+
+    @Override
+    public void init() {
+        initialize();
+    }
+
+    public void loop() {
+        run();
+        iter();
+    }
+
+    public void stop() {
+        reset();
+        end();
+    }
+
+    public abstract void initialize();
+
+    public abstract void iter();
+
+    public abstract void end();
+
+}
