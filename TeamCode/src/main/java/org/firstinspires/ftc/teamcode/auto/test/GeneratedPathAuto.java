@@ -6,10 +6,14 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import org.firstinspires.ftc.teamcode.auto.paths.PathRegistry;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name = "Generated Path Auto", group = "Auto")
 public class GeneratedPathAuto extends OpMode {
+
+    // CHANGE THIS TO SELECT WHICH PATH TO RUN
+    private static final String SELECTED_PATH = "Path1";
 
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
@@ -17,16 +21,16 @@ public class GeneratedPathAuto extends OpMode {
 
     private final Pose startPose = new Pose(56.000, 8.000, Math.toRadians(90));
 
-    private PathChain generatedPath;
+    private PathChain selectedPath;
 
     public void buildPaths() {
-        generatedPath = GeneratedPath.buildPath(follower, Constants.pathConstraints);
+        selectedPath = PathRegistry.getPath(SELECTED_PATH).buildPath(follower, Constants.pathConstraints);
     }
 
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(generatedPath);
+                follower.followPath(selectedPath);
                 setPathState(1);
                 break;
             case 1:
@@ -47,6 +51,7 @@ public class GeneratedPathAuto extends OpMode {
         follower.update();
         autonomousPathUpdate();
 
+        telemetry.addData("Selected Path", SELECTED_PATH);
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
