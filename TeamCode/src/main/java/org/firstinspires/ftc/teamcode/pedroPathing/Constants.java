@@ -26,8 +26,8 @@ public class Constants {
             .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .xVelocity(49.700225109)
-            .yVelocity(35.328215831);
+            .xVelocity(66.99826169952632)
+            .yVelocity(59.43552284541092);
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(0)
             .strafePodX(0)
@@ -38,29 +38,29 @@ public class Constants {
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(5)
-            .forwardZeroPowerAcceleration(-48.76170607956463)
-            .lateralZeroPowerAcceleration(-71.2288210086705)
+            .mass(3.25)
+            .forwardZeroPowerAcceleration(-41.71459429193726)
+            .lateralZeroPowerAcceleration(-69.37755501503779)
             .translationalPIDFCoefficients(new PIDFCoefficients(
                     0.1,
                     0,
-                    0.005,
-                    0.01775
+                    0.01,
+                    0.003
             ))
             .headingPIDFCoefficients(new PIDFCoefficients(
+                    1,
                     0,
                     0,
-                    0,
-                    0.01
-            ));
-//            .drivePIDFCoefficients(new FilteredPIDFCoefficients(
-//                    0.1,
-//                    0,
-//                    0.00035,
-//                    0.6,
-//                    0.015
-//            ));
-//            .centripetalScaling(0.0005);
+                    0.005
+            ))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(
+                    0.0165,
+                    0.007,
+                    0.0003,
+                    0.6,
+                    0.05
+            ))
+            .centripetalScaling(0.0005);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 

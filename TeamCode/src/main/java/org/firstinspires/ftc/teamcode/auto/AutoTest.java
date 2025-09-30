@@ -3,12 +3,12 @@ package org.firstinspires.ftc.teamcode.auto;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name = "Auto Test", group = "Test")
@@ -23,41 +23,34 @@ public class AutoTest extends OpMode {
     private PathChain line1, path2, path3;
 
     public void buildPaths() {
-        PathBuilder builder = new PathBuilder();
+        PathBuilder builder = new PathBuilder(follower, Constants.pathConstraints);
 
         line1 = builder
                 .addPath(
                         new BezierCurve(
-                                new Pose(56.000, 8.000),
-                                new Pose(51.687, 64.236),
-                                new Pose(123.368, 14.464),
-                                new Pose(123.793, 59.557)
-                        )
-                )
-                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(180))
+                                new Pose(55.728, 11.486),
+                                new Pose(8.083, 90.399),
+                                new Pose(90.186, 86.357),
+                                new Pose(89.123, 110.180)
+                        ))
+                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(45))
                 .build();
 
-        path2 = builder
-                .addPath(
-                        new BezierCurve(
-                                new Pose(123.793, 59.557),
-                                new Pose(61.897, 53.814),
-                                new Pose(67.001, 118.050)
-                        )
-                )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(270))
-                .build();
-
-        path3 = builder
-                .addPath(
-                        new BezierCurve(
-                                new Pose(67.001, 118.050),
-                                new Pose(65.300, 8.083),
-                                new Pose(128.047, 8.508)
-                        )
-                )
-                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(0))
-                .build();
+//        path2 = builder
+//                .addPath(
+//                        new BezierCurve(
+//                                new Pose(95.716, 71.256),
+//                                new Pose(99.545, 118.688),
+//                                new Pose(67.001, 118.050)
+//                        )
+//                )
+//                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(270))
+//                .build();
+//
+//        path3 = builder
+//                .addPath(new BezierLine(new Pose(67.001, 118.050), new Pose(56.579, 8.083)))
+//                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(0))
+//                .build();
     }
 
     public void autonomousPathUpdate() {
@@ -93,8 +86,8 @@ public class AutoTest extends OpMode {
 
     @Override
     public void loop() {
-        follower.update();
-        autonomousPathUpdate();
+//        follower.update();
+//        autonomousPathUpdate();
 
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());
@@ -120,6 +113,8 @@ public class AutoTest extends OpMode {
 
     @Override
     public void start() {
+        follower.update();
+        autonomousPathUpdate();
         opmodeTimer.resetTimer();
         setPathState(0);
     }
