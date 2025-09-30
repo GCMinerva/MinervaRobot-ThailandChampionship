@@ -80,5 +80,5 @@ lint/outputs/
 lint/tmp/
 # lint/reports/
 
-.claude
-.claude/*
+.claude/
+venv37/

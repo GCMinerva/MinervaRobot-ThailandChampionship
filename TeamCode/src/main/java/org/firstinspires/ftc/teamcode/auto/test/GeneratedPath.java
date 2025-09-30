@@ -1,17 +1,20 @@
 
 package org.firstinspires.ftc.teamcode.auto;
 
+import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 public class GeneratedPath {
 
-    public static PathBuilder builder = new PathBuilder();
+    public static PathChain buildPath(Follower follower) {
+        PathBuilder builder = new PathBuilder(follower, Constants.pathConstraints);
 
-    public static PathChain paths = builder
+        return builder
             .addPath(
                     // Path 1
                     new BezierLine(new Pose(56.000, 8.000), new Pose(35.696, 57.721))
@@ -38,4 +41,5 @@ public class GeneratedPath {
             )
             .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(90))
             .build();
+    }
 }

@@ -4,7 +4,12 @@
       "Bash(find:*)",
       "WebSearch",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:bylazar.com)"
+      "WebFetch(domain:bylazar.com)",
+      "Bash(py:*)",
+      "Bash(venv37Scriptspip.exe install labelImg)",
+      "Bash(\"venv37\\Scripts\\pip.exe\" install labelImg)",
+      "Bash(\"venv37\\Scripts\\python.exe\" -m pip install --upgrade pip setuptools wheel)",
+      "Bash(\"venv37\\Scripts\\labelImg.exe\")"
     ],
     "deny": [],
     "ask": []

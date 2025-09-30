@@ -5,10 +5,11 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import org.firstinspires.ftc.teamcode.auto.paths.PathRegistry;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+@Disabled
 @Autonomous(name = "Generated Path Auto", group = "Auto")
 public class GeneratedPathAuto extends OpMode {
 
@@ -24,7 +25,8 @@ public class GeneratedPathAuto extends OpMode {
     private PathChain selectedPath;
 
     public void buildPaths() {
-        selectedPath = PathRegistry.getPath(SELECTED_PATH).buildPath(follower, Constants.pathConstraints);
+        // TODO: Implement PathRegistry or use direct path building
+        // selectedPath = PathRegistry.getPath(SELECTED_PATH).buildPath(follower, Constants.pathConstraints);
     }
 
     public void autonomousPathUpdate() {

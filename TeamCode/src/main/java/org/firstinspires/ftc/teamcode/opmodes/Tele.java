@@ -4,9 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.teamcode.robot.Robot;
-import org.firstinspires.ftc.teamcode.utils.GamepadTracker;
-
 @TeleOp(name="tele")
 public class Tele extends LinearOpMode {
 
@@ -17,7 +14,7 @@ public class Tele extends LinearOpMode {
     double level1 = 0;
     @Override
     public void runOpMode() throws InterruptedException {
-        Robot robot = new Robot(hardwareMap, telemetry, new GamepadTracker(gamepad1), new GamepadTracker(gamepad2), true);
+        // Robot robot = new Robot(hardwareMap, telemetry, new GamepadTracker(gamepad1), new GamepadTracker(gamepad2), true);
 
         // Map motors
         frontLeft = hardwareMap.get(DcMotor.class, "fl");
