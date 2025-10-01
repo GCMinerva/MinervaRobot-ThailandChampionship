@@ -13,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.test.CameraCalibrate;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -73,6 +74,9 @@ public class AprilTagTest extends LinearOpMode {
         builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
         builder.setCameraResolution(new Size(640, 480));
         builder.addProcessor(aprilTag);
+
+        // Rotate camera 90 degrees to the left (counter-clockwise)
+        builder.setCameraOrientation(VisionPortal.CameraOrientation.SENSOR_NATIVE_270);
 
         // Enable camera streaming to FTC Dashboard
         builder.enableLiveView(true);
