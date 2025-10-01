@@ -130,7 +130,7 @@ public class YoloTest extends LinearOpMode {
     class YoloPipeline extends OpenCvPipeline {
         private final List<Detection> detections = new ArrayList<>();
         private Interpreter interpreter;
-        private final int INPUT_SIZE = 640;
+        private int INPUT_SIZE = 640; // Will be updated based on model
         private final float CONFIDENCE_THRESHOLD = 0.25f;
         private final float IOU_THRESHOLD = 0.45f;
         private final String[] labels = {"purpleball", "greenball"};
@@ -161,8 +161,12 @@ public class YoloTest extends LinearOpMode {
                 int[] inputShape = interpreter.getInputTensor(0).shape();
                 int[] outputShape = interpreter.getOutputTensor(0).shape();
 
+                // Update INPUT_SIZE based on model
+                INPUT_SIZE = inputShape[1]; // Assuming [1, height, width, 3]
+
                 telemetry.addData("Model Input Shape", String.format("[%d, %d, %d, %d]",
                     inputShape[0], inputShape[1], inputShape[2], inputShape[3]));
+                telemetry.addData("Input Size", INPUT_SIZE);
 
                 // Handle both possible output formats
                 if (outputShape.length == 3) {
@@ -170,7 +174,7 @@ public class YoloTest extends LinearOpMode {
                         outputShape[0], outputShape[1], outputShape[2]));
 
                     // Determine the format: [1, 7, 8400] or [1, 8400, 7]
-                    if (outputShape[1] == 7 || outputShape[1] == (4 + labels.length)) {
+                    if (outputShape[1] == 6 || outputShape[1] == (4 + labels.length)) {
                         numCoords = outputShape[1];
                         numBoxes = outputShape[2];
                     } else {
@@ -188,9 +192,13 @@ public class YoloTest extends LinearOpMode {
                 telemetry.addData("Parsed", String.format("boxes=%d, coords=%d", numBoxes, numCoords));
                 telemetry.update();
 
-                // Allocate input buffer for INT8 quantized model
-                inputBuffer = ByteBuffer.allocateDirect(1 * INPUT_SIZE * INPUT_SIZE * 3);
+                // Allocate input buffer for INT8 quantized model with correct size
+                int bufferSize = 1 * INPUT_SIZE * INPUT_SIZE * 3;
+                inputBuffer = ByteBuffer.allocateDirect(bufferSize);
                 inputBuffer.order(ByteOrder.nativeOrder());
+
+                telemetry.addData("Buffer Size", String.format("%d bytes", bufferSize));
+                telemetry.update();
 
             } catch (IOException e) {
                 telemetry.addData("Model Load Error", e.getMessage());
