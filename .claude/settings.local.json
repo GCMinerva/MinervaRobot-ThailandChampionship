@@ -9,7 +9,8 @@
       "Bash(venv37Scriptspip.exe install labelImg)",
       "Bash(\"venv37\\Scripts\\pip.exe\" install labelImg)",
       "Bash(\"venv37\\Scripts\\python.exe\" -m pip install --upgrade pip setuptools wheel)",
-      "Bash(\"venv37\\Scripts\\labelImg.exe\")"
+      "Bash(\"venv37\\Scripts\\labelImg.exe\")",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []
