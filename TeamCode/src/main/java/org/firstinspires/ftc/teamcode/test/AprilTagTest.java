@@ -9,7 +9,10 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainCon
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.test.CameraCalibrate;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +25,9 @@ public class AprilTagTest extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        // Setup telemetry for both Driver Station and FTC Dashboard
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
         initAprilTag();
 
         telemetry.addData("Status", "Initialized");
@@ -50,21 +56,17 @@ public class AprilTagTest extends LinearOpMode {
     }
 
     private void initAprilTag() {
-        // Create camera calibration for Logitech C920 at 640x480
-        // These are typical values - for best accuracy, calibrate your specific camera
-        // fx, fy = focal length in pixels
-        // cx, cy = principal point (image center)
-        double fx = 622.001;
-        double fy = 622.001;
-        double cx = 319.803;
-        double cy = 241.251;
-
+        // Create AprilTag processor with camera calibration
         aprilTag = new AprilTagProcessor.Builder()
                 .setDrawAxes(true)
                 .setDrawCubeProjection(true)
                 .setDrawTagOutline(true)
-                .setTagLibrary(AprilTagLibrary.getCenterStageTagLibrary())
-                .setLensIntrinsics(fx, fy, cx, cy)
+                .setLensIntrinsics(
+                        CameraCalibrate.FX,
+                        CameraCalibrate.FY,
+                        CameraCalibrate.CX,
+                        CameraCalibrate.CY
+                )
                 .build();
 
         VisionPortal.Builder builder = new VisionPortal.Builder();
@@ -72,41 +74,13 @@ public class AprilTagTest extends LinearOpMode {
         builder.setCameraResolution(new Size(640, 480));
         builder.addProcessor(aprilTag);
 
+        // Enable camera streaming to FTC Dashboard
+        builder.enableLiveView(true);
+
         visionPortal = builder.build();
 
-        // Optional: Set manual camera exposure for better tag detection
-        setManualExposure(6, 250);
-    }
-
-    private void setManualExposure(int exposureMS, int gain) {
-        // Wait for the camera to be open
-        if (visionPortal == null) {
-            return;
-        }
-
-        // Make sure camera is ready
-        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
-            telemetry.addData("Camera", "Waiting for camera to start streaming");
-            telemetry.update();
-            while (!isStopRequested() && (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
-                sleep(20);
-            }
-            telemetry.addData("Camera", "Ready");
-            telemetry.update();
-        }
-
-        // Set camera controls
-        ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
-        if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
-            exposureControl.setMode(ExposureControl.Mode.Manual);
-            sleep(50);
-        }
-        exposureControl.setExposure(exposureMS, TimeUnit.MILLISECONDS);
-        sleep(20);
-
-        GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
-        gainControl.setGain(gain);
-        sleep(20);
+        // Send camera stream to FTC Dashboard
+        FtcDashboard.getInstance().startCameraStream(visionPortal, 0);
     }
 
     private void telemetryAprilTag() {
