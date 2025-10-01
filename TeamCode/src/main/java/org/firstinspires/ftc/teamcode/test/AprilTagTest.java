@@ -4,11 +4,18 @@ import android.util.Size;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.test.CameraCalibrate;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @TeleOp(name = "AprilTag Test", group = "Test")
 public class AprilTagTest extends LinearOpMode {
@@ -18,6 +25,9 @@ public class AprilTagTest extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        // Setup telemetry for both Driver Station and FTC Dashboard
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
         initAprilTag();
 
         telemetry.addData("Status", "Initialized");
@@ -46,10 +56,17 @@ public class AprilTagTest extends LinearOpMode {
     }
 
     private void initAprilTag() {
+        // Create AprilTag processor with camera calibration
         aprilTag = new AprilTagProcessor.Builder()
                 .setDrawAxes(true)
                 .setDrawCubeProjection(true)
                 .setDrawTagOutline(true)
+                .setLensIntrinsics(
+                        CameraCalibrate.FX,
+                        CameraCalibrate.FY,
+                        CameraCalibrate.CX,
+                        CameraCalibrate.CY
+                )
                 .build();
 
         VisionPortal.Builder builder = new VisionPortal.Builder();
@@ -57,7 +74,13 @@ public class AprilTagTest extends LinearOpMode {
         builder.setCameraResolution(new Size(640, 480));
         builder.addProcessor(aprilTag);
 
+        // Enable camera streaming to FTC Dashboard
+        builder.enableLiveView(true);
+
         visionPortal = builder.build();
+
+        // Send camera stream to FTC Dashboard
+        FtcDashboard.getInstance().startCameraStream(visionPortal, 0);
     }
 
     private void telemetryAprilTag() {
