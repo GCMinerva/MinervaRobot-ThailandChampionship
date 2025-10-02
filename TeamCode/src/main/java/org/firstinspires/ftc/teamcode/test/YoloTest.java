@@ -130,7 +130,7 @@ public class YoloTest extends LinearOpMode {
     class YoloPipeline extends OpenCvPipeline {
         private final List<Detection> detections = new ArrayList<>();
         private Interpreter interpreter;
-        private int INPUT_SIZE = 640; // Will be updated based on model
+        private int INPUT_SIZE = 320; // Will be updated based on model
         private final float CONFIDENCE_THRESHOLD = 0.25f;
         private final float IOU_THRESHOLD = 0.45f;
         private final String[] labels = {"purpleball", "greenball"};
@@ -142,7 +142,7 @@ public class YoloTest extends LinearOpMode {
 
         private MappedByteBuffer loadModelFile(String modelPath) throws IOException {
             android.content.res.AssetFileDescriptor fileDescriptor =
-                hardwareMap.appContext.getAssets().openFd(modelPath);
+                    hardwareMap.appContext.getAssets().openFd(modelPath);
             FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
             FileChannel fileChannel = inputStream.getChannel();
             long startOffset = fileDescriptor.getStartOffset();
@@ -165,13 +165,13 @@ public class YoloTest extends LinearOpMode {
                 INPUT_SIZE = inputShape[1]; // Assuming [1, height, width, 3]
 
                 telemetry.addData("Model Input Shape", String.format("[%d, %d, %d, %d]",
-                    inputShape[0], inputShape[1], inputShape[2], inputShape[3]));
+                        inputShape[0], inputShape[1], inputShape[2], inputShape[3]));
                 telemetry.addData("Input Size", INPUT_SIZE);
 
                 // Handle both possible output formats
                 if (outputShape.length == 3) {
                     telemetry.addData("Model Output Shape", String.format("[%d, %d, %d]",
-                        outputShape[0], outputShape[1], outputShape[2]));
+                            outputShape[0], outputShape[1], outputShape[2]));
 
                     // Determine the format: [1, 7, 8400] or [1, 8400, 7]
                     if (outputShape[1] == 6 || outputShape[1] == (4 + labels.length)) {
@@ -184,7 +184,7 @@ public class YoloTest extends LinearOpMode {
                     outputBuffer = new float[outputShape[0]][outputShape[1]][outputShape[2]];
                 } else {
                     telemetry.addData("Model Output Shape", String.format("[%d, %d]",
-                        outputShape[0], outputShape[1]));
+                            outputShape[0], outputShape[1]));
                     // Fallback for 2D output
                     outputBuffer = new float[1][outputShape[1]][1];
                 }
@@ -367,8 +367,8 @@ public class YoloTest extends LinearOpMode {
                     // Draw label
                     String labelText = String.format("%s: %.2f", detection.label, detection.confidence);
                     Imgproc.putText(frame, labelText,
-                        new Point(detection.x, detection.y - 5),
-                        Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, color, 2);
+                            new Point(detection.x, detection.y - 5),
+                            Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, color, 2);
                 }
             }
         }
