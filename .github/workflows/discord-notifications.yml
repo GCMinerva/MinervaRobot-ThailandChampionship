@@ -1,0 +1,199 @@
+name: Discord Notifications
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  pull_request:
+    types: [opened, closed, reopened, synchronize]
+  issues:
+    types: [opened, closed, reopened]
+  release:
+    types: [published]
+  workflow_run:
+    workflows: ["*"]
+    types: [completed]
+  deployment_status:
+  create:
+  delete:
+  fork:
+  gollum:
+  issue_comment:
+    types: [created]
+  milestone:
+    types: [created, closed]
+  page_build:
+  project:
+    types: [created, updated, closed]
+  public:
+  registry_package:
+    types: [published, updated]
+  watch:
+    types: [started]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    name: Send Discord Notification
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Send Push Notification
+        if: github.event_name == 'push'
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          embed-title: "🚀 New Push to ${{ github.ref_name }}"
+          embed-description: |
+            **Repository:** ${{ github.repository }}
+            **Branch:** ${{ github.ref_name }}
+            **Commit:** [${{ github.event.head_commit.message }}](${{ github.event.head_commit.url }})
+            **Author:** ${{ github.event.head_commit.author.name }}
+          embed-color: 3066993
+          embed-url: ${{ github.event.head_commit.url }}
+          embed-timestamp: ${{ github.event.head_commit.timestamp }}
+          username: "GitHub Actions"
+          avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+      - name: Send Pull Request Notification
+        if: github.event_name == 'pull_request'
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          embed-title: "🔀 Pull Request ${{ github.event.action }}: #${{ github.event.pull_request.number }}"
+          embed-description: |
+            **Title:** ${{ github.event.pull_request.title }}
+            **Repository:** ${{ github.repository }}
+            **Author:** ${{ github.event.pull_request.user.login }}
+            **Branch:** ${{ github.event.pull_request.head.ref }} → ${{ github.event.pull_request.base.ref }}
+            **Status:** ${{ github.event.action }}
+            **[View Pull Request](${{ github.event.pull_request.html_url }})**
+          embed-color: 15844367
+          embed-url: ${{ github.event.pull_request.html_url }}
+          username: "GitHub Actions"
+          avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+      - name: Send Issue Notification
+        if: github.event_name == 'issues'
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          embed-title: "🐛 Issue ${{ github.event.action }}: #${{ github.event.issue.number }}"
+          embed-description: |
+            **Title:** ${{ github.event.issue.title }}
+            **Repository:** ${{ github.repository }}
+            **Author:** ${{ github.event.issue.user.login }}
+            **Status:** ${{ github.event.action }}
+            **[View Issue](${{ github.event.issue.html_url }})**
+          embed-color: 16776960
+          embed-url: ${{ github.event.issue.html_url }}
+          username: "GitHub Actions"
+          avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+      - name: Send Release Notification
+        if: github.event_name == 'release'
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          embed-title: "🎉 New Release: ${{ github.event.release.name }}"
+          embed-description: |
+            **Tag:** ${{ github.event.release.tag_name }}
+            **Repository:** ${{ github.repository }}
+            **Author:** ${{ github.event.release.author.login }}
+            **[View Release](${{ github.event.release.html_url }})**
+
+            ${{ github.event.release.body }}
+          embed-color: 5793266
+          embed-url: ${{ github.event.release.html_url }}
+          username: "GitHub Actions"
+          avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+      - name: Send Star Notification
+        if: github.event_name == 'watch'
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          embed-title: "⭐ New Star!"
+          embed-description: |
+            **Repository:** ${{ github.repository }}
+            **Starred by:** ${{ github.event.sender.login }}
+            **Total Stars:** ${{ github.event.repository.stargazers_count }}
+          embed-color: 16766720
+          username: "GitHub Actions"
+          avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+      - name: Send Fork Notification
+        if: github.event_name == 'fork'
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          embed-title: "🍴 Repository Forked!"
+          embed-description: |
+            **Repository:** ${{ github.repository }}
+            **Forked by:** ${{ github.event.forkee.owner.login }}
+            **Fork URL:** ${{ github.event.forkee.html_url }}
+            **Total Forks:** ${{ github.event.repository.forks_count }}
+          embed-color: 10181046
+          username: "GitHub Actions"
+          avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+      - name: Send Workflow Status Notification
+        if: github.event_name == 'workflow_run'
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          embed-title: "${{ github.event.workflow_run.conclusion == 'success' && '✅' || '❌' }} Workflow: ${{ github.event.workflow_run.name }}"
+          embed-description: |
+            **Repository:** ${{ github.repository }}
+            **Status:** ${{ github.event.workflow_run.conclusion }}
+            **Branch:** ${{ github.event.workflow_run.head_branch }}
+            **[View Workflow Run](${{ github.event.workflow_run.html_url }})**
+          embed-color: ${{ github.event.workflow_run.conclusion == 'success' && 3066993 || 15158332 }}
+          embed-url: ${{ github.event.workflow_run.html_url }}
+          username: "GitHub Actions"
+          avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+      - name: Send Comment Notification
+        if: github.event_name == 'issue_comment'
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          embed-title: "💬 New Comment on Issue #${{ github.event.issue.number }}"
+          embed-description: |
+            **Issue:** ${{ github.event.issue.title }}
+            **Repository:** ${{ github.repository }}
+            **Author:** ${{ github.event.comment.user.login }}
+            **[View Comment](${{ github.event.comment.html_url }})**
+
+            ${{ github.event.comment.body }}
+          embed-color: 7506394
+          embed-url: ${{ github.event.comment.html_url }}
+          username: "GitHub Actions"
+          avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+      - name: Send Generic Event Notification
+        if: |
+          github.event_name != 'push' &&
+          github.event_name != 'pull_request' &&
+          github.event_name != 'issues' &&
+          github.event_name != 'release' &&
+          github.event_name != 'watch' &&
+          github.event_name != 'fork' &&
+          github.event_name != 'workflow_run' &&
+          github.event_name != 'issue_comment'
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          embed-title: "📢 GitHub Event: ${{ github.event_name }}"
+          embed-description: |
+            **Repository:** ${{ github.repository }}
+            **Event Type:** ${{ github.event_name }}
+            **Triggered by:** ${{ github.actor }}
+            **[View Details](${{ github.event.repository.html_url }})**
+          embed-color: 9807270
+          username: "GitHub Actions"
+          avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"

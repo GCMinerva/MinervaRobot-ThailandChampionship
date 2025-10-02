@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.test;
+package org.firstinspires.ftc.teamcode.util;
 
 /**
  * Camera Calibration Data
@@ -7,24 +7,24 @@ package org.firstinspires.ftc.teamcode.test;
  * Calibration Pattern Results:
  *
  * Focals (pixels):
- *   Fx: 249.376
- *   Fy: 249.376
+ *   Fx: 1449.18
+ *   Fy: 1449.18
  *
  * Optical Center:
- *   Cx: 1062.11
- *   Cy: 460.204
+ *   Cx: 954.863
+ *   Cy: 544.831
  *
  * Radial Distortion (Brown's Model):
- *   K1: 0.000152435
- *   K2: -8.40784e-05
- *   K3: 1.8523e-06
- *   P1: 0.000314673
- *   P2: 0.000336862
+ *   K1: 0.0421727
+ *   K2: -0.205409
+ *   K3: 0.184011
+ *   P1: -0.00186866
+ *   P2: -0.00161809
  *
  * Skew: 0
  *
  * Statistics:
- *   Mean Square Reprojection Error: 0.378256 pixels
+ *   Mean Square Reprojection Error: 0.370918 pixels
  *
  * Note: This calibration is specific to the camera, lens, and resolution used.
  * Do not transfer calibration between different cameras or resolution settings.
@@ -34,25 +34,25 @@ package org.firstinspires.ftc.teamcode.test;
 public class CameraCalibrate {
 
     // Focal lengths in pixels
-    public static final double FX = 249.376;
-    public static final double FY = 249.376;
+    public static final double FX = 1449.18;
+    public static final double FY = 1449.18;
 
     // Optical center (principal point)
-    public static final double CX = 1062.11;
-    public static final double CY = 460.204;
+    public static final double CX = 954.863;
+    public static final double CY = 544.831;
 
     // Radial distortion coefficients (Brown's Model)
-    public static final double K1 = 0.000152435;
-    public static final double K2 = -8.40784e-05;
-    public static final double K3 = 1.8523e-06;
+    public static final double K1 = 0.0421727;
+    public static final double K2 = -0.205409;
+    public static final double K3 = 0.184011;
 
     // Tangential distortion coefficients
-    public static final double P1 = 0.000314673;
-    public static final double P2 = 0.000336862;
+    public static final double P1 = -0.00186866;
+    public static final double P2 = -0.00161809;
 
     // Skew coefficient
     public static final double SKEW = 0.0;
 
     // Calibration quality metric
-    public static final double MEAN_REPROJECTION_ERROR = 0.378256;
+    public static final double MEAN_REPROJECTION_ERROR = 0.370918;
 }
