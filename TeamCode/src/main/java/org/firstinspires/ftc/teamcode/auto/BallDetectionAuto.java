@@ -87,14 +87,14 @@ public class BallDetectionAuto extends LinearOpMode {
                         } else {
                             telemetry.addLine("Ball is centered!");
 
-                            // Activate intake
-                            robot.runIntake(RobotConfig.INTAKE_POWER);
-                            robot.activateIntakeServo();
+                            // TODO: Activate intake when intake subsystem is added
+                            // robot.runIntake(RobotConfig.INTAKE_POWER);
+                            // robot.activateIntakeServo();
 
                             sleep(2000);
 
-                            robot.runIntake(0);
-                            robot.restIntakeServo();
+                            // robot.runIntake(0);
+                            // robot.restIntakeServo();
                         }
                         telemetry.update();
                     }

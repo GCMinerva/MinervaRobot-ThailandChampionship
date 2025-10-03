@@ -64,7 +64,7 @@ public class ShooterTest extends OpMode {
 
         // X button: Stop shooter
         if (gamepad1.x) {
-            robot.shooter.stop();
+            robot.shooter.stopAll();
         }
 
         // Display telemetry

@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class Shooter {
 
     // Hardware
-    private DcMotor shooterMotor;
+    public DcMotor shooterMotor;  // Public for tuning access
     private Servo shooterServo;
 
     // Target position (shooting point center)

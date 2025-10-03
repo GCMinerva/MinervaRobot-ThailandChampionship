@@ -35,7 +35,13 @@ public class MinervaAutoDraff1 extends OpMode {
    private static final double START_X = 56.000;
    private static final double START_Y = 8.000;
    private static final double START_HEADING = 90; // degrees
-   private static final double WAIT_TIME_SECONDS = 5.0; // Wait time at shooting positions
+
+   // Shooter configuration
+   private static final double SHOOTER_TARGET_X = 11.0;  // Shooting target X position
+   private static final double SHOOTER_TARGET_Y = 135.0; // Shooting target Y position
+   private static final double SHOOTER_SPIN_UP_TIME = 0.5;  // Time for shooter to spin up
+   private static final double SHOOTER_FEED_TIME = 0.3;     // Time for ball to feed
+   private static final double SHOOTER_RESET_TIME = 0.3;    // Time for servo to reset
 
    private final Pose startPose = new Pose(START_X, START_Y, Math.toRadians(START_HEADING));
 
@@ -140,8 +146,28 @@ public class MinervaAutoDraff1 extends OpMode {
                }
                break;
            case 2:
-               // Wait after Path 1 (for shooting position)
-               if (waitTimer.getElapsedTimeSeconds() >= WAIT_TIME_SECONDS) {
+               // Shooting Position 1 - Prepare shooter
+               robotConfig.shooter.prepareShot(follower.getPose());
+               setPathState(21);
+               break;
+           case 21:
+               // Shooting Position 1 - Wait for spin up
+               if (waitTimer.getElapsedTimeSeconds() >= SHOOTER_SPIN_UP_TIME) {
+                   robotConfig.shooter.shoot();
+                   setPathState(22);
+               }
+               break;
+           case 22:
+               // Shooting Position 1 - Wait for ball to shoot
+               if (waitTimer.getElapsedTimeSeconds() >= SHOOTER_FEED_TIME) {
+                   robotConfig.shooter.reset();
+                   setPathState(23);
+               }
+               break;
+           case 23:
+               // Shooting Position 1 - Wait for servo reset, then continue
+               if (waitTimer.getElapsedTimeSeconds() >= SHOOTER_RESET_TIME) {
+                   robotConfig.shooter.stopAll();
                    follower.followPath(path2);
                    setPathState(3);
                }
@@ -162,8 +188,28 @@ public class MinervaAutoDraff1 extends OpMode {
                }
                break;
            case 5:
-               // Wait after Path 3 (for shooting position)
-               if (waitTimer.getElapsedTimeSeconds() >= WAIT_TIME_SECONDS) {
+               // Shooting Position 2 - Prepare shooter
+               robotConfig.shooter.prepareShot(follower.getPose());
+               setPathState(51);
+               break;
+           case 51:
+               // Shooting Position 2 - Wait for spin up
+               if (waitTimer.getElapsedTimeSeconds() >= SHOOTER_SPIN_UP_TIME) {
+                   robotConfig.shooter.shoot();
+                   setPathState(52);
+               }
+               break;
+           case 52:
+               // Shooting Position 2 - Wait for ball to shoot
+               if (waitTimer.getElapsedTimeSeconds() >= SHOOTER_FEED_TIME) {
+                   robotConfig.shooter.reset();
+                   setPathState(53);
+               }
+               break;
+           case 53:
+               // Shooting Position 2 - Wait for servo reset, then continue
+               if (waitTimer.getElapsedTimeSeconds() >= SHOOTER_RESET_TIME) {
+                   robotConfig.shooter.stopAll();
                    follower.followPath(path4);
                    setPathState(6);
                }
@@ -184,8 +230,28 @@ public class MinervaAutoDraff1 extends OpMode {
                }
                break;
            case 8:
-               // Wait after Path 5 (for shooting position)
-               if (waitTimer.getElapsedTimeSeconds() >= WAIT_TIME_SECONDS) {
+               // Shooting Position 3 - Prepare shooter
+               robotConfig.shooter.prepareShot(follower.getPose());
+               setPathState(81);
+               break;
+           case 81:
+               // Shooting Position 3 - Wait for spin up
+               if (waitTimer.getElapsedTimeSeconds() >= SHOOTER_SPIN_UP_TIME) {
+                   robotConfig.shooter.shoot();
+                   setPathState(82);
+               }
+               break;
+           case 82:
+               // Shooting Position 3 - Wait for ball to shoot
+               if (waitTimer.getElapsedTimeSeconds() >= SHOOTER_FEED_TIME) {
+                   robotConfig.shooter.reset();
+                   setPathState(83);
+               }
+               break;
+           case 83:
+               // Shooting Position 3 - Wait for servo reset, then continue
+               if (waitTimer.getElapsedTimeSeconds() >= SHOOTER_RESET_TIME) {
+                   robotConfig.shooter.stopAll();
                    follower.followPath(path6);
                    setPathState(9);
                }
@@ -213,8 +279,28 @@ public class MinervaAutoDraff1 extends OpMode {
                }
                break;
            case 12:
-               // Wait after Path 8 (for shooting position)
-               if (waitTimer.getElapsedTimeSeconds() >= WAIT_TIME_SECONDS) {
+               // Shooting Position 4 - Prepare shooter
+               robotConfig.shooter.prepareShot(follower.getPose());
+               setPathState(121);
+               break;
+           case 121:
+               // Shooting Position 4 - Wait for spin up
+               if (waitTimer.getElapsedTimeSeconds() >= SHOOTER_SPIN_UP_TIME) {
+                   robotConfig.shooter.shoot();
+                   setPathState(122);
+               }
+               break;
+           case 122:
+               // Shooting Position 4 - Wait for ball to shoot
+               if (waitTimer.getElapsedTimeSeconds() >= SHOOTER_FEED_TIME) {
+                   robotConfig.shooter.reset();
+                   setPathState(123);
+               }
+               break;
+           case 123:
+               // Shooting Position 4 - Final shot, wait for servo reset
+               if (waitTimer.getElapsedTimeSeconds() >= SHOOTER_RESET_TIME) {
+                   robotConfig.shooter.stopAll();
                    setPathState(-1); // End of autonomous
                }
                break;
@@ -224,6 +310,16 @@ public class MinervaAutoDraff1 extends OpMode {
    public void setPathState(int pState) {
        pathState = pState;
        pathTimer.resetTimer();
+   }
+
+   /**
+    * Check if current state is a shooting state
+    */
+   private boolean isShootingState(int state) {
+       return (state >= 2 && state <= 23) ||
+              (state >= 5 && state <= 53) ||
+              (state >= 8 && state <= 83) ||
+              (state >= 12 && state <= 123);
    }
 
    /**
@@ -281,10 +377,23 @@ public class MinervaAutoDraff1 extends OpMode {
        telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
        telemetry.addData("Elapsed Time", opmodeTimer.getElapsedTimeSeconds());
 
-       // Show wait timer during shooting positions
-       if (waitTimer != null && (pathState == 2 || pathState == 5 || pathState == 8 || pathState == 12)) {
-           telemetry.addData("Wait Timer", "%.2f / %.2f", waitTimer.getElapsedTimeSeconds(), WAIT_TIME_SECONDS);
+       // Show shooter info during shooting sequences
+       if (isShootingState(pathState)) {
+           double distance = robotConfig.shooter.getDistanceToTarget(follower.getPose());
+           double power = robotConfig.shooter.getCalculatedPower(follower.getPose());
+           telemetry.addData("", "");
+           telemetry.addData("=== SHOOTING ===", "");
+           telemetry.addData("Distance", "%.1f inches", distance);
+           telemetry.addData("Shooter Power", "%.2f", power);
+           telemetry.addData("In Range", robotConfig.shooter.isInRange(follower.getPose()) ? "YES" : "NO");
+
+           // Show which sub-state
+           if (pathState % 10 == 1) telemetry.addData("Status", "Spinning up...");
+           else if (pathState % 10 == 2) telemetry.addData("Status", "Shooting...");
+           else if (pathState % 10 == 3) telemetry.addData("Status", "Resetting...");
+           else telemetry.addData("Status", "Preparing...");
        }
+
        telemetry.update();
    }
 
@@ -305,12 +414,17 @@ public class MinervaAutoDraff1 extends OpMode {
        follower = Constants.createFollower(hardwareMap);
        follower.setStartingPose(startPose);
 
+       // Configure shooter
+       robotConfig.shooter.setTargetPosition(SHOOTER_TARGET_X, SHOOTER_TARGET_Y);
+       // TODO: Add your calibration values from ShooterTuning here
+       // robotConfig.shooter.setCalibration(minDist, minPower, maxDist, maxPower);
+
        // Build all paths
        buildPaths();
 
        telemetry.addData("Status", "Initialized");
        telemetry.addData("Camera", "Webcam 1");
-       telemetry.addData("Wait Time", WAIT_TIME_SECONDS + " seconds");
+       telemetry.addData("Shooter Target", "X: %.1f, Y: %.1f", SHOOTER_TARGET_X, SHOOTER_TARGET_Y);
        telemetry.update();
    }
 
