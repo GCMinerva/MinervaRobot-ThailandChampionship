@@ -1,4 +1,4 @@
-git push -u origin codex/fix-inference-error-in-yolotestpackage org.firstinspires.ftc.teamcode.auto.paths;
+package org.firstinspires.ftc.teamcode.auto.paths;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
