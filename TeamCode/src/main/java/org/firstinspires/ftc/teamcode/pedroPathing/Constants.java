@@ -26,8 +26,8 @@ public class Constants {
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(66.99826169952632)
-            .yVelocity(59.43552284541092);
+            .xVelocity(69.87935384114584) //69.25378802442177 70.19213674950788  70.0889349509412
+            .yVelocity(59.3845620143); //60.160392220564724 59.461314283956696 58.53197953832432
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(0)
             .strafePodX(0)
@@ -38,9 +38,9 @@ public class Constants {
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(3.25)
-            .forwardZeroPowerAcceleration(-41.71459429193726)
-            .lateralZeroPowerAcceleration(-69.37755501503779)
+            .mass(9.24809)
+            .forwardZeroPowerAcceleration(-33.725181778) //-31.803677872989322 , -31.678183588051873 , -37.693683872936724
+            .lateralZeroPowerAcceleration(-64.4723949292) //-63.010523933785336 , -61.48646982675581 , -68.92019102699733
             .translationalPIDFCoefficients(new PIDFCoefficients(
                     0.1,
                     0,
@@ -54,11 +54,11 @@ public class Constants {
                     0.005
             ))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(
-                    0.0165,
-                    0.007,
-                    0.0003,
+                    0.5,
+                    0.001,
+                    0.001,
                     0.6,
-                    0.05
+                    0.75
             ))
             .centripetalScaling(0.0005);
 

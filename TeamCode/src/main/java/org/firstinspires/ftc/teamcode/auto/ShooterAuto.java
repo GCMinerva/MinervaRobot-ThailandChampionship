@@ -93,7 +93,7 @@ public class ShooterAuto extends OpMode {
                     setPathState(5);
                 } else {
                     // Out of range, end auto
-                    robot.shooter.stop();
+                    robot.shooter.stopAll();
                     setPathState(-1);
                 }
                 break;
@@ -110,14 +110,14 @@ public class ShooterAuto extends OpMode {
             case 6:
                 // Second shot - wait for ball to shoot
                 if (actionTimer.getElapsedTimeSeconds() > 0.3) {
-                    robot.shooter.stop();
+                    robot.shooter.stopAll();
                     setPathState(-1);  // Done
                 }
                 break;
 
             default:
                 // Autonomous complete
-                robot.shooter.stop();
+                robot.shooter.stopAll();
                 break;
         }
 
@@ -141,6 +141,6 @@ public class ShooterAuto extends OpMode {
 
     @Override
     public void stop() {
-        robot.shooter.stop();
+        robot.shooter.stopAll();
     }
 }
