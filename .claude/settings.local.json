@@ -12,7 +12,11 @@
       "Bash(\"venv37\\Scripts\\labelImg.exe\")",
       "Bash(mkdir:*)",
       "Bash(gradlew:*)",
-      "Bash(.gradlew.bat clean:*)"
+      "Bash(.gradlew.bat clean:*)",
+      "Bash(dir \"C:\\Users\\Jnx03\\StudioProjects\\MinervaRobot\\model\")",
+      "Bash(dir:*)",
+      "Bash(copy:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
 public class RobotConfig {
 
@@ -17,6 +18,9 @@ public class RobotConfig {
     public Servo clawServo;
     public Servo wristServo;
     public Servo intakeServo;
+
+    // Subsystems
+    public Shooter shooter;
 
     // Motor positions and powers
     public static final double INTAKE_POWER = 1.0;
@@ -45,36 +49,13 @@ public class RobotConfig {
 
     private void initializeHardware() {
         // Initialize motors
-        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+        intakeMotor = hardwareMap.get(DcMotor.class, "intake");
         outtakeMotor = hardwareMap.get(DcMotor.class, "outtakeMotor");
         armMotor = hardwareMap.get(DcMotor.class, "armMotor");
         hangMotor = hardwareMap.get(DcMotor.class, "hangMotor");
 
-        // Set motor directions
-        intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        outtakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        armMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        hangMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        // Set zero power behavior
-        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        outtakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hangMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        // Set run mode
-        armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        // Initialize servos
-        clawServo = hardwareMap.get(Servo.class, "clawServo");
-        wristServo = hardwareMap.get(Servo.class, "wristServo");
-        intakeServo = hardwareMap.get(Servo.class, "intakeServo");
-
-        // Set initial servo positions
-        clawServo.setPosition(CLAW_OPEN);
-        wristServo.setPosition(WRIST_UP);
-        intakeServo.setPosition(INTAKE_SERVO_REST);
+        // Initialize shooter subsystem
+        shooter = new Shooter(hardwareMap);
     }
 
     // Motor control methods
