@@ -9,14 +9,8 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.config.RobotConfig;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-
-import java.util.List;
 
 @Autonomous(name = "Minerva Auto Draff 1", group = "Auto")
 public class MinervaAutoDraff1 extends OpMode {
@@ -26,10 +20,6 @@ public class MinervaAutoDraff1 extends OpMode {
    private int pathState;
    private RobotConfig robotConfig;
 
-   // AprilTag vision
-   private AprilTagProcessor aprilTag;
-   private VisionPortal visionPortal;
-   private int detectedAprilTagId = -1;
 
    // Configuration constants - change these to customize behavior
    private static final double START_X = 56.000;
@@ -207,8 +197,14 @@ public class MinervaAutoDraff1 extends OpMode {
                }
                break;
            case 3:
+               // Path 2 - Activate outtake
+               robotConfig.shooter.activateOuttake();
+               setPathState(31);
+               break;
+           case 31:
                // Wait for Path 2 to complete
                if (!follower.isBusy()) {
+                   robotConfig.shooter.deactivateOuttake();
                    follower.followPath(path3);
                    setPathState(4);
                }
@@ -266,8 +262,14 @@ public class MinervaAutoDraff1 extends OpMode {
                }
                break;
            case 6:
+               // Path 4 - Activate outtake
+               robotConfig.shooter.activateOuttake();
+               setPathState(61);
+               break;
+           case 61:
                // Wait for Path 4 to complete
                if (!follower.isBusy()) {
+                   robotConfig.shooter.deactivateOuttake();
                    follower.followPath(path5);
                    setPathState(7);
                }
@@ -325,15 +327,17 @@ public class MinervaAutoDraff1 extends OpMode {
                }
                break;
            case 9:
-               // Wait for Path 6 to complete
+               // Path 6 - Wait for completion
                if (!follower.isBusy()) {
                    follower.followPath(path7);
+                   robotConfig.shooter.activateOuttake();
                    setPathState(10);
                }
                break;
            case 10:
                // Wait for Path 7 to complete
                if (!follower.isBusy()) {
+                   robotConfig.shooter.deactivateOuttake();
                    follower.followPath(path8);
                    setPathState(11);
                }
@@ -407,53 +411,10 @@ public class MinervaAutoDraff1 extends OpMode {
               (state >= 12 && state <= 124);
    }
 
-   /**
-    * Initialize AprilTag detection with Camera 1
-    */
-   private void initAprilTag() {
-       // Create the AprilTag processor
-       aprilTag = new AprilTagProcessor.Builder()
-               .setDrawAxes(true)
-               .setDrawCubeProjection(true)
-               .setDrawTagOutline(true)
-               .build();
-
-       // Set decimation for better performance
-       aprilTag.setDecimation(2);
-
-       // Create the vision portal with Camera 1
-       visionPortal = new VisionPortal.Builder()
-               .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
-               .addProcessor(aprilTag)
-               .build();
-   }
-
-   /**
-    * Detect AprilTags and return the first detected tag ID
-    */
-   private void detectAprilTag() {
-       List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-
-       if (!currentDetections.isEmpty()) {
-           AprilTagDetection detection = currentDetections.get(0);
-           detectedAprilTagId = detection.id;
-
-           telemetry.addData("AprilTag Detected", "ID %d", detectedAprilTagId);
-           if (detection.metadata != null) {
-               telemetry.addData("Tag Name", detection.metadata.name);
-           }
-       } else {
-           telemetry.addData("AprilTag", "None detected");
-       }
-   }
 
    @Override
    public void loop() {
        follower.update();
-
-       // Continuously detect AprilTags
-       detectAprilTag();
-
        autonomousPathUpdate();
 
        telemetry.addData("Path State", pathState);
@@ -514,9 +475,6 @@ public class MinervaAutoDraff1 extends OpMode {
        waitTimer = new Timer();
        opmodeTimer.resetTimer();
 
-       // Initialize AprilTag vision
-       initAprilTag();
-
        // Initialize robot configuration
        robotConfig = new RobotConfig(hardwareMap);
 
@@ -526,22 +484,18 @@ public class MinervaAutoDraff1 extends OpMode {
 
        // Configure shooter
        robotConfig.shooter.setTargetPosition(SHOOTER_TARGET_X, SHOOTER_TARGET_Y);
-       // TODO: Add your calibration values from ShooterTuning here
-       // robotConfig.shooter.setCalibration(minDist, minPower, maxDist, maxPower);
 
        // Build all paths
        buildPaths();
 
        telemetry.addData("Status", "Initialized");
-       telemetry.addData("Camera", "Webcam 1");
-       telemetry.addData("Shooter Target", "X: %.1f, Y: %.1f", SHOOTER_TARGET_X, SHOOTER_TARGET_Y);
+       telemetry.addData("Start Position", "X: %.1f, Y: %.1f, Heading: %.0f°", START_X, START_Y, START_HEADING);
        telemetry.update();
    }
 
    @Override
    public void init_loop() {
-       // Detect AprilTags during initialization
-       detectAprilTag();
+       telemetry.addData("Status", "Ready to Start");
        telemetry.update();
    }
 
@@ -554,8 +508,5 @@ public class MinervaAutoDraff1 extends OpMode {
    @Override
    public void stop() {
        robotConfig.stopAllMotors();
-       if (visionPortal != null) {
-           visionPortal.close();
-       }
    }
 }
