@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "AutoPath4", group = "Test")
+@Autonomous(name = "AutoPath2", group = "Test")
 public class AutoPath2 extends OpMode {
 
     private Follower follower;
