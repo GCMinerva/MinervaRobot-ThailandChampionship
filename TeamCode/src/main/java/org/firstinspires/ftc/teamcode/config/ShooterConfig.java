@@ -258,4 +258,37 @@ public class ShooterConfig {
     public double getTargetY() {
         return targetY;
     }
+
+    /**
+     * Execute ball shooter sequence
+     * Sets motors to specified power and runs outtake with servo cycling
+     * @param shooterPower Power for shooter and negashooter motors
+     */
+    public void startBallShooter(double shooterPower) {
+        shooterMotor.setPower(shooterPower);
+        negaShooterMotor.setPower(shooterPower);
+        shooterServo.setPosition(0.0); // Start position
+        outtakeMotor.setPower(0);
+        isReady = true;
+    }
+
+    /**
+     * Execute one cycle of the ball shooter sequence
+     * Servo goes to 180 (1.0) for 0.5s, then down, outtake runs for 1.5s, servo up again
+     */
+    public void servoUp() {
+        shooterServo.setPosition(1.0); // 180 degrees
+    }
+
+    public void servoDown() {
+        shooterServo.setPosition(0.0); // 0 degrees
+    }
+
+    public void activateOuttake() {
+        outtakeMotor.setPower(1.0);
+    }
+
+    public void deactivateOuttake() {
+        outtakeMotor.setPower(0);
+    }
 }
