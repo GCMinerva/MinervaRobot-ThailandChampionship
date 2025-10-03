@@ -260,35 +260,66 @@ public class ShooterConfig {
     }
 
     /**
-     * Execute ball shooter sequence
-     * Sets motors to specified power and runs outtake with servo cycling
-     * @param shooterPower Power for shooter and negashooter motors
+     * SHOOT FUNCTION
+     * Spins shooter and negashooter motors at speed 1.0
+     * Then executes putshoot 3 times while motors keep spinning
      */
-    public void startBallShooter(double shooterPower) {
-        shooterMotor.setPower(shooterPower);
-        negaShooterMotor.setPower(shooterPower);
-        shooterServo.setPosition(0.0); // Start position
-        outtakeMotor.setPower(0);
-        isReady = true;
+    public void shoot() {
+        // Start shooter motors at speed 1
+        shooterMotor.setPower(1.0);
+        negaShooterMotor.setPower(1.0);
+
+        // Execute putshoot 3 times
+        for (int i = 0; i < 3; i++) {
+            putshoot();
+        }
     }
 
     /**
-     * Execute one cycle of the ball shooter sequence
-     * Servo goes to 180 (1.0) for 0.5s, then down, outtake runs for 1.5s, servo up again
+     * PUTSHOOT FUNCTION (called inside shoot)
+     * Moves servo to 180 degrees for 1 second, then moves back
+     * Then runs outtake motor at speed 1 for 1 second
      */
-    public void servoUp() {
-        shooterServo.setPosition(1.0); // 180 degrees
+    private void putshoot() {
+        // Move servo to 180 degrees (position 1.0)
+        shooterServo.setPosition(1.0);
+
+        // Wait 1 second
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        // Move servo back to 0 degrees
+        shooterServo.setPosition(0.0);
+
+        // Run outtake motor at speed 1 for 1 second
+        outtakeMotor.setPower(1.0);
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        // Stop outtake
+        outtakeMotor.setPower(0);
     }
 
-    public void servoDown() {
-        shooterServo.setPosition(0.0); // 0 degrees
-    }
-
-    public void activateOuttake() {
+    /**
+     * LOADER FUNCTION - ON
+     * Turns on outtake motor at speed 1.0
+     */
+    public void loader_on() {
         outtakeMotor.setPower(1.0);
     }
 
-    public void deactivateOuttake() {
+    /**
+     * LOADER FUNCTION - OFF
+     * Turns off outtake motor
+     */
+    public void loader_off() {
         outtakeMotor.setPower(0);
     }
 }
