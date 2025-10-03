@@ -12,14 +12,14 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "AutoPath4", group = "Test")
+@Autonomous(name = "AutoPath3", group = "Test")
 public class AutoPath3 extends OpMode {
 
     private Follower follower;
     private Timer opmodeTimer;
     private PathChain chain; // single chain that contains all subpaths
 
-    private final Pose startPose = new Pose(56.000, 8.000, Math.toRadians(90));
+    private final Pose startPose = new Pose(64.000, 80.000, Math.toRadians(90));
 
     private void buildPaths() {
         PathBuilder builder = new PathBuilder(follower, Constants.pathConstraints);
