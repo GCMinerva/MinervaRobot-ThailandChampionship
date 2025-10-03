@@ -167,20 +167,7 @@ public class ShooterConfig {
     }
 
     /**
-     * Shoot the ball (activate servo and feed)
-     * Call this after prepareShot() when motors are at speed
-     */
-    public void shoot() {
-        if (isReady) {
-            shooterServo.setPosition(SERVO_SHOOT);
-            feedBall();
-            isReady = false;
-        }
-    }
-
-    /**
      * Reset servo to prepare for next ball
-     * Must be called before shoot() can be used again
      */
     public void reset() {
         shooterServo.setPosition(SERVO_RESET);
@@ -257,5 +244,79 @@ public class ShooterConfig {
      */
     public double getTargetY() {
         return targetY;
+    }
+
+    /**
+     * SHOOT FUNCTION
+     * Spins shooter and negashooter motors at speed 1.0
+     * Then executes putshoot 3 times while motors keep spinning
+     */
+    public void shoot() {
+        shoot(1.0);
+    }
+
+    /**
+     * SHOOT FUNCTION with custom power
+     * Spins shooter and negashooter motors at specified speed
+     * Then executes putshoot 3 times while motors keep spinning
+     * @param power Speed for shooter and negashooter motors (0.0 to 1.0)
+     */
+    public void shoot(double power) {
+        // Start shooter motors at specified speed
+        shooterMotor.setPower(power);
+        negaShooterMotor.setPower(power);
+
+        // Execute putshoot 3 times
+        for (int i = 0; i < 3; i++) {
+            putshoot();
+        }
+    }
+
+    /**
+     * PUTSHOOT FUNCTION (called inside shoot)
+     * Moves servo to 180 degrees for 1 second, then moves back
+     * Then runs outtake motor at speed 1 for 1 second
+     */
+    private void putshoot() {
+        // Move servo to 180 degrees (position 1.0)
+        shooterServo.setPosition(1.0);
+
+        // Wait 1 second
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        // Move servo back to 0 degrees
+        shooterServo.setPosition(0.0);
+
+        // Run outtake motor at speed 1 for 1 second
+        outtakeMotor.setPower(1.0);
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        // Stop outtake
+        outtakeMotor.setPower(0);
+    }
+
+    /**
+     * LOADER FUNCTION - ON
+     * Turns on outtake motor at speed 1.0
+     */
+    public void loader_on() {
+        outtakeMotor.setPower(1.0);
+    }
+
+    /**
+     * LOADER FUNCTION - OFF
+     * Turns off outtake motor
+     */
+    public void loader_off() {
+        outtakeMotor.setPower(0);
     }
 }
