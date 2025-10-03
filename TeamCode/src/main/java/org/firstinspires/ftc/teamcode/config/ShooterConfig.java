@@ -167,20 +167,7 @@ public class ShooterConfig {
     }
 
     /**
-     * Shoot the ball (activate servo and feed)
-     * Call this after prepareShot() when motors are at speed
-     */
-    public void shoot() {
-        if (isReady) {
-            shooterServo.setPosition(SERVO_SHOOT);
-            feedBall();
-            isReady = false;
-        }
-    }
-
-    /**
      * Reset servo to prepare for next ball
-     * Must be called before shoot() can be used again
      */
     public void reset() {
         shooterServo.setPosition(SERVO_RESET);
@@ -265,9 +252,19 @@ public class ShooterConfig {
      * Then executes putshoot 3 times while motors keep spinning
      */
     public void shoot() {
-        // Start shooter motors at speed 1
-        shooterMotor.setPower(1.0);
-        negaShooterMotor.setPower(1.0);
+        shoot(1.0);
+    }
+
+    /**
+     * SHOOT FUNCTION with custom power
+     * Spins shooter and negashooter motors at specified speed
+     * Then executes putshoot 3 times while motors keep spinning
+     * @param power Speed for shooter and negashooter motors (0.0 to 1.0)
+     */
+    public void shoot(double power) {
+        // Start shooter motors at specified speed
+        shooterMotor.setPower(power);
+        negaShooterMotor.setPower(power);
 
         // Execute putshoot 3 times
         for (int i = 0; i < 3; i++) {
