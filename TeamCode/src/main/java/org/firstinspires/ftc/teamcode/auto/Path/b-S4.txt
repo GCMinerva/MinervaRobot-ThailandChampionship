@@ -77,5 +77,5 @@
       // Path 11
       new BezierLine(new Pose(20.759, 83.978), new Pose(65.619, 70.250))
     )
-    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(130))
+    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
     .build();
