@@ -48,7 +48,7 @@
         new Pose(67.310, 68.531)
       )
     )
-    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(131))
+    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
     .addPath(
       // Path 8
       new BezierCurve(
@@ -71,5 +71,5 @@
         new Pose(67.310, 68.531)
       )
     )
-    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(131))
+    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
     .build();
