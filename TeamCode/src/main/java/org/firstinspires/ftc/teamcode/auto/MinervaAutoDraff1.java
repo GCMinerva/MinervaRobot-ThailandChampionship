@@ -4,7 +4,10 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
+import com.pedropathing.paths.PathConstraints;
+import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.config.RobotConfig;
@@ -26,6 +29,8 @@ public class MinervaAutoDraff1 extends OpMode {
    private PathChain path1;
    private PathChain path2;
    private int pathState = 0;
+   private Timer shootTimer;
+   private int shootCycle = 0;
 
    @Override
    public void init() {
@@ -36,13 +41,15 @@ public class MinervaAutoDraff1 extends OpMode {
        follower = Constants.createFollower(hardwareMap);
        follower.setStartingPose(startPose);
 
+       // Initialize timer
+       shootTimer = new Timer();
+
        // Build path 1
        path1 = follower.pathBuilder()
            .addPath(new BezierLine(new Pose(56.000, 8.000), new Pose(59.344, 23.397)))
-           .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(110))
+           .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(100))
            .build();
 
-       // Build path 2 (two curves combined)
        path2 = follower.pathBuilder()
            .addPath(
                new BezierCurve(
@@ -51,7 +58,7 @@ public class MinervaAutoDraff1 extends OpMode {
                    new Pose(18.718, 35.521)
                )
            )
-           .setLinearHeadingInterpolation(Math.toRadians(110), Math.toRadians(180))
+           .setLinearHeadingInterpolation(Math.toRadians(100), Math.toRadians(180))
            .addPath(
                new BezierCurve(
                    new Pose(18.718, 35.521),
@@ -59,7 +66,7 @@ public class MinervaAutoDraff1 extends OpMode {
                    new Pose(59.770, 23.397)
                )
            )
-           .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(110))
+           .setConstantHeadingInterpolation(Math.toRadians(180))
            .build();
 
        telemetry.addData("Status", "Initialized");
@@ -91,14 +98,66 @@ public class MinervaAutoDraff1 extends OpMode {
                // Wait for path 1 to complete
                if (!follower.isBusy()) {
                    follower.breakFollowing();
+                   // Start shooting sequence at 0.85 power
+                   robotConfig.shooter.startShootingSequence(0.85);
+                   shootCycle = 0;
+                   shootTimer.resetTimer();
                    pathState = 2;
                }
                break;
+
+           // === SHOOTING SEQUENCE 1 (3 cycles) ===
            case 2:
-               // Execute shoot function at 0.75 power
-               robotConfig.shooter.shoot(0.75);
-               pathState = 3;
+               // Servo up and stop outtake
+               robotConfig.shooter.servoUp();
+               robotConfig.shooter.deactivateOuttake();
+               shootTimer.resetTimer();
+               pathState = 21;
                break;
+           case 21:
+               // Wait 0.1 second then servo down
+               if (shootTimer.getElapsedTimeSeconds() >= 0.1) {
+                   robotConfig.shooter.servoDown();
+                   shootTimer.resetTimer();
+                   pathState = 22;
+               }
+               break;
+           case 22:
+               // Wait 2 seconds
+               if (shootTimer.getElapsedTimeSeconds() >= 2.0) {
+                   shootTimer.resetTimer();
+                   pathState = 23;
+               }
+               break;
+           case 23:
+               // Activate outtake
+               robotConfig.shooter.activateOuttake();
+               shootTimer.resetTimer();
+               pathState = 24;
+               break;
+           case 24:
+               // Wait 1 second for outtake, then servo up again
+               if (shootTimer.getElapsedTimeSeconds() >= 1.0) {
+                   robotConfig.shooter.deactivateOuttake();
+                   robotConfig.shooter.servoUp();
+                   shootTimer.resetTimer();
+                   pathState = 25;
+               }
+               break;
+           case 25:
+               // Small delay before next cycle
+               if (shootTimer.getElapsedTimeSeconds() >= 0.1) {
+                   shootCycle++;
+
+                   if (shootCycle < 3) {
+                       shootTimer.resetTimer();
+                       pathState = 21; // Repeat from servo down
+                   } else {
+                       pathState = 3; // Done shooting
+                   }
+               }
+               break;
+
            case 3:
                // Stop shooter motors and start path 2
                robotConfig.shooter.stopAll();
@@ -109,14 +168,66 @@ public class MinervaAutoDraff1 extends OpMode {
                // Wait for path 2 to complete
                if (!follower.isBusy()) {
                    follower.breakFollowing();
+                   // Start shooting sequence again at 0.85 power
+                   robotConfig.shooter.startShootingSequence(0.85);
+                   shootCycle = 0;
+                   shootTimer.resetTimer();
                    pathState = 5;
                }
                break;
+
+           // === SHOOTING SEQUENCE 2 (3 cycles) ===
            case 5:
-               // Execute shoot function again at 0.75 power
-               robotConfig.shooter.shoot(0.75);
-               pathState = 6;
+               // Servo up and stop outtake
+               robotConfig.shooter.servoUp();
+               robotConfig.shooter.deactivateOuttake();
+               shootTimer.resetTimer();
+               pathState = 51;
                break;
+           case 51:
+               // Wait 0.1 second then servo down
+               if (shootTimer.getElapsedTimeSeconds() >= 0.1) {
+                   robotConfig.shooter.servoDown();
+                   shootTimer.resetTimer();
+                   pathState = 52;
+               }
+               break;
+           case 52:
+               // Wait 2 seconds
+               if (shootTimer.getElapsedTimeSeconds() >= 2.0) {
+                   shootTimer.resetTimer();
+                   pathState = 53;
+               }
+               break;
+           case 53:
+               // Activate outtake
+               robotConfig.shooter.activateOuttake();
+               shootTimer.resetTimer();
+               pathState = 54;
+               break;
+           case 54:
+               // Wait 1 second for outtake, then servo up again
+               if (shootTimer.getElapsedTimeSeconds() >= 1.0) {
+                   robotConfig.shooter.deactivateOuttake();
+                   robotConfig.shooter.servoUp();
+                   shootTimer.resetTimer();
+                   pathState = 55;
+               }
+               break;
+           case 55:
+               // Small delay before next cycle
+               if (shootTimer.getElapsedTimeSeconds() >= 0.1) {
+                   shootCycle++;
+
+                   if (shootCycle < 3) {
+                       shootTimer.resetTimer();
+                       pathState = 51; // Repeat from servo down
+                   } else {
+                       pathState = 6; // Done shooting
+                   }
+               }
+               break;
+
            case 6:
                // Done - stop all motors
                robotConfig.shooter.stopAll();
@@ -126,6 +237,7 @@ public class MinervaAutoDraff1 extends OpMode {
 
        // Display telemetry
        telemetry.addData("Path State", pathState);
+       telemetry.addData("Shoot Cycle", shootCycle);
        telemetry.addData("X", follower.getPose().getX());
        telemetry.addData("Y", follower.getPose().getY());
        telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
