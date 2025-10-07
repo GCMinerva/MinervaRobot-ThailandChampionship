@@ -5,6 +5,7 @@ repositories {
     maven { url = 'https://maven.brott.dev/' }                  // EasyOpenCV, OpenFTC
     maven { url = 'https://maven.pedropathing.com' }            // Pedro Pathing
     maven { url = "https://mymaven.bylazar.com/releases" }      // FullPanels
+    maven { url = uri("https://maven.vingving.jnx03.xyz")} //Stupid Thing dev by jean at 3 am
 }
 
 dependencies {
@@ -21,7 +22,7 @@ dependencies {
     implementation 'org.firstinspires.ftc:Vision:11.0.0'
 
     // AndroidX / UI
-    implementation 'androidx.appcompat:appcompat:1.7.1'
+//    implementation 'androidx.appcompat:appcompat:1.7.1'
 
     // -------------------------------------------------------
     // Pathing / Telemetry / Dashboard
@@ -35,8 +36,6 @@ dependencies {
     // Computer Vision / AI
     // -------------------------------------------------------
     implementation 'org.openftc:easyopencv:1.5.3'
-    implementation 'org.openftc:apriltag:2.1.2'                      // AprilTag detection
-    implementation 'org.opencv:opencv-android:4.10.0'                // Pre/Post-processing
 
     // TensorFlow Lite (AI / Object Detection / Neural Control)
     implementation 'org.tensorflow:tensorflow-lite:2.16.1'
@@ -47,10 +46,16 @@ dependencies {
     // -------------------------------------------------------
     // Performance / Stability / Debugging
     // -------------------------------------------------------
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0'  // async tasks
-    implementation 'androidx.concurrent:concurrent-futures:1.2.0'
-    implementation 'com.google.code.gson:gson:2.11.0'                    // config parsing
-    implementation 'org.tinylog:tinylog-api-kotlin:2.7.0'
-    implementation 'org.tinylog:tinylog-impl:2.7.0'
-    implementation 'com.squareup.leakcanary:leakcanary-android:2.14'     // memory leak tracking
+//    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0'  // async tasks
+//    implementation 'androidx.concurrent:concurrent-futures:1.2.0'
+//    implementation 'com.google.code.gson:gson:2.11.0'                    // config parsing
+//    implementation 'org.tinylog:tinylog-api-kotlin:2.7.0'
+//    implementation 'org.tinylog:tinylog-impl:2.7.0'
+//    implementation 'com.squareup.leakcanary:leakcanary-android:2.14'     // memory leak tracking
+
+    // -------------------------------------------------------
+    // VingVing Pre
+    // -------------------------------------------------------
+    implementation("com.vingvingrobot:core:0.0.1")
+    implementation("com.vingvingrobot:ftc:0.0.1")
 }
