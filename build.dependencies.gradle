@@ -1,31 +1,56 @@
 repositories {
+    google()
     mavenCentral()
-    google() // Needed for androidx
-    maven { url = 'https://maven.brott.dev/' }
-    maven { url = 'https://maven.pedropathing.com' }
-    maven { url = "https://mymaven.bylazar.com/releases" }
+
+    maven { url = 'https://maven.brott.dev/' }                  // EasyOpenCV, OpenFTC
+    maven { url = 'https://maven.pedropathing.com' }            // Pedro Pathing
+    maven { url = "https://mymaven.bylazar.com/releases" }      // FullPanels
 }
 
 dependencies {
+    // -------------------------------------------------------
+    // FTC SDK
+    // -------------------------------------------------------
     implementation 'org.firstinspires.ftc:Inspection:11.0.0'
     implementation 'org.firstinspires.ftc:Blocks:11.0.0'
-    //noinspection Aligned16KB
     implementation 'org.firstinspires.ftc:RobotCore:11.0.0'
     implementation 'org.firstinspires.ftc:RobotServer:11.0.0'
     implementation 'org.firstinspires.ftc:OnBotJava:11.0.0'
     implementation 'org.firstinspires.ftc:Hardware:11.0.0'
     implementation 'org.firstinspires.ftc:FtcCommon:11.0.0'
     implementation 'org.firstinspires.ftc:Vision:11.0.0'
+
+    // AndroidX / UI
     implementation 'androidx.appcompat:appcompat:1.7.1'
 
+    // -------------------------------------------------------
+    // Pathing / Telemetry / Dashboard
+    // -------------------------------------------------------
     implementation 'com.pedropathing:ftc:2.0.2'
     implementation 'com.pedropathing:telemetry:1.0.0'
-    implementation "com.bylazar:fullpanels:1.0.6"
     implementation 'com.acmerobotics.dashboard:dashboard:0.5.0'
+    implementation "com.bylazar:fullpanels:1.0.6"
 
+    // -------------------------------------------------------
+    // Computer Vision / AI
+    // -------------------------------------------------------
     implementation 'org.openftc:easyopencv:1.5.3'
+    implementation 'org.openftc:apriltag:2.1.2'                      // AprilTag detection
+    implementation 'org.opencv:opencv-android:4.10.0'                // Pre/Post-processing
+
+    // TensorFlow Lite (AI / Object Detection / Neural Control)
     implementation 'org.tensorflow:tensorflow-lite:2.16.1'
     implementation 'org.tensorflow:tensorflow-lite-support:0.4.3'
     implementation 'org.tensorflow:tensorflow-lite-select-tf-ops:2.11.0'
+    implementation 'org.tensorflow:tensorflow-lite-gpu:2.16.1'       // GPU acceleration
 
+    // -------------------------------------------------------
+    // Performance / Stability / Debugging
+    // -------------------------------------------------------
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0'  // async tasks
+    implementation 'androidx.concurrent:concurrent-futures:1.2.0'
+    implementation 'com.google.code.gson:gson:2.11.0'                    // config parsing
+    implementation 'org.tinylog:tinylog-api-kotlin:2.7.0'
+    implementation 'org.tinylog:tinylog-impl:2.7.0'
+    implementation 'com.squareup.leakcanary:leakcanary-android:2.14'     // memory leak tracking
 }
