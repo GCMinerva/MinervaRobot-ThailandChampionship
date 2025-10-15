@@ -1,0 +1,54 @@
+ .addPath(
+      // Path 1
+      new BezierLine(new Pose(104.000, 136.000), new Pose(87.995, 85.144))
+    )
+    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(48))
+    .addPath(
+      // Path 2
+      new BezierCurve(
+        new Pose(87.995, 85.144),
+        new Pose(92.923, 84.321),
+        new Pose(102.512, 83.335)
+      )
+    )
+    .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
+    .addPath(
+      // Path 3
+      new BezierLine(new Pose(102.512, 83.335), new Pose(120.971, 83.246))
+    )
+    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+    .addPath(
+      // Path 4
+      new BezierCurve(
+        new Pose(120.971, 83.246),
+        new Pose(77.511, 88.622),
+        new Pose(89.966, 70.880),
+        new Pose(127.602, 73.030)
+      )
+    )
+    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
+    .addPath(
+      // Path 5
+      new BezierLine(new Pose(127.602, 73.030), new Pose(87.995, 85.144))
+    )
+    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(48))
+    .addPath(
+      // Path 6
+      new BezierCurve(
+        new Pose(87.995, 85.144),
+        new Pose(88.174, 59.948),
+        new Pose(102.332, 59.320)
+      )
+    )
+    .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
+    .addPath(
+      // Path 7
+      new BezierLine(new Pose(102.332, 59.320), new Pose(120.971, 59.231))
+    )
+    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+    .addPath(
+      // Path 8
+      new BezierLine(new Pose(120.971, 59.231), new Pose(87.995, 85.144))
+    )
+    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
+    .build();
