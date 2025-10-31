@@ -55,6 +55,16 @@ public class MinervaProto2 extends LinearOpMode {
     private int ballCount = 0;
     private static final int MAX_BALLS = 3;
 
+    // Sorter servo positions
+    private static final double SORTER_TRAY_1 = 0.0;   // First tray (initial position)
+    private static final double SORTER_TRAY_2 = 0.4;   // Second tray
+    private static final double SORTER_TRAY_3 = 0.75;  // Third tray
+
+    // Sorter shooting positions
+    private static final double SORTER_SHOOT_1 = 0.55; // Shoot from tray 1
+    private static final double SORTER_SHOOT_2 = 0.9;  // Shoot from tray 2
+    private static final double SORTER_SHOOT_3 = 0.15; // Shoot from tray 3
+
     // Path state machine
     private int pathState = 0;
     private PathChain currentPath;
@@ -97,8 +107,8 @@ public class MinervaProto2 extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        // Set sorter servo to 0 at start
-        sorterServo.setPosition(0);
+        // Set sorter servo to tray 1 (position 0) at start
+        sorterServo.setPosition(SORTER_TRAY_1);
 
         // Main autonomous loop
         while (opModeIsActive()) {
@@ -135,7 +145,7 @@ public class MinervaProto2 extends LinearOpMode {
         colorSensor = hardwareMap.get(ColorSensor.class, "colorsen");
 
         // Set initial positions
-        sorterServo.setPosition(0);
+        sorterServo.setPosition(SORTER_TRAY_1);  // Start at tray 1 (position 0)
         binitServo.setPosition(0);
     }
 
@@ -380,6 +390,7 @@ public class MinervaProto2 extends LinearOpMode {
 
     /**
      * Check color sensor and handle ball detection
+     * First ball stays at tray 1 (0.0), second ball moves to tray 2 (0.4), third ball moves to tray 3 (0.75)
      */
     private void checkColorSensor() {
         if (ballCount >= MAX_BALLS) {
@@ -402,17 +413,29 @@ public class MinervaProto2 extends LinearOpMode {
             detectedColor = BallColor.PURPLE;
         }
 
-        // If a ball is detected, add to memory and rotate sorter
+        // If a ball is detected, add to memory and move sorter to next tray
         if (detectedColor != BallColor.NONE) {
             ballMemory.add(detectedColor);
             ballCount++;
 
-            // Rotate sorter servo by 45 degrees (approximately 0.125 position units)
-            double currentPosition = sorterServo.getPosition();
-            sorterServo.setPosition(currentPosition + 0.125);
+            // Move sorter to appropriate tray based on ball count
+            switch (ballCount) {
+                case 1:
+                    // First ball stays at tray 1, no movement needed
+                    sorterServo.setPosition(SORTER_TRAY_1);
+                    break;
+                case 2:
+                    // Second ball detected, move to tray 2
+                    sorterServo.setPosition(SORTER_TRAY_2);
+                    break;
+                case 3:
+                    // Third ball detected, move to tray 3
+                    sorterServo.setPosition(SORTER_TRAY_3);
+                    break;
+            }
 
             // Brief pause to allow servo to move
-            sleep(200);
+            sleep(300);
         }
     }
 
@@ -422,7 +445,7 @@ public class MinervaProto2 extends LinearOpMode {
     private void resetBallMemory() {
         ballMemory.clear();
         ballCount = 0;
-        sorterServo.setPosition(0);
+        sorterServo.setPosition(SORTER_TRAY_1);  // Reset to tray 1 (position 0)
     }
 
     /**
@@ -500,6 +523,7 @@ public class MinervaProto2 extends LinearOpMode {
 
     /**
      * Shoot balls in pattern based on AprilTag ID
+     * Uses sorter positions: 0.55 for tray 1, 0.9 for tray 2, 0.15 for tray 3
      */
     private void shootBallsInPattern() {
         List<Integer> shootOrder = new ArrayList<>();
@@ -531,7 +555,7 @@ public class MinervaProto2 extends LinearOpMode {
 
         // Execute shooting sequence
         for (int ballIndex : shootOrder) {
-            shootSingleBall();
+            shootSingleBall(ballIndex);
         }
     }
 
@@ -540,22 +564,49 @@ public class MinervaProto2 extends LinearOpMode {
      */
     private void shootAllBalls() {
         for (int i = 0; i < ballMemory.size(); i++) {
-            shootSingleBall();
+            shootSingleBall(i);
         }
     }
 
     /**
-     * Shoot a single ball
-     * Sets motor to 180 (position), servo to 60 degrees, then resets
+     * Shoot a single ball from specified tray
+     * @param trayIndex 0 = tray 1, 1 = tray 2, 2 = tray 3
+     * Moves sorter to shooting position for that tray:
+     * - Tray 1: 0.55
+     * - Tray 2: 0.9
+     * - Tray 3: 0.15
      */
-    private void shootSingleBall() {
-        // Set binit servo to 60 degrees (0.33 position for 180-degree servo)
+    private void shootSingleBall(int trayIndex) {
+        // Move sorter to shooting position for the specified tray
+        double shootPosition;
+        switch (trayIndex) {
+            case 0:
+                shootPosition = SORTER_SHOOT_1;  // 0.55 for tray 1
+                break;
+            case 1:
+                shootPosition = SORTER_SHOOT_2;  // 0.9 for tray 2
+                break;
+            case 2:
+                shootPosition = SORTER_SHOOT_3;  // 0.15 for tray 3
+                break;
+            default:
+                shootPosition = SORTER_SHOOT_1;
+                break;
+        }
+
+        // Set sorter to shooting position
+        sorterServo.setPosition(shootPosition);
+
+        // Wait for sorter to move into position
+        sleep(400);
+
+        // Set binit servo to 60 degrees (0.33 position for 180-degree servo) to eject ball
         binitServo.setPosition(0.33);
 
         // Wait for ball to be ejected
         sleep(500);
 
-        // Reset servo
+        // Reset binit servo
         binitServo.setPosition(0);
 
         // Wait before next ball
@@ -597,6 +648,7 @@ public class MinervaProto2 extends LinearOpMode {
         for (int i = 0; i < ballMemory.size(); i++) {
             telemetry.addData("Ball " + (i + 1), ballMemory.get(i));
         }
+        telemetry.addData("Sorter Position", "%.2f", sorterServo.getPosition());
 
         telemetry.addData("=== POSITION ===", "");
         telemetry.addData("X", "%.1f", currentPose.getX());
