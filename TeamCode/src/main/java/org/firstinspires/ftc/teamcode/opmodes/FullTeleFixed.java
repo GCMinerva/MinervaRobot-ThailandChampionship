@@ -14,8 +14,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
  * FullTeleFixed - Enhanced TeleOp with PedroPathing Integration (OpMode version)
  *
  * Gamepad2 (Driver):
- * - Left/Right Stick: Manual drivetrain control
- * - A Button: Auto-navigate to position (56, 36, 130°)
+ * - Left/Right Stick: Manual drivetrain control (cancels auto-nav if active)
+ * - A Button: Auto-navigate to position (71.7, 67.1, 132.2°) [can press multiple times]
  * - D-Pad Up/Down: Adjust outtake speed (+/- 0.05, 250ms delay)
  * - X Button: Start outtake motor
  * - Y Button: Stop outtake motor
@@ -71,7 +71,7 @@ public class FullTeleFixed extends OpMode {
 
     // Starting pose (90 degrees to match field orientation)
     private final Pose startPose = new Pose(58, 0, Math.toRadians(90));
-    private final Pose targetPose = new Pose(56, 36, Math.toRadians(130));
+    private final Pose targetPose = new Pose(71.7, 67.1, Math.toRadians(132.2));
 
     @Override
     public void init() {
@@ -138,12 +138,25 @@ public class FullTeleFixed extends OpMode {
 
         // ===== GAMEPAD2: DRIVETRAIN CONTROL =====
 
-        if (!autoNavigating) {
-            // Manual control
-            double forwardSpeed = -gamepad2.left_stick_y;
-            double strafeSpeed = gamepad2.left_stick_x;
-            double turnSpeed = gamepad2.right_stick_x;  // Fixed: removed negative to correct rotation direction
+        // Get joystick inputs
+        double forwardSpeed = -gamepad2.left_stick_y;
+        double strafeSpeed = gamepad2.left_stick_x;
+        double turnSpeed = gamepad2.right_stick_x;
 
+        // Check if joystick is being used (with small deadzone)
+        boolean joystickActive = Math.abs(forwardSpeed) > 0.1 ||
+                                 Math.abs(strafeSpeed) > 0.1 ||
+                                 Math.abs(turnSpeed) > 0.1;
+
+        // Cancel auto-navigation if joystick is active
+        if (autoNavigating && joystickActive) {
+            follower.breakFollowing();
+            autoNavigating = false;
+            telemetry.addData("Auto Nav", "CANCELLED by joystick");
+        }
+
+        // Manual control (always active unless auto-navigating without joystick input)
+        if (!autoNavigating) {
             if (currentPose != null) {
                 try {
                     follower.setTeleOpDrive(forwardSpeed, strafeSpeed, turnSpeed, true);
@@ -159,16 +172,26 @@ public class FullTeleFixed extends OpMode {
             }
         }
 
-        // Gamepad2 A: Auto-navigate to target position
+        // Gamepad2 A: Auto-navigate to target position (can be pressed multiple times)
         if (gamepad2.a && !gp2_aPressed && currentPose != null) {
             gp2_aPressed = true;
             startAutoNavigation(currentPose);
         }
         if (!gamepad2.a) gp2_aPressed = false;
 
-        // Check auto-navigation completion
+        // Check auto-navigation completion with position tolerance
         if (autoNavigating && !follower.isBusy()) {
-            autoNavigating = false;
+            // Check if we're close enough to target (within 2 inches and 5 degrees)
+            double distanceToTarget = Math.hypot(
+                currentPose.getX() - targetPose.getX(),
+                currentPose.getY() - targetPose.getY()
+            );
+            double headingError = Math.abs(Math.toDegrees(currentPose.getHeading() - targetPose.getHeading()));
+
+            if (distanceToTarget < 2.0 && headingError < 5.0) {
+                autoNavigating = false;
+                telemetry.addData("Auto Nav", "COMPLETED - Manual control restored");
+            }
         }
 
         // ===== GAMEPAD2: OUTTAKE CONTROL =====
@@ -339,9 +362,10 @@ public class FullTeleFixed extends OpMode {
                         new Pose(currentPose.getX(), currentPose.getY(), currentPose.getHeading()),
                         targetPose
                 ))
+                .setLinearHeadingInterpolation(currentPose.getHeading(), targetPose.getHeading())
                 .build();
 
-        follower.followPath(autoPath);
+        follower.followPath(autoPath, /* holdEnd = */ true);
         autoNavigating = true;
 
         telemetry.addData("Auto Nav", "Started to (%.1f, %.1f, %.1f°)",
