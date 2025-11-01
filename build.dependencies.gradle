@@ -56,6 +56,6 @@ dependencies {
     // -------------------------------------------------------
     // VingVing Pre
     // -------------------------------------------------------
-    implementation("com.vingvingrobot:core:0.0.1")
-    implementation("com.vingvingrobot:ftc:0.0.1")
+    implementation("com.vingvingrobot:core:0.0.3")
+    implementation("com.vingvingrobot:ftc:0.0.3")
 }
