@@ -1,206 +1,342 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
+/**
+ * FullTele - Enhanced TeleOp with PedroPathing Integration
+ *
+ * Gamepad2 (Driver):
+ * - Left/Right Stick: Manual drivetrain control
+ * - A Button: Auto-navigate to position (71.8, -67.2, 132.6°)
+ * - D-Pad Up/Down: Adjust outtake speed (+/- 0.05, 250ms delay)
+ * - X Button: Start outtake motor
+ * - Y Button: Stop outtake motor
+ *
+ * Gamepad1 (Operator):
+ * - Left Bumper: sorter servo shoot (0.55 → 1.0 → 0.5s delay → 0.55)
+ * - Right Bumper: binit (Axon) servo sequence (1.0 → 0.5s delay → 0.35)
+ * - A Button: Cycle sorter input mode (0 → 0.375 → 0.75 → loop)
+ * - B Button: Cycle sorter shoot mode (0.55 → 0.9 → 0.15 → loop)
+ * - X Button: Start intake motor (-0.75 power)
+ * - Y Button: Stop intake motor
+ */
 @TeleOp(name="FullTele")
 public class FullTele extends LinearOpMode {
 
-    private DcMotor frontLeft, frontRight, backLeft, backRight, Control, intake;
-    private Servo myServo, axon;
+    // PedroPathing
+    private Follower follower;
 
-    double speed = -0.8;
-    double level = 0;
-    double pos = 0;
-    double power = 0;
+    // Motors
+    private DcMotor outtake, intake;
 
-    // Axon servo control variables
-    int inputMode = 0;  // 0 = initial, 1 = first tray, 2 = second tray, 3 = third tray
-    int shootMode = 0;  // 0 = initial, 1 = first shoot, 2 = second shoot, 3 = third shoot
-    double outtakePower = 0;
-    double outtakeSpeed = 0.5;  // Default outtake speed
-    long lastSpeedChangeTime = 0;  // Track last time speed was changed
+    // Servos (only 2 physical servos)
+    private Servo binit;  // Hardware: "binit" (also called Axon)
+    private Servo sorter; // Hardware: "sorter"
+
+    // Control variables
+    private double outtakePower = 0;
+    private double outtakeSpeed = 0.5;
+    private long lastSpeedChangeTime = 0;
+    private double intakePower = 0;
+
+    // Button debouncing
+    private boolean gp2_xPressed = false;
+    private boolean gp2_yPressed = false;
+    private boolean gp2_aPressed = false;
+    private boolean gp1_xPressed = false;
+    private boolean gp1_yPressed = false;
+    private boolean gp1_aPressed = false;
+    private boolean gp1_bPressed = false;
+    private boolean gp1_lbPressed = false;
+
+    // Sorter cycling positions
+    private int sorterShootMode = 0;  // For gamepad1.b: 0=0.55, 1=0.9, 2=0.15
+    private int sorterInputMode = 0;  // For gamepad1.a: 0=0, 1=0.375, 2=0.75
+
+    // Auto-navigation
+    private boolean autoNavigating = false;
+    private PathChain autoPath;
+
+    // Starting pose (90 degrees to match field orientation)
+    // Note: Pose(X, Y) but our field uses swapped coords, so Pose(fieldY, fieldX)
+    private final Pose startPose = new Pose(0, 58, Math.toRadians(90));
+    private final Pose targetPose = new Pose(-67.2, 71.8, Math.toRadians(132.6));
+
+    // Cached pose to avoid null pointer
+    private Pose cachedPose;
 
     @Override
     public void runOpMode() {
+        // Initialize PedroPathing follower
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(startPose);
 
-        frontLeft  = hardwareMap.get(DcMotor.class, "fl");
-        frontRight = hardwareMap.get(DcMotor.class, "fr");
-        backLeft   = hardwareMap.get(DcMotor.class, "bl");
-        backRight  = hardwareMap.get(DcMotor.class, "br");
-
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
-        backLeft.setDirection(DcMotor.Direction.REVERSE);
-//        frontRight.setDirection(DcMotor.Direction.REVERSE);
-        backRight.setDirection(DcMotor.Direction.REVERSE);
-
-        // Optional safety
-        for (DcMotor m : new DcMotor[]{frontLeft, frontRight, backLeft, backRight}) {
-            m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        // CRITICAL: Update follower multiple times to fully initialize all internal pose objects
+        for (int i = 0; i < 5; i++) {
+            follower.update();
         }
 
-        Control = hardwareMap.get(DcMotor.class, "outtake");
+        // Initialize cached pose
+        cachedPose = startPose;
+
+        // Verify pose objects are not null
+        if (startPose == null || targetPose == null) {
+            telemetry.addData("ERROR", "Pose objects not initialized!");
+            telemetry.update();
+            throw new RuntimeException("startPose or targetPose is null");
+        }
+
+        // Initialize motors
+        outtake = hardwareMap.get(DcMotor.class, "outtake");
         intake = hardwareMap.get(DcMotor.class, "intake");
 
-        // Map servo
-        myServo = hardwareMap.get(Servo.class, "binit");
-        axon = hardwareMap.get(Servo.class, "sorter");  // Axon servo mapped to "sorter"
+        outtake.setDirection(DcMotor.Direction.FORWARD);
+        outtake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        Control.setDirection(DcMotor.Direction.FORWARD);
-        myServo.setPosition(0.35);  // Initialize binit to 0.75
-        axon.setPosition(0.0);  // Initialize axon to 0
+        // Map servos (only 2 physical servos)
+        binit = hardwareMap.get(Servo.class, "binit");    // binit servo (also called Axon)
+        sorter = hardwareMap.get(Servo.class, "sorter");  // sorter servo
+
+        binit.setPosition(0.35);
+        sorter.setPosition(0.55);  // Start in shoot position
+
+        telemetry.addData("Status", "Initialized");
+        telemetry.addData("Starting Pose", "X: %.1f, Y: %.1f, H: 90°", startPose.getX(), startPose.getY());
+        telemetry.update();
 
         waitForStart();
 
-        boolean pressed = false;
-        boolean aPressed = false;
-        boolean bPressed = false;
-        boolean xPressed = false;
-        boolean yPressed = false;
+        // Initial follower update to initialize pose
+        follower.update();
+
+        // Update cached pose from follower after first update
+        Pose initialPose = follower.getPose();
+        if (initialPose != null) {
+            cachedPose = initialPose;
+        }
 
         while (opModeIsActive()) {
-            // A button: Input mode control (tray positions)
-            if (gamepad1.a && !aPressed) {
-                aPressed = true;
-                inputMode = (inputMode + 1) % 4;  // Cycle through 0 -> 1 -> 2 -> 3 -> 0
+            // Update follower FIRST (must be called before any drive commands)
+            follower.update();
 
-                switch (inputMode) {
-                    case 0:
-                        axon.setPosition(0.0);  // Initial position - let ball in
-                        break;
-                    case 1:
-                        axon.setPosition(0.0);  // Still at 0, waiting for ball detection
-                        break;
-                    case 2:
-                        axon.setPosition(0.4);  // Second tray
-                        break;
-                    case 3:
-                        axon.setPosition(0.75); // Third tray
-                        break;
+            // Update cached pose (with safety fallback to startPose)
+            Pose currentPose = follower.getPose();
+            if (currentPose != null) {
+                cachedPose = currentPose;
+            } else if (cachedPose == null) {
+                // Fallback: if both are null, use startPose
+                cachedPose = startPose;
+            }
+
+            // ===== GAMEPAD2: DRIVETRAIN CONTROL =====
+
+            // Only use TeleOp drive if follower pose is initialized
+            if (currentPose != null) {
+                if (!autoNavigating) {
+                    // Manual control
+                    double forwardSpeed = -gamepad2.left_stick_y;
+                    double strafeSpeed = gamepad2.left_stick_x;
+                    double turnSpeed = gamepad2.right_stick_x;  // Fixed: removed negative to correct rotation direction
+
+                    follower.setTeleOpDrive(forwardSpeed, strafeSpeed, turnSpeed, true);
                 }
+            } else {
+                // Pose not ready yet - show warning in telemetry
+                telemetry.addData("WARNING", "Waiting for Pinpoint initialization...");
             }
-            if (!gamepad1.a) aPressed = false;
 
-            // B button: Shoot mode control (shoot positions)
-            if (gamepad1.b && !bPressed) {
-                bPressed = true;
-                shootMode = (shootMode + 1) % 4;  // Cycle through 0 -> 1 -> 2 -> 3 -> 0
-
-                switch (shootMode) {
-                    case 0:
-                        axon.setPosition(0.0);  // Initial position
-                        break;
-                    case 1:
-                        axon.setPosition(0.55); // Shoot first ball
-                        break;
-                    case 2:
-                        axon.setPosition(0.9);  // Shoot second ball
-                        break;
-                    case 3:
-                        axon.setPosition(0.15); // Shoot third ball
-                        break;
-                }
+            // Gamepad2 A: Auto-navigate to target position
+            if (gamepad2.a && !gp2_aPressed) {
+                gp2_aPressed = true;
+                startAutoNavigation();
             }
-            if (!gamepad1.b) bPressed = false;
+            if (!gamepad2.a) gp2_aPressed = false;
 
-            // Original level control (moved to different button if needed, or remove if not needed)
-            if (gamepad1.left_stick_button && !pressed) {
-                pressed = true;
-                level = (level + 1) % 2;
+            // Check auto-navigation completion
+            if (autoNavigating && !follower.isBusy()) {
+                autoNavigating = false;
+                telemetry.addData("Auto Nav", "Completed");
             }
-            if (!gamepad1.left_stick_button) pressed = false;
 
-            speed = (level == 0) ? 0.8 : 0.4;
+            // ===== GAMEPAD2: OUTTAKE CONTROL =====
 
-            // X button: Initialize/start outtake motor at current speed
-            if (gamepad1.x && !xPressed) {
-                xPressed = true;
+            // Gamepad2 X: Start outtake motor
+            if (gamepad2.x && !gp2_xPressed) {
+                gp2_xPressed = true;
                 outtakePower = outtakeSpeed;
             }
-            if (!gamepad1.x) xPressed = false;
+            if (!gamepad2.x) gp2_xPressed = false;
 
-            // Y button: Stop outtake motor
-            if (gamepad1.y && !yPressed) {
-                yPressed = true;
+            // Gamepad2 Y: Stop outtake motor
+            if (gamepad2.y && !gp2_yPressed) {
+                gp2_yPressed = true;
                 outtakePower = 0;
             }
-            if (!gamepad1.y) yPressed = false;
+            if (!gamepad2.y) gp2_yPressed = false;
 
-            // Dpad: Control outtake speed with 250ms delay between changes
+            // Gamepad2 D-Pad: Control outtake speed (250ms delay)
             long currentTime = System.currentTimeMillis();
             if (currentTime - lastSpeedChangeTime >= 250) {
-                if (gamepad1.dpad_up) {
-                    outtakeSpeed = Math.min(1.0, outtakeSpeed + 0.05);  // Increase speed by 0.05
+                if (gamepad2.dpad_up) {
+                    outtakeSpeed = Math.min(1.0, outtakeSpeed + 0.05);
                     lastSpeedChangeTime = currentTime;
                 }
-                if (gamepad1.dpad_down) {
-                    outtakeSpeed = Math.max(0.0, outtakeSpeed - 0.05);  // Decrease speed by 0.05
+                if (gamepad2.dpad_down) {
+                    outtakeSpeed = Math.max(0.0, outtakeSpeed - 0.05);
                     lastSpeedChangeTime = currentTime;
                 }
             }
 
-            // Real-time update: Always update outtake power if motor is running
+            // Real-time outtake speed update
             if (outtakePower > 0) {
                 outtakePower = outtakeSpeed;
             }
 
-            if (gamepad1.left_bumper) {
-                myServo.setPosition(0.85);
-                sleep(750);
-                myServo.setPosition(0.25);
-            }
+            outtake.setPower(outtakePower);
 
-            if (gamepad1.left_trigger > 0 && pos <= 1) {
-                pos = pos + gamepad1.left_trigger;
-            }
+            // ===== GAMEPAD1: SERVO CONTROL =====
 
-            if (gamepad1.right_trigger > 0 && pos >= 0) {
-                pos = pos - gamepad1.right_trigger;
+            // Gamepad1 Left Bumper: sorter servo sequence (0.55 -> 1.0 -> wait 500ms -> 0.55)
+            if (gamepad1.left_bumper && !gp1_lbPressed) {
+                gp1_lbPressed = true;
+                sorter.setPosition(1.0);
+                sleep(500);
+                sorter.setPosition(0.55);
             }
+            if (!gamepad1.left_bumper) gp1_lbPressed = false;
 
+            // Gamepad1 Right Bumper: binit (Axon) sequence (1.0 -> 500ms -> 0.35)
             if (gamepad1.right_bumper) {
-                power = -0.75;
+                binit.setPosition(1.0);
+                sleep(500);
+                binit.setPosition(0.35);
             }
-            else {
-                power = 0;
+
+            // ===== GAMEPAD1: SORTER SERVO CONTROL =====
+
+            // Gamepad1 A: Cycle sorter input positions (0 -> 0.375 -> 0.75 -> 0)
+            if (gamepad1.a && !gp1_aPressed) {
+                gp1_aPressed = true;
+                sorterInputMode = (sorterInputMode + 1) % 3;
+
+                switch (sorterInputMode) {
+                    case 0:
+                        sorter.setPosition(0.0);
+                        break;
+                    case 1:
+                        sorter.setPosition(0.375);
+                        break;
+                    case 2:
+                        sorter.setPosition(0.75);
+                        break;
+                }
             }
+            if (!gamepad1.a) gp1_aPressed = false;
 
-            double drive  =  -gamepad2.left_stick_y;
-            double strafe = gamepad2.left_stick_x;
-            double rotate =  -gamepad2.right_stick_x;
+            // Gamepad1 B: Cycle sorter shoot positions (0.55 -> 0.9 -> 0.15 -> 0.55)
+            if (gamepad1.b && !gp1_bPressed) {
+                gp1_bPressed = true;
+                sorterShootMode = (sorterShootMode + 1) % 3;
 
-            drive  = Math.abs(drive)  > 0.1 ? drive  : 0;
-            strafe = Math.abs(strafe) > 0.1 ? strafe : 0;
-            rotate = Math.abs(rotate) > 0.1 ? rotate : 0;
+                switch (sorterShootMode) {
+                    case 0:
+                        sorter.setPosition(0.55);
+                        break;
+                    case 1:
+                        sorter.setPosition(0.9);
+                        break;
+                    case 2:
+                        sorter.setPosition(0.15);
+                        break;
+                }
+            }
+            if (!gamepad1.b) gp1_bPressed = false;
 
-            double flPower = speed * (rotate - strafe - drive);
-            double frPower = speed * (rotate - strafe + drive);
-            double blPower = speed * (rotate + strafe - drive);
-            double brPower = speed * (rotate + strafe + drive);
+            // ===== GAMEPAD1: INTAKE CONTROL =====
 
-            // normalize
-            double max = Math.max(1.0,
-                    Math.max(Math.abs(flPower), Math.max(Math.abs(frPower),
-                            Math.max(Math.abs(blPower), Math.abs(brPower)))));
-            flPower /= max; frPower /= max; blPower /= max; brPower /= max;
+            // Gamepad1 X: Start intake motor
+            if (gamepad1.x && !gp1_xPressed) {
+                gp1_xPressed = true;
+                intakePower = -0.75;
+            }
+            if (!gamepad1.x) gp1_xPressed = false;
 
-            frontLeft.setPower(flPower);
-            frontRight.setPower(frPower);
-            backLeft.setPower(blPower);
-            backRight.setPower(brPower);
-            Control.setPower(outtakePower);  // Use outtakePower controlled by X/Y buttons
-            intake.setPower(power);
+            // Gamepad1 Y: Stop intake motor
+            if (gamepad1.y && !gp1_yPressed) {
+                gp1_yPressed = true;
+                intakePower = 0;
+            }
+            if (!gamepad1.y) gp1_yPressed = false;
 
-            telemetry.addData("Servo Position", pos);
-            telemetry.addData("Axon Position", axon.getPosition());
-            telemetry.addData("Input Mode", inputMode);
-            telemetry.addData("Shoot Mode", shootMode);
-            telemetry.addData("Outtake Power", outtakePower);
-            telemetry.addData("Outtake Speed", outtakeSpeed);
-            telemetry.addData("Speed", speed);
+            intake.setPower(intakePower);
+
+            // ===== TELEMETRY =====
+
+            telemetry.addData("=== DRIVETRAIN ===", "");
+            if (cachedPose != null) {
+                // Swap X and Y to match field orientation, and reverse Y
+                telemetry.addData("Position", "X: %.1f, Y: %.1f", cachedPose.getY(), -cachedPose.getX());
+                telemetry.addData("Heading", "%.1f°", Math.toDegrees(cachedPose.getHeading()));
+            } else {
+                telemetry.addData("Position", "INITIALIZING...");
+            }
+            telemetry.addData("Auto Nav", autoNavigating ? "ACTIVE" : "Idle");
+            telemetry.addData("", "");
+
+            telemetry.addData("=== OUTTAKE (GP2) ===", "");
+            telemetry.addData("Power", "%.2f", outtakePower);
+            telemetry.addData("Speed", "%.2f", outtakeSpeed);
+            telemetry.addData("Status", outtakePower > 0 ? "RUNNING" : "STOPPED");
+            telemetry.addData("", "");
+
+            telemetry.addData("=== INTAKE (GP1) ===", "");
+            telemetry.addData("Power", "%.2f", intakePower);
+            telemetry.addData("Status", intakePower != 0 ? "RUNNING" : "STOPPED");
+            telemetry.addData("", "");
+
+            telemetry.addData("=== SERVOS ===", "");
+            telemetry.addData("binit (Axon)", "%.2f", binit.getPosition());
+            telemetry.addData("sorter Position", "%.2f", sorter.getPosition());
+            telemetry.addData("sorter Input Mode", "%d (0/0.375/0.75)", sorterInputMode);
+            telemetry.addData("sorter Shoot Mode", "%d (0.55/0.9/0.15)", sorterShootMode);
+
             telemetry.update();
         }
+    }
+
+    /**
+     * Start autonomous navigation to target position
+     */
+    private void startAutoNavigation() {
+        // Safety check: ensure cachedPose is not null
+        if (cachedPose == null) {
+            telemetry.addData("Auto Nav", "ERROR: Pose not initialized");
+            telemetry.update();
+            return;
+        }
+
+        // Use cached pose to create path
+        autoPath = follower.pathBuilder()
+                .addPath(new BezierLine(
+                        new Pose(cachedPose.getX(), cachedPose.getY(), cachedPose.getHeading()),
+                        targetPose
+                ))
+                .build();
+
+        follower.followPath(autoPath);
+        autoNavigating = true;
+
+        telemetry.addData("Auto Nav", "Started to (%.1f, %.1f, %.1f°)",
+                targetPose.getX(), targetPose.getY(), Math.toDegrees(targetPose.getHeading()));
+        telemetry.update();
     }
 }
