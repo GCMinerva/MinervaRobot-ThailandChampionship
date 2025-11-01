@@ -14,8 +14,14 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
  * FullTeleFixed - Enhanced TeleOp with PedroPathing Integration (OpMode version)
  *
  * Gamepad2 (Driver):
- * - Left/Right Stick: Manual drivetrain control (cancels auto-nav if active)
+ * - Left/Right Stick: Manual drivetrain control (ALWAYS uses direct motor control)
+ *   - During auto-nav: Override with manual control, release to resume path
+ *   - Normal mode: Direct mecanum motor control
  * - A Button: Auto-navigate to position (71.7, 67.1, 132.2°) [can press multiple times]
+ *   - Auto-nav completes when within 5% position tolerance (~4.9 inches) and 5° heading
+ *   - Auto-cancels after 5 seconds if not completed
+ *   - Full manual control available during navigation
+ * - B Button: Cancel auto-navigation (stops path following, restores manual control)
  * - D-Pad Up/Down: Adjust outtake speed (+/- 0.05, 250ms delay)
  * - X Button: Start outtake motor
  * - Y Button: Stop outtake motor
@@ -54,6 +60,7 @@ public class FullTeleFixed extends OpMode {
     private boolean gp2_xPressed = false;
     private boolean gp2_yPressed = false;
     private boolean gp2_aPressed = false;
+    private boolean gp2_bPressed = false;
     private boolean gp1_xPressed = false;
     private boolean gp1_yPressed = false;
     private boolean gp1_aPressed = false;
@@ -67,11 +74,19 @@ public class FullTeleFixed extends OpMode {
 
     // Auto-navigation
     private boolean autoNavigating = false;
+    private boolean manualOverride = false;
     private PathChain autoPath;
+    private long autoNavStartTime = 0;
+    private final long AUTO_NAV_TIMEOUT_MS = 5000;  // 5 seconds
 
     // Starting pose (90 degrees to match field orientation)
     private final Pose startPose = new Pose(58, 0, Math.toRadians(90));
     private final Pose targetPose = new Pose(71.7, 67.1, Math.toRadians(132.2));
+
+    // PIDF error tolerance: 5% of target position magnitude
+    private final double POSITION_TOLERANCE_PERCENT = 0.05;
+    private final double positionTolerance = Math.hypot(targetPose.getX(), targetPose.getY()) * POSITION_TOLERANCE_PERCENT;
+    private final double HEADING_TOLERANCE_DEGREES = 5.0;
 
     @Override
     public void init() {
@@ -148,29 +163,40 @@ public class FullTeleFixed extends OpMode {
                                  Math.abs(strafeSpeed) > 0.1 ||
                                  Math.abs(turnSpeed) > 0.1;
 
-        // Cancel auto-navigation if joystick is active
-        if (autoNavigating && joystickActive) {
-            follower.breakFollowing();
-            autoNavigating = false;
-            telemetry.addData("Auto Nav", "CANCELLED by joystick");
+        // Check for 5-second timeout on auto-navigation
+        if (autoNavigating && (System.currentTimeMillis() - autoNavStartTime) > AUTO_NAV_TIMEOUT_MS) {
+            cancelAutoNavigation();
+            telemetry.addData("Auto Nav", "CANCELLED - 5 second timeout");
         }
 
-        // Manual control (always active unless auto-navigating without joystick input)
-        if (!autoNavigating) {
+        // Manual override: Use joystick during auto-navigation without canceling
+        if (autoNavigating && joystickActive && !manualOverride) {
+            // Joystick just became active - break path following to enable manual control
+            manualOverride = true;
+            follower.breakFollowing();
+            telemetry.addData("Override", "Breaking path for manual control");
+        } else if (autoNavigating && !joystickActive && manualOverride) {
+            // Joystick just released - resume path following
+            manualOverride = false;
             if (currentPose != null) {
-                try {
-                    follower.setTeleOpDrive(forwardSpeed, strafeSpeed, turnSpeed, true);
-                } catch (NullPointerException e) {
-                    // Fallback to manual motor control if setTeleOpDrive fails
-                    telemetry.addData("Drive Mode", "MANUAL (Follower failed)");
-                    setManualDrive(forwardSpeed, strafeSpeed, turnSpeed);
-                }
-            } else {
-                // No pose available - use manual motor control
-                telemetry.addData("Drive Mode", "MANUAL (No pose)");
-                setManualDrive(forwardSpeed, strafeSpeed, turnSpeed);
+                startAutoNavigation(currentPose);
+                telemetry.addData("Override", "Resuming auto-navigation");
             }
         }
+
+        // Control logic: ALWAYS use direct motor control when not auto-navigating
+        // This completely bypasses the follower to avoid any state interference
+        if (!autoNavigating || manualOverride) {
+            // MANUAL MODE: Use direct motor control
+            setManualDrive(forwardSpeed, strafeSpeed, turnSpeed);
+
+            if (manualOverride) {
+                telemetry.addData("Drive Mode", "MANUAL OVERRIDE");
+            } else {
+                telemetry.addData("Drive Mode", "MANUAL");
+            }
+        }
+        // If autoNavigating && !manualOverride: follower continues path following automatically
 
         // Gamepad2 A: Auto-navigate to target position (can be pressed multiple times)
         if (gamepad2.a && !gp2_aPressed && currentPose != null) {
@@ -179,18 +205,28 @@ public class FullTeleFixed extends OpMode {
         }
         if (!gamepad2.a) gp2_aPressed = false;
 
-        // Check auto-navigation completion with position tolerance
-        if (autoNavigating && !follower.isBusy()) {
-            // Check if we're close enough to target (within 2 inches and 5 degrees)
+        // Gamepad2 B: Cancel auto-navigation
+        if (gamepad2.b && !gp2_bPressed) {
+            gp2_bPressed = true;
+            if (autoNavigating) {
+                cancelAutoNavigation();
+                telemetry.addData("Auto Nav", "CANCELLED by user (B button)");
+            }
+        }
+        if (!gamepad2.b) gp2_bPressed = false;
+
+        // Check auto-navigation completion with 5% position tolerance
+        if (autoNavigating && !follower.isBusy() && !manualOverride) {
+            // Check if we're within 5% tolerance of target position
             double distanceToTarget = Math.hypot(
                 currentPose.getX() - targetPose.getX(),
                 currentPose.getY() - targetPose.getY()
             );
             double headingError = Math.abs(Math.toDegrees(currentPose.getHeading() - targetPose.getHeading()));
 
-            if (distanceToTarget < 2.0 && headingError < 5.0) {
-                autoNavigating = false;
-                telemetry.addData("Auto Nav", "COMPLETED - Manual control restored");
+            if (distanceToTarget <= positionTolerance && headingError <= HEADING_TOLERANCE_DEGREES) {
+                cancelAutoNavigation();  // Use the cancel method to properly clean up
+                telemetry.addData("Auto Nav", "COMPLETED (within %.2f\" tolerance)", positionTolerance);
             }
         }
 
@@ -327,10 +363,28 @@ public class FullTeleFixed extends OpMode {
             // Swap X and Y to match field orientation, and reverse Y
             telemetry.addData("Position", "X: %.1f, Y: %.1f", currentPose.getX(), currentPose.getY());
             telemetry.addData("Heading", "%.1f°", Math.toDegrees(currentPose.getHeading()));
+
+            // Show distance to target when auto-navigating
+            if (autoNavigating) {
+                double distanceToTarget = Math.hypot(
+                    currentPose.getX() - targetPose.getX(),
+                    currentPose.getY() - targetPose.getY()
+                );
+                telemetry.addData("Distance to Target", "%.2f\" (tolerance: %.2f\")",
+                    distanceToTarget, positionTolerance);
+            }
         } else {
             telemetry.addData("Position", "INITIALIZING...");
         }
-        telemetry.addData("Auto Nav", autoNavigating ? "ACTIVE" : "Idle");
+
+        if (autoNavigating) {
+            long elapsedTime = System.currentTimeMillis() - autoNavStartTime;
+            long remainingTime = (AUTO_NAV_TIMEOUT_MS - elapsedTime) / 1000;
+            String autoNavStatus = manualOverride ? "ACTIVE (Manual Override)" : "ACTIVE (Following Path)";
+            telemetry.addData("Auto Nav", "%s [%ds left]", autoNavStatus, remainingTime);
+        } else {
+            telemetry.addData("Auto Nav", "Idle");
+        }
         telemetry.addData("", "");
 
         telemetry.addData("=== OUTTAKE (GP2) ===", "");
@@ -365,12 +419,31 @@ public class FullTeleFixed extends OpMode {
                 .setLinearHeadingInterpolation(currentPose.getHeading(), targetPose.getHeading())
                 .build();
 
-        follower.followPath(autoPath, /* holdEnd = */ true);
+        follower.followPath(autoPath, /* holdEnd = */ false);  // Changed to false to prevent holding position
         autoNavigating = true;
+        autoNavStartTime = System.currentTimeMillis();  // Start the 5-second timer
 
         telemetry.addData("Auto Nav", "Started to (%.1f, %.1f, %.1f°)",
                 targetPose.getX(), targetPose.getY(), Math.toDegrees(targetPose.getHeading()));
         telemetry.update();
+    }
+
+    /**
+     * Cancel auto-navigation and restore manual control
+     */
+    private void cancelAutoNavigation() {
+        // Break path following
+        follower.breakFollowing();
+
+        // Reset all auto-nav state
+        autoNavigating = false;
+        manualOverride = false;
+
+        // Directly stop all motors to immediately release control
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
     }
 
     /**
