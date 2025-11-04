@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.auto.test;
+package org.firstinspires.ftc.teamcode.auto.test.RS;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
@@ -10,19 +10,17 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "AutoPath4_BaronSpeed", group = "Test")
-public class AutoPathRS1 extends LinearOpMode {
+@Autonomous(name = "AutoPath_RS9", group = "Test")
+public class AutoPath_RS9 extends LinearOpMode {
 
     private Follower follower;
 
     @Override
     public void runOpMode() {
-
-        // Create follower and set starting pose
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(88.000, 8.000, Math.toRadians(90)));
 
-        // === Path 1 ===
+        // --- Build all paths ---
         PathChain path1 = new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
                         new Pose(88.000, 8.000),
@@ -30,7 +28,6 @@ public class AutoPathRS1 extends LinearOpMode {
                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(66))
                 .build();
 
-        // === Path 2 ===
         PathChain path2 = new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierCurve(
                         new Pose(83.963, 16.309),
@@ -39,7 +36,6 @@ public class AutoPathRS1 extends LinearOpMode {
                 .setLinearHeadingInterpolation(Math.toRadians(66), Math.toRadians(0))
                 .build();
 
-        // === Path 3 ===
         PathChain path3 = new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
                         new Pose(102.243, 35.395),
@@ -47,7 +43,6 @@ public class AutoPathRS1 extends LinearOpMode {
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
-        // === Path 4 ===
         PathChain path4 = new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierCurve(
                         new Pose(121.598, 35.574),
@@ -56,41 +51,50 @@ public class AutoPathRS1 extends LinearOpMode {
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(66))
                 .build();
 
-        telemetry.addLine("✅ Paths ready — waiting for start");
+        PathChain path5 = new PathBuilder(follower, Constants.pathConstraints)
+                .addPath(new BezierCurve(
+                        new Pose(83.963, 16.309),
+                        new Pose(71.418, 13.083),
+                        new Pose(34.947, 25.717),
+                        new Pose(17.026, 11.559)))
+                .setLinearHeadingInterpolation(Math.toRadians(66), Math.toRadians(0))
+                .build();
+
+        telemetry.addLine("✅ RS9 paths ready — waiting for start");
         telemetry.update();
 
         waitForStart();
         if (isStopRequested()) return;
 
-        // ✅ Run each path at its own speed
-        followWithSpeed(path1, 1, "Path 1 — slow");
-        followWithSpeed(path2, 1, "Path 2 — slower");
-        followWithSpeed(path3, 0.28, "Path 3 — slowesttttttt veryyyyy slow");
-        followWithSpeed(path4, 1, "Path 4 — slow");
+        // --- Run each path with custom speeds ---
+        follow(path1, 1, "Path 1");
+        follow(path2, 1, "Path 2");
+        follow(path3, 1, "Path 3");
+        follow(path4, 1, "Path 4");
+        follow(path5, 1, "Path 5");
 
-        telemetry.addLine("✅ All paths finished");
+        telemetry.addLine("✅ RS9 Auto Complete");
         telemetry.update();
     }
 
-    /** Helper to follow a path with a speed cap (Baron style) */
-    private void followWithSpeed(PathChain path, double speed, String label) {
-        telemetry.addLine("▶ " + label + " | Speed: " + speed);
+    // --- Follow helper function ---
+    private void follow(PathChain path, double speed, String label) {
+        telemetry.addLine("▶ Running " + label + " | Speed: " + speed);
         telemetry.update();
 
-        // Run the path with that specific speed (sets local max power)
         follower.followPath(path, speed, true);
-
         while (opModeIsActive() && follower.isBusy()) {
             follower.update();
             Pose p = follower.getPose();
-            telemetry.addData("Running", label);
+            telemetry.addData("Path", label);
+            telemetry.addData("Speed", speed);
             telemetry.addData("x", "%.2f", p.getX());
             telemetry.addData("y", "%.2f", p.getY());
             telemetry.addData("heading", "%.1f°", Math.toDegrees(p.getHeading()));
             telemetry.update();
         }
 
-        telemetry.addLine("✔ Done: " + label);
+        telemetry.addLine("✔ Done " + label);
         telemetry.update();
     }
 }
