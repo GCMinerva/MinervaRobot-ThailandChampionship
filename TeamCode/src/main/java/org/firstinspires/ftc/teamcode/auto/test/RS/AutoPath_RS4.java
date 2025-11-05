@@ -90,16 +90,16 @@ public class AutoPath_RS4 extends LinearOpMode {
         if (isStopRequested()) return;
 
         // Different speed for each path
-        follow(path1, 1, "Path 1");
-        follow(path2, 1, "Path 2");
-        follow(path3, 1, "Path 3");
-        follow(path4, 1, "Path 4");
-        follow(path5, 1, "Path 5");
-        follow(path6, 1, "Path 6");
-        follow(path7, 1, "Path 7");
-        follow(path8, 1, "Path 8");
-        follow(path9, 1, "Path 9");
-        follow(path10, 1, "Path 10");
+        follow(path1, 1.0, "Path 1");
+        follow(path2, 1.0, "Path 2");
+        follow(path3, 0.25, "Path 3");
+        follow(path4, 1.0, "Path 4");
+        follow(path5, 1.0, "Path 5");
+        follow(path6, 0.25, "Path 6");
+        follow(path7, 1.0, "Path 7");
+        follow(path8, 1.0, "Path 8");
+        follow(path9, 0.25, "Path 9");
+        follow(path10, 1.0, "Path 10");
 
         telemetry.addLine("✅ RS4 Auto Complete");
         telemetry.update();

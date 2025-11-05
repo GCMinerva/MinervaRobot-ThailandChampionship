@@ -92,13 +92,13 @@ public class AutoPath_RS3 extends LinearOpMode {
         // Run each path with full speed (1.0)
         followWithSpeed(path1, 1.0, "Path 1");
         followWithSpeed(path2, 1.0, "Path 2");
-        followWithSpeed(path3, 1.0, "Path 3");
+        followWithSpeed(path3, 0.25, "Path 3");
         followWithSpeed(path4, 1.0, "Path 4");
         followWithSpeed(path5, 1.0, "Path 5");
-        followWithSpeed(path6, 1.0, "Path 6");
+        followWithSpeed(path6, 0.25, "Path 6");
         followWithSpeed(path7, 1.0, "Path 7");
         followWithSpeed(path8, 1.0, "Path 8");
-        followWithSpeed(path9, 1.0, "Path 9");
+        followWithSpeed(path9, 0.25, "Path 9");
         followWithSpeed(path10, 1.0, "Path 10");
 
         telemetry.addLine("✅ RS3 Auto Complete — Full Speed");
