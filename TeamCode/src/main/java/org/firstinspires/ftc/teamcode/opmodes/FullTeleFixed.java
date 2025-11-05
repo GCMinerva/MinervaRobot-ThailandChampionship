@@ -9,15 +9,24 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 
 @TeleOp(name="FullTeleFixed")
 public class FullTeleFixed extends OpMode {
+    boolean pressed = false;
+    boolean aPressed = false;
+    boolean bPressed = false;
+    boolean xPressed = false;
+    boolean x1Pressed = false;
+    boolean yPressed = false;
 
     private Follower follower;
+    private boolean sorterBusy = false;
+
     private DcMotor frontLeft, frontRight, backLeft, backRight;
+    private ColorSensor colorSensor;
     private DcMotor outtake, intake;
     private Servo binit, sorter;
-
     private double outtakePower = 0;
     private double outtakeSpeed = 0.5;
     private long lastSpeedChangeTime = 0;
@@ -50,6 +59,19 @@ public class FullTeleFixed extends OpMode {
     private final double positionTolerance = Math.hypot(targetPose.getX(), targetPose.getY()) * POSITION_TOLERANCE_PERCENT;
     private final double HEADING_TOLERANCE_DEGREES = 5.0;
 
+    // ===== Sorter system (3 ช่องเก็บบอล) =====
+    // 0 = ว่าง, 1 = บอลม่วง, 2 = บอลเขียว
+    int[] slots = {0, 0, 0};
+    int currentSlot = 0;
+    double[] loadPositions = {0.0, 0.4, 0.75};
+    double[] shootPositions = {0.55, 0.9, 0.15};
+
+    // loading state (non-blocking): เมื่อกดเก็บ ให้รอเวลาให้ servo หมุนเสร็จก่อนอ่านสี
+    private boolean loading = false;
+    private long loadStartTime = 0;
+    private int loadingSlot = -1;
+    private final int LOAD_DELAY_MS = 700; // ปรับตามความเร็ว servo/กลไก
+
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
@@ -64,10 +86,12 @@ public class FullTeleFixed extends OpMode {
         backLeft = hardwareMap.get(DcMotor.class, "bl");
         backRight = hardwareMap.get(DcMotor.class, "br");
 
+        colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
+
         outtake = hardwareMap.get(DcMotor.class, "outtake");
         intake = hardwareMap.get(DcMotor.class, "intake");
 
-        outtake.setDirection(DcMotor.Direction.FORWARD);
+        outtake.setDirection(DcMotor.Direction.REVERSE);
         outtake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -97,8 +121,14 @@ public class FullTeleFixed extends OpMode {
 
     @Override
     public void loop() {
+
         follower.update();
         Pose currentPose = follower.getPose();
+
+        // อ่านค่าสีเพื่อ telemetry (ค่าสดของเฟรมนี้)
+        int red = colorSensor.red();
+        int green = colorSensor.green();
+        int blue = colorSensor.blue();
 
         double forwardSpeed = -gamepad2.left_stick_y;
         double strafeSpeed = gamepad2.left_stick_x;
@@ -141,8 +171,8 @@ public class FullTeleFixed extends OpMode {
 
         if (autoNavigating && !follower.isBusy() && !manualOverride) {
             double distanceToTarget = Math.hypot(
-                currentPose.getX() - targetPose.getX(),
-                currentPose.getY() - targetPose.getY()
+                    currentPose.getX() - targetPose.getX(),
+                    currentPose.getY() - targetPose.getY()
             );
             double headingError = Math.abs(Math.toDegrees(currentPose.getHeading() - targetPose.getHeading()));
 
@@ -151,17 +181,17 @@ public class FullTeleFixed extends OpMode {
             }
         }
 
+        // === OUTTAKE TOGGLE (gamepad2.x) ===
         if (gamepad2.x && !gp2_xPressed) {
             gp2_xPressed = true;
-            outtakePower = outtakeSpeed;
+            // toggle outtake on/off
+            if (outtakePower == 0) {
+                outtakePower = outtakeSpeed;  // เปิดหมุน
+            } else {
+                outtakePower = 0;             // ปิดหมุน
+            }
         }
         if (!gamepad2.x) gp2_xPressed = false;
-
-        if (gamepad2.y && !gp2_yPressed) {
-            gp2_yPressed = true;
-            outtakePower = 0;
-        }
-        if (!gamepad2.y) gp2_yPressed = false;
 
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastSpeedChangeTime >= 250) {
@@ -209,41 +239,104 @@ public class FullTeleFixed extends OpMode {
         }
         if (!gamepad1.right_bumper) gp1_rbPressed = false;
 
-        if (gamepad1.a && !gp1_aPressed) {
-            gp1_aPressed = true;
-            sorterInputMode = (sorterInputMode + 1) % 3;
-            switch (sorterInputMode) {
-                case 0: sorter.setPosition(0.0); break;
-                case 1: sorter.setPosition(0.375); break;
-                case 2: sorter.setPosition(0.75); break;
+        // === LOADING (non-blocking) ===
+        if (gamepad1.y && !yPressed && !loading) {
+            aPressed = true;
+            int next = findNextSlot(0); // หาช่องว่าง
+            if (next != -1) {
+                currentSlot = next;
+                sorter.setPosition(loadPositions[currentSlot]);
+
+                // เริ่ม state loading: รอให้ servo หมุนเสร็จ แล้วค่อยอ่านสี
+                loading = true;
+                loadStartTime = System.currentTimeMillis();
+                loadingSlot = currentSlot;
             }
         }
-        if (!gamepad1.a) gp1_aPressed = false;
+        if (!gamepad1.y) yPressed = false;
 
-        if (gamepad1.b && !gp1_bPressed) {
-            gp1_bPressed = true;
-            sorterShootMode = (sorterShootMode + 1) % 3;
-            switch (sorterShootMode) {
-                case 0: sorter.setPosition(0.55); break;
-                case 1: sorter.setPosition(0.9); break;
-                case 2: sorter.setPosition(0.15); break;
+        // เมื่อ loading ผ่านเวลา LOAD_DELAY_MS ให้อ่านสีจริงและอัพเดต slots
+        if (loading && (System.currentTimeMillis() - loadStartTime >= LOAD_DELAY_MS)) {
+            // อ่านค่าสี ณ ตอนนี้ (สด)
+            int r = colorSensor.red();
+            int g = colorSensor.green();
+            int b = colorSensor.blue();
+
+            // ตรวจสี (threshold เหมือนตัวอย่างก่อนหน้า) — ปรับตามสนามจริงได้
+            if (g > r && g > b && g > 3000) {
+                slots[loadingSlot] = 2; // ม่วง
+            } else if (r > 500 && b > 500 && green > 500) {
+                slots[loadingSlot] = 1; // เขียว
+            } else {
+                slots[loadingSlot] = 0; // ไม่แน่ใจ
+            }
+
+            telemetry.addData("LoadSlot", loadingSlot);
+            telemetry.addData("LoadColor(RGB)", "%d %d %d", r, g, b);
+
+            // reset loading state
+            loading = false;
+            loadingSlot = -1;
+        }
+
+        if (gamepad1.b) { // Y+B ยิงบอลม่วง
+            int next = findNextSlotType(1);
+            if (next != -1) {
+                currentSlot = next;
+                if (!sorterBusy) {
+                    final int slot = currentSlot;
+                    sorterBusy = true;
+                    sorter.setPosition(shootPositions[slot]);
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(500);
+                            slots[slot] = 0;
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        } finally {
+                            sorterBusy = false;
+                        }
+                    }).start();
+                }
             }
         }
-        if (!gamepad1.b) gp1_bPressed = false;
-
-        if (gamepad1.x && !gp1_xPressed) {
-            gp1_xPressed = true;
-            intakePower = -0.75;
+        else if (gamepad1.a) { // Y+A ยิงบอลเขียว
+            int next = findNextSlotType(2);
+            if (next != -1) {
+                currentSlot = next;
+                if (!sorterBusy) {
+                    final int slot = currentSlot;
+                    sorterBusy = true;
+                    sorter.setPosition(shootPositions[slot]);
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(500);
+                            slots[slot] = 0;
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        } finally {
+                            sorterBusy = false;
+                        }
+                    }).start();
+                }
+            }
         }
-        if (!gamepad1.x) gp1_xPressed = false;
+        // === intake toggle (X) ===
+//        if (gamepad1.x && !gp1_xPressed) {
+//            gp1_xPressed = true;
+//            x1Pressed = !x1Pressed;  // toggle เมื่อกดปุ่ม (ไม่ใช่ตอนปล่อย)
+//
+//            if (x1Pressed) {
+//                intakePower = -0.75;  // เปิดดูด
+//            } else {
+//                intakePower = 0;      // ปิดดูด
+//            }
+//        }
+//        if (!gamepad1.x) {
+//            gp1_xPressed = false; // รีเซ็ตสถานะกันค้าง
+//        }
 
-        if (gamepad1.y && !gp1_yPressed) {
-            gp1_yPressed = true;
-            intakePower = 0;
-        }
-        if (!gamepad1.y) gp1_yPressed = false;
-
-        intake.setPower(intakePower);
+        intake.setPower(-gamepad1.left_stick_y);
 
         telemetry.addData("=== DRIVETRAIN ===", "");
         if (currentPose != null) {
@@ -252,8 +345,8 @@ public class FullTeleFixed extends OpMode {
 
             if (autoNavigating) {
                 double distanceToTarget = Math.hypot(
-                    currentPose.getX() - targetPose.getX(),
-                    currentPose.getY() - targetPose.getY()
+                        currentPose.getX() - targetPose.getX(),
+                        currentPose.getY() - targetPose.getY()
                 );
                 telemetry.addData("Distance", "%.2f\" (tol: %.2f\")", distanceToTarget, positionTolerance);
             }
@@ -261,6 +354,24 @@ public class FullTeleFixed extends OpMode {
             telemetry.addData("Position", "INITIALIZING");
         }
 
+        // === SLOT STATUS (แสดงทั้ง array) ===
+        StringBuilder slotStatus = new StringBuilder();
+        for (int i = 0; i < slots.length; i++) {
+            String type;
+            switch (slots[i]) {
+                case 1: type = "pp"; break; // ม่วง
+                case 2: type = "gr"; break; // เขียว
+                default: type = "nu"; break; // ว่าง
+            }
+            slotStatus.append(type);
+            if (i < slots.length - 1) slotStatus.append(" | ");
+        }
+        telemetry.addData("Slots", slotStatus.toString());
+        telemetry.addData("Current Slot", currentSlot);
+        telemetry.addData("Loading", loading ? "YES" : "NO");
+
+        telemetry.addData("Color", "R:%d G:%d B:%d", red, green, blue);
+        telemetry.addData("Detected (cur)", slots[currentSlot] == 1 ? "Purple" : slots[currentSlot] == 2 ? "Green" : "Unknown");
         if (autoNavigating) {
             long elapsedTime = System.currentTimeMillis() - autoNavStartTime;
             long remainingTime = (AUTO_NAV_TIMEOUT_MS - elapsedTime) / 1000;
@@ -341,5 +452,26 @@ public class FullTeleFixed extends OpMode {
         frontRight.setPower(0);
         backLeft.setPower(0);
         backRight.setPower(0);
+    }
+
+    private int findNextSlot(int target) {
+        for (int i = 0; i < slots.length; i++) {
+            if (slots[i] == target) return i;
+        }
+        return -1;
+    }
+
+    private int findNextSlotWithBall() {
+        for (int i = 0; i < slots.length; i++) {
+            if (slots[i] != 0) return i;
+        }
+        return -1;
+    }
+
+    private int findNextSlotType(int type) {
+        for (int i = 0; i < slots.length; i++) {
+            if (slots[i] == type) return i;
+        }
+        return -1;
     }
 }
