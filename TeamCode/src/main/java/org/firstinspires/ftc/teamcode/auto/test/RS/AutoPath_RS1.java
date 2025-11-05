@@ -65,7 +65,7 @@ public class AutoPath_RS1 extends LinearOpMode {
         // ✅ Run each path at its own speed
         followWithSpeed(path1, 1, "Path 1 — slow");
         followWithSpeed(path2, 1, "Path 2 — slower");
-        followWithSpeed(path3, 0.28, "Path 3 — slowesttttttt veryyyyy slow");
+        followWithSpeed(path3, 0.25, "Path 3 — slowesttttttt veryyyyy slow");
         followWithSpeed(path4, 1, "Path 4 — slow");
 
         telemetry.addLine("✅ All paths finished");

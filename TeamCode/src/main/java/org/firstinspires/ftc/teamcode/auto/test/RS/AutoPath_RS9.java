@@ -69,7 +69,7 @@ public class AutoPath_RS9 extends LinearOpMode {
         // --- Run each path with custom speeds ---
         follow(path1, 1, "Path 1");
         follow(path2, 1, "Path 2");
-        follow(path3, 1, "Path 3");
+        follow(path3, 0.25, "Path 3");
         follow(path4, 1, "Path 4");
         follow(path5, 1, "Path 5");
 
