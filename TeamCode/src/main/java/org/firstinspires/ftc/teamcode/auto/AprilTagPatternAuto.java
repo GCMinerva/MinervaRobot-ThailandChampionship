@@ -16,7 +16,7 @@ designated function and call the function in whichever part of the pathbuilder i
 */
 
 
-package org.firstinspires.ftc.teamcode.examples;
+package org.firstinspires.ftc.teamcode.auto;
 
 // FTC SDK
 

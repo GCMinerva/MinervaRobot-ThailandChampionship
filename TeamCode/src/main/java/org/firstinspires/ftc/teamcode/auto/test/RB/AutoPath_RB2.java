@@ -91,7 +91,7 @@ public class AutoPath_RB2 extends LinearOpMode {
         follow(path1, 1.0, "Path 1");
         follow(path2, 1.0, "Path 2");
         follow(path3, 0.25, "Path 3");
-        follow(path4, 0.3, "Path 4");
+        follow(path4, 0.7, "Path 4");
         follow(path5, 1.0, "Path 5");
         follow(path6, 1.0, "Path 6");
         follow(path7, 0.25, "Path 7");
