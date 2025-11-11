@@ -26,12 +26,10 @@ public class RB3April extends LinearOpMode {
         // === Initialize AprilTag Subsystem ===
         tagSubsystem = new AprilTagSubsystem(hardwareMap, telemetry);
         telemetry.addLine("🔍 Scanning for AprilTags (IDs 21–23 only)...");
-        telemetry.update();
 
         // === Initialize Actuator Subsystem ===
         actuator = new ActuatorSubsystem(hardwareMap, telemetry);
         telemetry.addLine("⚙️ Actuator ready");
-        telemetry.update();
 
         // === INIT Loop: keep scanning before start ===
         while (!isStarted() && !isStopRequested()) {
@@ -44,9 +42,6 @@ public class RB3April extends LinearOpMode {
         telemetry.addData("Stored Tag ID", detectedTagId);
         telemetry.addLine("Starting Autonomous...");
         telemetry.update();
-
-        // === React based on detected AprilTag ===
-        actuator.actBasedOnTag(); // ✅ universal tag-based actuator routine
 
         // === Pedro follower setup ===
         follower = Constants.createFollower(hardwareMap);
@@ -66,6 +61,8 @@ public class RB3April extends LinearOpMode {
                         new Pose(92.923, 84.321),
                         new Pose(102.512, 83.335)))
                 .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
+                .addParametricCallback(90,() -> actuator.runIntake())
+                .addParametricCallback(90,() -> actuator.setSorterIN1())
                 .build();
 
         PathChain path3 = new PathBuilder(follower, Constants.pathConstraints)
@@ -73,6 +70,8 @@ public class RB3April extends LinearOpMode {
                         new Pose(102.512, 83.335),
                         new Pose(120.971, 83.246)))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                .addParametricCallback(35,() -> actuator.setSorterIN2())
+                .addParametricCallback(60,() -> actuator.setSorterIN3())
                 .build();
 
         PathChain path4 = new PathBuilder(follower, Constants.pathConstraints)
@@ -82,6 +81,8 @@ public class RB3April extends LinearOpMode {
                         new Pose(122.381, 76.282),
                         new Pose(127.602, 75.000)))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
+                .addParametricCallback(10,() -> actuator.stopIntake())
+                .addParametricCallback(12,() -> actuator.runShooterClose())
                 .build();
 
         PathChain path5 = new PathBuilder(follower, Constants.pathConstraints)
@@ -89,6 +90,7 @@ public class RB3April extends LinearOpMode {
                         new Pose(127.602, 75.000),
                         new Pose(87.995, 85.144)))
                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(48))
+                .addParametricCallback(1,() -> actuator.FarGO())
                 .build();
 
         PathChain path6 = new PathBuilder(follower, Constants.pathConstraints)
@@ -97,6 +99,9 @@ public class RB3April extends LinearOpMode {
                         new Pose(88.174, 59.948),
                         new Pose(102.332, 59.320)))
                 .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
+                .addParametricCallback(1,() -> actuator.stopShooter())
+                .addParametricCallback(90,() -> actuator.runIntake())
+                .addParametricCallback(90,() -> actuator.setSorterIN1())
                 .build();
 
         PathChain path7 = new PathBuilder(follower, Constants.pathConstraints)
@@ -104,6 +109,10 @@ public class RB3April extends LinearOpMode {
                         new Pose(102.332, 59.320),
                         new Pose(120.971, 59.231)))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                .addParametricCallback(35,() -> actuator.setSorterIN2())
+                .addParametricCallback(60,() -> actuator.setSorterIN3())
+                .addParametricCallback(95,() -> actuator.stopIntake())
+                .addParametricCallback(100,() -> actuator.runShooterClose())
                 .build();
 
         PathChain path8 = new PathBuilder(follower, Constants.pathConstraints)
@@ -111,6 +120,7 @@ public class RB3April extends LinearOpMode {
                         new Pose(120.971, 59.231),
                         new Pose(87.995, 85.144)))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
+                .addParametricCallback(100,() -> actuator.MidGO())
                 .build();
 
         PathChain path9 = new PathBuilder(follower, Constants.pathConstraints)
@@ -119,6 +129,9 @@ public class RB3April extends LinearOpMode {
                         new Pose(75.450, 44.714),
                         new Pose(101.795, 35.216)))
                 .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
+                .addParametricCallback(1,() -> actuator.stopShooter())
+                .addParametricCallback(90,() -> actuator.runIntake())
+                .addParametricCallback(90,() -> actuator.setSorterIN1())
                 .build();
 
         PathChain path10 = new PathBuilder(follower, Constants.pathConstraints)
@@ -126,6 +139,10 @@ public class RB3April extends LinearOpMode {
                         new Pose(101.795, 35.216),
                         new Pose(120.254, 35.306)))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                .addParametricCallback(35,() -> actuator.setSorterIN2())
+                .addParametricCallback(60,() -> actuator.setSorterIN3())
+                .addParametricCallback(95,() -> actuator.stopIntake())
+                .addParametricCallback(100,() -> actuator.runShooterClose())
                 .build();
 
         PathChain path11 = new PathBuilder(follower, Constants.pathConstraints)
@@ -133,7 +150,10 @@ public class RB3April extends LinearOpMode {
                         new Pose(120.254, 35.306),
                         new Pose(87.995, 85.144)))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
+                .addParametricCallback(100,() -> actuator.NearGO())
                 .build();
+
+        // More paths (path6, path7, etc.) ...
 
         telemetry.addLine("✅ RB3 paths ready — waiting for start");
         telemetry.update();
@@ -141,7 +161,7 @@ public class RB3April extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
 
-        // --- Run all paths (default speed = 1.0) ---
+        // --- Run all paths and then call actuator functions ---
         follow(path1, 1.0, "Path 1");
         follow(path2, 1.0, "Path 2");
         follow(path3, 0.25, "Path 3");
