@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.auto.test;
+package org.firstinspires.ftc.teamcode.test;
 
 import android.util.Size;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
