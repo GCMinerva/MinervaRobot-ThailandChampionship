@@ -223,16 +223,16 @@ public class ActuatorSubsystem {
 
     /** Run shooter for far distance (default high speed) */
     public void runShooterFar() {
-        outtake1.setPower(1.0); // Max power for far shot
-        outtake2.setPower(1.0); // Max power for far shot
+        outtake1.setPower(-0.8); // Max power for far shot
+        outtake2.setPower(-0.8); // Max power for far shot
         telemetry.addData("Shooter", "Far shot running at 1.0");
         telemetry.update();
     }
 
     /** Run shooter for close distance (lower speed) */
     public void runShooterClose() {
-        outtake1.setPower(0.6); // Lower power for close shot
-        outtake2.setPower(0.6); // Lower power for close shot
+        outtake1.setPower(-0.67); // Lower power for close shot
+        outtake2.setPower(-0.67); // Lower power for close shot
         telemetry.addData("Shooter", "Close shot running at 0.6");
         telemetry.update();
     }
