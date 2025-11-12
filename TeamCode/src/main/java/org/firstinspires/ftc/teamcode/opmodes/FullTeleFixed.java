@@ -15,7 +15,7 @@ public class FullTeleFixed extends OpMode {
 
     private Follower follower;
     private DcMotor frontLeft, frontRight, backLeft, backRight;
-    private DcMotor outtake, intake;
+    private DcMotor outtake1, outtake2, intake;
     private Servo binit, sorter;
 
     private double outtakePower = 0;
@@ -64,11 +64,14 @@ public class FullTeleFixed extends OpMode {
         backLeft = hardwareMap.get(DcMotor.class, "bl");
         backRight = hardwareMap.get(DcMotor.class, "br");
 
-        outtake = hardwareMap.get(DcMotor.class, "outtake");
+        outtake1 = hardwareMap.get(DcMotor.class, "outtake1");
+        outtake2 = hardwareMap.get(DcMotor.class, "outtake2");
         intake = hardwareMap.get(DcMotor.class, "intake");
 
-        outtake.setDirection(DcMotor.Direction.FORWARD);
-        outtake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        outtake1.setDirection(DcMotor.Direction.FORWARD);
+        outtake2.setDirection(DcMotor.Direction.FORWARD);
+        outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         binit = hardwareMap.get(Servo.class, "binit");
@@ -179,7 +182,8 @@ public class FullTeleFixed extends OpMode {
             outtakePower = outtakeSpeed;
         }
 
-        outtake.setPower(outtakePower);
+        outtake1.setPower(outtakePower);
+        outtake2.setPower(outtakePower);
 
         if (gamepad1.left_bumper && !gp1_lbPressed) {
             gp1_lbPressed = true;
@@ -335,7 +339,8 @@ public class FullTeleFixed extends OpMode {
 
     @Override
     public void stop() {
-        outtake.setPower(0);
+        outtake1.setPower(0);
+        outtake2.setPower(0);
         intake.setPower(0);
         frontLeft.setPower(0);
         frontRight.setPower(0);
