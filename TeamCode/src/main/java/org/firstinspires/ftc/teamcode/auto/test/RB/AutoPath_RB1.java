@@ -46,15 +46,15 @@ public class AutoPath_RB1 extends LinearOpMode {
         PathChain path4 = new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierCurve(
                         new Pose(120.971, 83.246),
-                        new Pose(77.511, 88.622),
-                        new Pose(89.966, 70.880),
-                        new Pose(127.602, 73.030)))
+                        new Pose(121.361, 77.913),
+                        new Pose(122.381, 76.282),
+                        new Pose(127.602, 75.000)))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
                 .build();
 
         PathChain path5 = new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
-                        new Pose(127.602, 73.030),
+                        new Pose(127.602, 75.000),
                         new Pose(87.995, 85.144)))
                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(48))
                 .build();

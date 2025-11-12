@@ -95,13 +95,13 @@ public class AutoPath_RS7 extends LinearOpMode {
 
         // === Path 10 ===
         PathChain path10 = new PathBuilder(follower, Constants.pathConstraints)
-                .addPath(new BezierLine(new Pose(102.153, 83.783), new Pose(121.329, 83.963)))
+                .addPath(new BezierLine(new Pose(102.153, 83.783), new Pose(118.329, 83.963)))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
         // === Path 11 ===
         PathChain path11 = new PathBuilder(follower, Constants.pathConstraints)
-                .addPath(new BezierLine(new Pose(121.329, 83.963), new Pose(87.995, 85.144)))
+                .addPath(new BezierLine(new Pose(118.329, 83.963), new Pose(87.995, 85.144)))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
                 .build();
 
@@ -115,13 +115,13 @@ public class AutoPath_RS7 extends LinearOpMode {
         followWithSpeed(path1, 1, "Path 1 - slow");
         followWithSpeed(path2, 1, "Path 2 - slower");
         followWithSpeed(path3, 0.3, "Path 3 - slowestttt");
-        followWithSpeed(path4, 0.45, "Path 4 - slow");
+        followWithSpeed(path4, 0.5, "Path 4 - slow");
         followWithSpeed(path5, 1, "Path 5 - slower");
         followWithSpeed(path6, 1, "Path 6 - slowest");
-        followWithSpeed(path7, 0.22, "Path 7 - slow");
+        followWithSpeed(path7, 0.25, "Path 7 - slow");
         followWithSpeed(path8, 1, "Path 8 - slow");
         followWithSpeed(path9, 1, "Path 9 - slower");
-        followWithSpeed(path10, 0.23, "Path 10 - slowest");
+        followWithSpeed(path10, 0.25, "Path 10 - slowest");
         followWithSpeed(path11, 1, "Path 11 - slow");
 
         telemetry.addLine("✅ All RS7 paths complete");

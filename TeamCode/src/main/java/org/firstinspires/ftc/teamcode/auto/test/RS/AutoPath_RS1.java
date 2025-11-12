@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "AutoPath4_BaronSpeed", group = "Test")
+@Autonomous(name = "AutoPath_RS1", group = "Test")
 public class AutoPath_RS1 extends LinearOpMode {
 
     private Follower follower;
