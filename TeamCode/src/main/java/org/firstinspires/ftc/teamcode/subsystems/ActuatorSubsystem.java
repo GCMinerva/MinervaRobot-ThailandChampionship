@@ -7,22 +7,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.util.GlobalData;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierCurve;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.PathBuilder;
-import com.pedropathing.paths.PathChain;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
 /**
- * ActuatorSubsystem — controls shooter wheel (outtake), intake, and servos.
+ * ActuatorSubsystem — controls shooter wheels (outtake1 & outtake2), intake, and servos.
  * Executes different spin patterns depending on detected AprilTag motif (21–23).
  */
 public class ActuatorSubsystem {
 
-    private DcMotor outtake, intake;
+    private DcMotor outtake1, outtake2, intake;
     private Servo binit, sorter;
     private final Telemetry telemetry;
     private final ElapsedTime timer = new ElapsedTime();
@@ -31,13 +22,19 @@ public class ActuatorSubsystem {
     public ActuatorSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
 
-        outtake = hardwareMap.get(DcMotor.class, "outtake");
+        // Initialize motors
+        outtake1 = hardwareMap.get(DcMotor.class, "outtake1");
+        outtake2 = hardwareMap.get(DcMotor.class, "outtake2");
         intake = hardwareMap.get(DcMotor.class, "intake");
 
-        outtake.setDirection(DcMotor.Direction.FORWARD);
-        outtake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        // Set motor directions and behaviors
+        outtake1.setDirection(DcMotor.Direction.FORWARD);
+        outtake2.setDirection(DcMotor.Direction.FORWARD);
+        outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        // Initialize servos
         binit = hardwareMap.get(Servo.class, "binit");
         sorter = hardwareMap.get(Servo.class, "sorter");
 
@@ -65,16 +62,18 @@ public class ActuatorSubsystem {
         telemetry.update();
     }
 
-    /** Run outtake motor */
+    /** Run outtake motors (both at the same time) */
     public void runOuttake(double power) {
-        outtake.setPower(power);
+        outtake1.setPower(power);
+        outtake2.setPower(power); // Set both motors to the same power
         telemetry.addData("Outtake", "Running %.2f", power);
         telemetry.update();
     }
 
-    /** Stop outtake */
+    /** Stop outtake motors */
     public void stopOuttake() {
-        outtake.setPower(0);
+        outtake1.setPower(0);
+        outtake2.setPower(0);
         telemetry.addData("Outtake", "Stopped");
         telemetry.update();
     }
@@ -224,21 +223,24 @@ public class ActuatorSubsystem {
 
     /** Run shooter for far distance (default high speed) */
     public void runShooterFar() {
-        outtake.setPower(1.0); // Max power for far shot
+        outtake1.setPower(1.0); // Max power for far shot
+        outtake2.setPower(1.0); // Max power for far shot
         telemetry.addData("Shooter", "Far shot running at 1.0");
         telemetry.update();
     }
 
     /** Run shooter for close distance (lower speed) */
     public void runShooterClose() {
-        outtake.setPower(0.6); // Lower power for close shot
+        outtake1.setPower(0.6); // Lower power for close shot
+        outtake2.setPower(0.6); // Lower power for close shot
         telemetry.addData("Shooter", "Close shot running at 0.6");
         telemetry.update();
     }
 
     /** Stop shooter */
     public void stopShooter() {
-        outtake.setPower(0);
+        outtake1.setPower(0);
+        outtake2.setPower(0);
         telemetry.addData("Shooter", "Stopped");
         telemetry.update();
     }
