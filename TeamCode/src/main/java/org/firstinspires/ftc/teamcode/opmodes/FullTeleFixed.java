@@ -25,7 +25,7 @@ public class FullTeleFixed extends OpMode {
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private ColorSensor colorSensor;
-    private DcMotor outtake, intake, outtake1;
+    private DcMotor outtake, intake;
     private Servo binit, sorter;
     private double outtakePower = 0;
     private double outtakeSpeed = 0.5;
@@ -66,22 +66,11 @@ public class FullTeleFixed extends OpMode {
     double[] loadPositions = {0.0, 0.4, 0.75};
     double[] shootPositions = {0.55, 0.9, 0.15};
 
-    boolean checkingColor = false;
-    long lastCheckTime = 0;
-    final long CHECK_INTERVAL_MS = 500;
-
     // loading state (non-blocking): เมื่อกดเก็บ ให้รอเวลาให้ servo หมุนเสร็จก่อนอ่านสี
     private boolean loading = false;
     private long loadStartTime = 0;
     private int loadingSlot = -1;
     private final int LOAD_DELAY_MS = 700; // ปรับตามความเร็ว servo/กลไก
-
-    // ===== POSITION TRACKING =====
-    private double trackedX = 0;
-    private double trackedY = 0;
-    private double trackedHeadingDeg = 0;
-    private long lastPoseUpdate = 0;
-    private final long POSE_UPDATE_INTERVAL_MS = 100; // อัปเดตทุก 100ms
 
     @Override
     public void init() {
@@ -99,15 +88,11 @@ public class FullTeleFixed extends OpMode {
 
         colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
 
-        outtake = hardwareMap.get(DcMotor.class, "outtake1");
-        outtake1 = hardwareMap.get(DcMotor.class, "outtake2");
+        outtake = hardwareMap.get(DcMotor.class, "outtake");
         intake = hardwareMap.get(DcMotor.class, "intake");
 
         outtake.setDirection(DcMotor.Direction.REVERSE);
-
         outtake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        outtake1.setDirection(DcMotor.Direction.REVERSE);
-        outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         binit = hardwareMap.get(Servo.class, "binit");
@@ -139,15 +124,6 @@ public class FullTeleFixed extends OpMode {
 
         follower.update();
         Pose currentPose = follower.getPose();
-
-        // ---------- POSITION TRACKING ----------
-        if (currentPose != null && System.currentTimeMillis() - lastPoseUpdate >= POSE_UPDATE_INTERVAL_MS) {
-            lastPoseUpdate = System.currentTimeMillis();
-            trackedX = currentPose.getX();
-            trackedY = currentPose.getY();
-            trackedHeadingDeg = Math.toDegrees(currentPose.getHeading());
-        }
-        telemetry.addData("Tracked Pose", "X: %.1f | Y: %.1f | H: %.1f°", trackedX, trackedY, trackedHeadingDeg);
 
         // อ่านค่าสีเพื่อ telemetry (ค่าสดของเฟรมนี้)
         int red = colorSensor.red();
@@ -205,17 +181,17 @@ public class FullTeleFixed extends OpMode {
             }
         }
 
-        // === OUTTAKE TOGGLE (gamepad2.x) ===
         if (gamepad2.x && !gp2_xPressed) {
             gp2_xPressed = true;
-            // toggle outtake on/off
-            if (outtakePower == 0) {
-                outtakePower = outtakeSpeed;  // เปิดหมุน
-            } else {
-                outtakePower = 0;             // ปิดหมุน
-            }
+            outtakePower = outtakeSpeed;
         }
         if (!gamepad2.x) gp2_xPressed = false;
+
+        if (gamepad2.y && !gp2_yPressed) {
+            gp2_yPressed = true;
+            outtakePower = 0;
+        }
+        if (!gamepad2.y) gp2_yPressed = false;
 
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastSpeedChangeTime >= 250) {
@@ -234,7 +210,6 @@ public class FullTeleFixed extends OpMode {
         }
 
         outtake.setPower(outtakePower);
-        outtake1.setPower(outtakePower);
 
         if (gamepad1.left_bumper && !gp1_lbPressed) {
             gp1_lbPressed = true;
@@ -264,47 +239,48 @@ public class FullTeleFixed extends OpMode {
         }
         if (!gamepad1.right_bumper) gp1_rbPressed = false;
 
-        // ---------- ตรวจสีทุก ๆ 500ms ตลอดเวลา ----------
-        if (!sorterBusy && (System.currentTimeMillis() - lastCheckTime >= CHECK_INTERVAL_MS)) {
-            lastCheckTime = System.currentTimeMillis();
+        // === LOADING (non-blocking) ===
+        if (gamepad1.y && !yPressed && !loading) {
+            aPressed = true;
+            int next = findNextSlot(0); // หาช่องว่าง
+            if (next != -1) {
+                currentSlot = next;
+                sorter.setPosition(loadPositions[currentSlot]);
 
+                // เริ่ม state loading: รอให้ servo หมุนเสร็จ แล้วค่อยอ่านสี
+                loading = true;
+                loadStartTime = System.currentTimeMillis();
+                loadingSlot = currentSlot;
+            }
+        }
+        if (!gamepad1.y) yPressed = false;
+
+        // เมื่อ loading ผ่านเวลา LOAD_DELAY_MS ให้อ่านสีจริงและอัพเดต slots
+        if (loading && (System.currentTimeMillis() - loadStartTime >= LOAD_DELAY_MS)) {
+            // อ่านค่าสี ณ ตอนนี้ (สด)
             int r = colorSensor.red();
             int g = colorSensor.green();
             int b = colorSensor.blue();
 
-            telemetry.addData("RGB", "%d %d %d", r, g, b);
-
-            int detectedColor = -1;
+            // ตรวจสี (threshold เหมือนตัวอย่างก่อนหน้า) — ปรับตามสนามจริงได้
             if (g > r && g > b && g > 3000) {
-                detectedColor = 2; // ม่วง
-            } else if (r > 500 && g > 500 && b > 500) {
-                detectedColor = 1; // เขียว
+                slots[loadingSlot] = 2; // ม่วง
+            } else if (r > 500 && b > 500 && green > 500) {
+                slots[loadingSlot] = 1; // เขียว
+            } else {
+                slots[loadingSlot] = 0; // ไม่แน่ใจ
             }
 
-            if (detectedColor != -1) {
-                // หาช่องว่างถัดไป
-                int next = findNextSlot(0);
-                if (next != -1) {
-                    slots[next] = detectedColor;
-                    sorter.setPosition(loadPositions[next]);
+            telemetry.addData("LoadSlot", loadingSlot);
+            telemetry.addData("LoadColor(RGB)", "%d %d %d", r, g, b);
 
-                    telemetry.addData("DetectedColor", detectedColor == 2 ? "Purple" : "Green");
-                    telemetry.addData("MovedToSlot", next);
-
-                    // อัปเดตสถานะปัจจุบัน
-                    currentSlot = next;
-                    loadingSlot = next;
-                } else {
-                    telemetry.addData("Status", "No empty slot!");
-                }
-            }
+            // reset loading state
+            loading = false;
+            loadingSlot = -1;
         }
 
-        // === SHOOT CONTROL ===
-        if (gamepad1.b) { // ยิงบอลม่วงก่อน ถ้าไม่มีให้ยิงเขียวแทน
-            int next = findNextSlotType(1); // ม่วง
-            if (next == -1) next = findNextSlotType(2); // ถ้าไม่เจอม่วง -> เขียวแทน
-
+        if (gamepad1.b) { // Y+B ยิงบอลม่วง
+            int next = findNextSlotType(1);
             if (next != -1) {
                 currentSlot = next;
                 if (!sorterBusy) {
@@ -324,10 +300,8 @@ public class FullTeleFixed extends OpMode {
                 }
             }
         }
-        else if (gamepad1.a) { // ยิงบอลเขียวก่อน ถ้าไม่มีให้ยิงม่วงแทน
-            int next = findNextSlotType(2); // เขียว
-            if (next == -1) next = findNextSlotType(1); // ถ้าไม่เจอเขียว -> ม่วงแทน
-
+        else if (gamepad1.a) { // Y+A ยิงบอลเขียว
+            int next = findNextSlotType(2);
             if (next != -1) {
                 currentSlot = next;
                 if (!sorterBusy) {
@@ -347,22 +321,22 @@ public class FullTeleFixed extends OpMode {
                 }
             }
         }
-
         // === intake toggle (X) ===
-//        if (gamepad1.x && !gp1_xPressed) {
-//            gp1_xPressed = true;
-//            x1Pressed = !x1Pressed;
-//
-//            if (x1Pressed) {
-//                intakePower = -0.75;  // เปิดดูด
-//            } else {
-//                intakePower = 0;      // ปิดดูด
-//            }
-//        }
-//        if (!gamepad1.x) {
-//            gp1_xPressed = false; // รีเซ็ตสถานะกันค้าง
-//        }
-        intake.setPower(-gamepad1.left_stick_y);
+        if (gamepad1.x && !gp1_xPressed) {
+            gp1_xPressed = true;
+            x1Pressed = !x1Pressed;  // toggle เมื่อกดปุ่ม (ไม่ใช่ตอนปล่อย)
+
+            if (x1Pressed) {
+                intakePower = -0.75;  // เปิดดูด
+            } else {
+                intakePower = 0;      // ปิดดูด
+            }
+        }
+        if (!gamepad1.x) {
+            gp1_xPressed = false; // รีเซ็ตสถานะกันค้าง
+        }
+
+        intake.setPower(intakePower);
 
         telemetry.addData("=== DRIVETRAIN ===", "");
         if (currentPose != null) {
