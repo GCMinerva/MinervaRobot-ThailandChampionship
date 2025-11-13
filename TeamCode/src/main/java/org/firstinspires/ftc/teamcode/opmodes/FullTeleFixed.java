@@ -99,7 +99,7 @@ public class FullTeleFixed extends OpMode {
 
         colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
 
-        outtake = hardwareMap.get(DcMotor.class, "outtaTAke1");
+        outtake = hardwareMap.get(DcMotor.class, "outtake1");
         outtake1 = hardwareMap.get(DcMotor.class, "outtake2");
         intake = hardwareMap.get(DcMotor.class, "intake");
 
