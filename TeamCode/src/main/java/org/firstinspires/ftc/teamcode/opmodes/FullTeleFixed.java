@@ -25,7 +25,7 @@ public class FullTeleFixed extends OpMode {
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private ColorSensor colorSensor;
-    private DcMotor outtake, intake;
+    private DcMotor outtake1, outtake2, intake, turret;
     private Servo binit, sorter;
     private double outtakePower = 0;
     private double outtakeSpeed = 0.5;
@@ -88,12 +88,17 @@ public class FullTeleFixed extends OpMode {
 
         colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
 
-        outtake = hardwareMap.get(DcMotor.class, "outtake");
+        outtake1 = hardwareMap.get(DcMotor.class, "outtake1");
+        outtake2 = hardwareMap.get(DcMotor.class, "outtake2");
         intake = hardwareMap.get(DcMotor.class, "intake");
+        turret = hardwareMap.get(DcMotor.class, "turret");
 
-        outtake.setDirection(DcMotor.Direction.REVERSE);
-        outtake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        outtake1.setDirection(DcMotor.Direction.REVERSE);
+        outtake2.setDirection(DcMotor.Direction.REVERSE);
+        outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         binit = hardwareMap.get(Servo.class, "binit");
         sorter = hardwareMap.get(Servo.class, "sorter");
@@ -209,7 +214,12 @@ public class FullTeleFixed extends OpMode {
             outtakePower = outtakeSpeed;
         }
 
-        outtake.setPower(outtakePower);
+        outtake1.setPower(outtakePower);
+        outtake2.setPower(outtakePower);
+
+        // Turret control with right joystick (gamepad2)
+        double turretPower = gamepad2.right_stick_y;
+        turret.setPower(turretPower);
 
         if (gamepad1.left_bumper && !gp1_lbPressed) {
             gp1_lbPressed = true;
@@ -387,6 +397,10 @@ public class FullTeleFixed extends OpMode {
         telemetry.addData("Speed", "%.2f", outtakeSpeed);
         telemetry.addData("", "");
 
+        telemetry.addData("=== TURRET ===", "");
+        telemetry.addData("Power", "%.2f", turretPower);
+        telemetry.addData("", "");
+
         telemetry.addData("=== INTAKE ===", "");
         telemetry.addData("Power", "%.2f", intakePower);
         telemetry.addData("", "");
@@ -446,7 +460,9 @@ public class FullTeleFixed extends OpMode {
 
     @Override
     public void stop() {
-        outtake.setPower(0);
+        outtake1.setPower(0);
+        outtake2.setPower(0);
+        turret.setPower(0);
         intake.setPower(0);
         frontLeft.setPower(0);
         frontRight.setPower(0);
