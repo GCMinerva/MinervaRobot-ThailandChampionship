@@ -69,7 +69,7 @@ public class FullTeleFixed extends OpMode {
     int b = colorSensor.blue();
 
     // ===== Sorter system (3 ช่องเก็บบอล) =====
-    // 0 = ว่าง, 1 = บอลม่วง, 2 = บอลเขียว
+    // 0 = ว่าง, 1 = บอลม่วง, 2 = บอลเขียว/
     int[] slots = {0, 0, 0};
     int currentSlot = 0;
     double[] loadPositions = {0.15, 0.533, 0.918};
