@@ -105,7 +105,7 @@ public class FullTeleFixed extends OpMode {
         sorter = hardwareMap.get(Servo.class, "sorter");
 
         binit.setPosition(0.95);
-        sorter.setPosition(0.55);
+        sorter.setPosition(0.15);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
