@@ -31,6 +31,7 @@ public class FullTeleFixed extends OpMode {
     private double outtakeSpeed = 0.5;
     private long lastSpeedChangeTime = 0;
     private double intakePower = 0;
+    private double testpo = 0;
 
     private boolean gp2_xPressed = false;
     private boolean gp2_yPressed = false;
@@ -63,8 +64,8 @@ public class FullTeleFixed extends OpMode {
     // 0 = ว่าง, 1 = บอลม่วง, 2 = บอลเขียว
     int[] slots = {0, 0, 0};
     int currentSlot = 0;
-    double[] loadPositions = {0.0, 0.4, 0.75};
-    double[] shootPositions = {0.55, 0.9, 0.15};
+    double[] loadPositions = {0.15, 0.533, 0.918};
+    double[] shootPositions = {0.751, 0, 0.354};
 
     // loading state (non-blocking): เมื่อกดเก็บ ให้รอเวลาให้ servo หมุนเสร็จก่อนอ่านสี
     private boolean loading = false;
@@ -103,7 +104,7 @@ public class FullTeleFixed extends OpMode {
         binit = hardwareMap.get(Servo.class, "binit");
         sorter = hardwareMap.get(Servo.class, "sorter");
 
-        binit.setPosition(0.35);
+        binit.setPosition(1);
         sorter.setPosition(0.55);
 
         telemetry.addData("Status", "Initialized");
@@ -237,11 +238,11 @@ public class FullTeleFixed extends OpMode {
 
         if (gamepad1.right_bumper && !gp1_rbPressed) {
             gp1_rbPressed = true;
-            binit.setPosition(1.0);
+            binit.setPosition(0.35);
             new Thread(() -> {
                 try {
                     Thread.sleep(500);
-                    binit.setPosition(0.35);
+                    binit.setPosition(1);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -310,7 +311,7 @@ public class FullTeleFixed extends OpMode {
                 }
             }
         }
-        else if (gamepad1.a) { // Y+A ยิงบอลเขียว
+        if (gamepad1.a) { // Y+A ยิงบอลเขียว
             int next = findNextSlotType(2);
             if (next != -1) {
                 currentSlot = next;
@@ -331,6 +332,7 @@ public class FullTeleFixed extends OpMode {
                 }
             }
         }
+
         // === intake toggle (X) ===
         if (gamepad1.x && !gp1_xPressed) {
             gp1_xPressed = true;
