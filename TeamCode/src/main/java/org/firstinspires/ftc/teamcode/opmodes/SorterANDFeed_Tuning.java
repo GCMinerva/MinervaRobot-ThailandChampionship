@@ -46,21 +46,21 @@ public class SorterANDFeed_Tuning extends LinearOpMode {
             // Check DPad inputs to adjust the sorter position
             if (gamepad1.dpad_up) {
                 // Increase the sorter position by 0.1, making sure it stays between 0.0 and 1.0
-                sorterPosition = Math.min(1.0, sorterPosition + 0.1);
+                sorterPosition = Math.min(1.0, sorterPosition + 0.001);
             }
             if (gamepad1.dpad_down) {
                 // Decrease the sorter position by 0.1, making sure it stays between 0.0 and 1.0
-                sorterPosition = Math.max(0.0, sorterPosition - 0.1);
+                sorterPosition = Math.max(0.0, sorterPosition - 0.001);
             }
 
             // Check DPad inputs to adjust the binit position
             if (gamepad1.dpad_left) {
                 // Decrease the binit position by 0.1, making sure it stays between 0.0 and 1.0
-                binitPosition = Math.max(0.0, binitPosition - 0.1);
+                binitPosition = Math.max(0.0, binitPosition - 0.001);
             }
             if (gamepad1.dpad_right) {
                 // Increase the binit position by 0.1, making sure it stays between 0.0 and 1.0
-                binitPosition = Math.min(1.0, binitPosition + 0.1);
+                binitPosition = Math.min(1.0, binitPosition + 0.001);
             }
 
             // Set the servo positions to the current values
