@@ -104,7 +104,7 @@ public class FullTeleFixed extends OpMode {
         binit = hardwareMap.get(Servo.class, "binit");
         sorter = hardwareMap.get(Servo.class, "sorter");
 
-        binit.setPosition(1);
+        binit.setPosition(0.95);
         sorter.setPosition(0.55);
 
         telemetry.addData("Status", "Initialized");
@@ -238,11 +238,11 @@ public class FullTeleFixed extends OpMode {
 
         if (gamepad1.right_bumper && !gp1_rbPressed) {
             gp1_rbPressed = true;
-            binit.setPosition(0.35);
+            binit.setPosition(0.135);
             new Thread(() -> {
                 try {
                     Thread.sleep(500);
-                    binit.setPosition(1);
+                    binit.setPosition(0.95);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
