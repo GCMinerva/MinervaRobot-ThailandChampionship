@@ -80,14 +80,14 @@ public class ActuatorSubsystem {
 
     /** Open bin (binit) */
     public void openBin() {
-        binit.setPosition(0.75);
+        binit.setPosition(0.135);
         telemetry.addData("binit", "Opened");
         telemetry.update();
     }
 
     /** Close bin (binit) */
     public void closeBin() {
-        binit.setPosition(0.35);
+        binit.setPosition(0.69);
         telemetry.addData("binit", "Closed");
         telemetry.update();
     }
@@ -103,21 +103,21 @@ public class ActuatorSubsystem {
 
     /** Set sorter position for Slot 1 */
     public void setSorterP1() {
-        sorter.setPosition(0.3); // Position for Field Position 1
+        sorter.setPosition(0.751); // Position for Field Position 1
         telemetry.addData("sorter", "Position P1: %.2f", 0.3);
         telemetry.update();
     }
 
     /** Set sorter position for Slot 2 */
     public void setSorterP2() {
-        sorter.setPosition(0.5); // Position for Field Position 2
+        sorter.setPosition(0); // Position for Field Position 2
         telemetry.addData("sorter", "Position P2: %.2f", 0.5);
         telemetry.update();
     }
 
     /** Set sorter position for Slot 3 */
     public void setSorterP3() {
-        sorter.setPosition(0.7); // Position for Field Position 3
+        sorter.setPosition(0.354); // Position for Field Position 3
         telemetry.addData("sorter", "Position P3: %.2f", 0.7);
         telemetry.update();
     }
@@ -126,21 +126,21 @@ public class ActuatorSubsystem {
 
     /** Set sorter position for Intake 1 */
     public void setSorterIN1() {
-        sorter.setPosition(0.4); // Position for Intake Position 1
+        sorter.setPosition(0.15); // Position for Intake Position 1
         telemetry.addData("sorter", "Position IN1: %.2f", 0.4);
         telemetry.update();
     }
 
     /** Set sorter position for Intake 2 */
     public void setSorterIN2() {
-        sorter.setPosition(0.6); // Position for Intake Position 2
+        sorter.setPosition(0.533); // Position for Intake Position 2
         telemetry.addData("sorter", "Position IN2: %.2f", 0.6);
         telemetry.update();
     }
 
     /** Set sorter position for Intake 3 */
     public void setSorterIN3() {
-        sorter.setPosition(0.8); // Position for Intake Position 3
+        sorter.setPosition(0.918); // Position for Intake Position 3
         telemetry.addData("sorter", "Position IN3: %.2f", 0.8);
         telemetry.update();
     }
