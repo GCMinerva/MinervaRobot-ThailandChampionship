@@ -187,17 +187,18 @@ public class FullTeleFixed extends OpMode {
             }
         }
 
+        // Toggle state
+        boolean xToggle = false;
+        // Edge detection
         if (gamepad2.x && !gp2_xPressed) {
             gp2_xPressed = true;
-            outtakePower = outtakeSpeed;
+            xToggle = !xToggle;   // toggle
         }
         if (!gamepad2.x) gp2_xPressed = false;
 
-        if (gamepad2.y && !gp2_yPressed) {
-            gp2_yPressed = true;
-            outtakePower = 0;
-        }
-        if (!gamepad2.y) gp2_yPressed = false;
+        // Apply toggle result
+        outtakePower = xToggle ? outtakeSpeed : 0;
+
 
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastSpeedChangeTime >= 250) {
