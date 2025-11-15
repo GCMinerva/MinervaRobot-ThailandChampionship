@@ -5,6 +5,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 /**
  * Main Robot Configuration Class
  * Centralizes all robot subsystems and hardware configurations
+ *
+ * All hardware constants and configurations are defined in RobotHardwareConfig.java
+ * This class initializes and manages the subsystems using those configurations
  */
 public class RobotConfig {
 

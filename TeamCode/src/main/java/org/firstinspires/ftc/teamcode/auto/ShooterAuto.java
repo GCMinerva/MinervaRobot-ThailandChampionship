@@ -6,6 +6,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.config.RobotConfig;
+import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name = "Shooter Auto", group = "Auto")
@@ -16,12 +17,16 @@ public class ShooterAuto extends OpMode {
     private Timer pathTimer, actionTimer;
     private int pathState;
 
-    // Shooting target position (blue alliance top left)
-    private final double TARGET_X = 11.0;
-    private final double TARGET_Y = 135.0;
+    // Shooting target position from config
+    private final double TARGET_X = RobotHardwareConfig.ShooterParams.TARGET_X;
+    private final double TARGET_Y = RobotHardwareConfig.ShooterParams.TARGET_Y;
 
-    // Starting position
-    private final Pose startPose = new Pose(56.0, 8.0, Math.toRadians(90));
+    // Starting position from config
+    private final Pose startPose = new Pose(
+        RobotHardwareConfig.AutoStartPositions.DEFAULT_X,
+        RobotHardwareConfig.AutoStartPositions.DEFAULT_Y,
+        Math.toRadians(RobotHardwareConfig.AutoStartPositions.DEFAULT_HEADING)
+    );
 
     @Override
     public void init() {
@@ -33,10 +38,15 @@ public class ShooterAuto extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
 
-        // Configure shooter
+        // Configure shooter with values from config
         robot.shooter.setTargetPosition(TARGET_X, TARGET_Y);
-        // Calibration: minDistance, minPower, maxDistance, maxPower
-        robot.shooter.setCalibration(20.0, 0.3, 60.0, 0.9);
+        // Calibration from config: minDistance, minPower, maxDistance, maxPower
+        robot.shooter.setCalibration(
+            RobotHardwareConfig.ShooterParams.MIN_DISTANCE,
+            RobotHardwareConfig.ShooterParams.MIN_POWER,
+            RobotHardwareConfig.ShooterParams.MAX_DISTANCE,
+            RobotHardwareConfig.ShooterParams.MAX_POWER
+        );
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -61,8 +71,8 @@ public class ShooterAuto extends OpMode {
                 break;
 
             case 1:
-                // Wait for shooter to spin up (0.5 seconds)
-                if (pathTimer.getElapsedTimeSeconds() > 0.5) {
+                // Wait for shooter to spin up using config delay
+                if (pathTimer.getElapsedTimeSeconds() > RobotHardwareConfig.ShooterParams.SPINUP_DELAY / 1000.0) {
                     robot.shooter.shoot();
                     actionTimer.resetTimer();
                     setPathState(2);
@@ -70,8 +80,8 @@ public class ShooterAuto extends OpMode {
                 break;
 
             case 2:
-                // Wait for ball to shoot (0.3 seconds)
-                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
+                // Wait for ball to shoot using config delay
+                if (actionTimer.getElapsedTimeSeconds() > RobotHardwareConfig.ShooterParams.SHOOT_DELAY / 1000.0) {
                     robot.shooter.reset();
                     setPathState(3);
                 }
@@ -99,8 +109,8 @@ public class ShooterAuto extends OpMode {
                 break;
 
             case 5:
-                // Second shot - wait for spin up
-                if (pathTimer.getElapsedTimeSeconds() > 0.5) {
+                // Second shot - wait for spin up using config delay
+                if (pathTimer.getElapsedTimeSeconds() > RobotHardwareConfig.ShooterParams.SPINUP_DELAY / 1000.0) {
                     robot.shooter.shoot();
                     actionTimer.resetTimer();
                     setPathState(6);
@@ -108,8 +118,8 @@ public class ShooterAuto extends OpMode {
                 break;
 
             case 6:
-                // Second shot - wait for ball to shoot
-                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
+                // Second shot - wait for ball to shoot using config delay
+                if (actionTimer.getElapsedTimeSeconds() > RobotHardwareConfig.ShooterParams.SHOOT_DELAY / 1000.0) {
                     robot.shooter.stopAll();
                     setPathState(-1);  // Done
                 }

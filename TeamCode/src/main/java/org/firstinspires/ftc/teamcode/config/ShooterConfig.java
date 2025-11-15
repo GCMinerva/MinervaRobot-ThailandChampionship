@@ -4,16 +4,12 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
 
 /**
  * Shooter Configuration Class
  * Manages all shooter-related hardware and mechanisms
- *
- * Hardware Components:
- * - shooter: Main shooting motor (power control)
- * - negashooter: Stabilizer motor (keeps mechanism stable)
- * - outtake: Motor to feed ball into shooter
- * - shserver: Servo to control shooting mechanism
+ * Uses centralized RobotHardwareConfig for all hardware constants
  */
 public class ShooterConfig {
 
@@ -25,24 +21,24 @@ public class ShooterConfig {
     // Servo
     public Servo shooterServo;          // Shooting mechanism servo
 
-    // Target position (shooting point center)
-    private double targetX = 11.0;
-    private double targetY = 135.0;
+    // Target position (shooting point center) - from config
+    private double targetX = RobotHardwareConfig.ShooterParams.TARGET_X;
+    private double targetY = RobotHardwareConfig.ShooterParams.TARGET_Y;
 
-    // Distance and power calibration
-    private double minDistance = 20.0;  // Minimum shooting distance (inches)
-    private double minPower = 0.3;      // Power at minimum distance
-    private double maxDistance = 60.0;  // Maximum shooting distance (inches)
-    private double maxPower = 0.9;      // Power at maximum distance
+    // Distance and power calibration - from config
+    private double minDistance = RobotHardwareConfig.ShooterParams.MIN_DISTANCE;
+    private double minPower = RobotHardwareConfig.ShooterParams.MIN_POWER;
+    private double maxDistance = RobotHardwareConfig.ShooterParams.MAX_DISTANCE;
+    private double maxPower = RobotHardwareConfig.ShooterParams.MAX_POWER;
 
-    // Servo positions
-    public static final double SERVO_SHOOT = 0.9;   // Shooting position
-    public static final double SERVO_RESET = 0.0;   // Reset position
+    // Servo positions - from config
+    public static final double SERVO_SHOOT = RobotHardwareConfig.ShooterServos.SHOOT_POSITION;
+    public static final double SERVO_RESET = RobotHardwareConfig.ShooterServos.RESET_POSITION;
 
-    // Motor power settings
-    public static final double NEGA_SHOOTER_POWER = 1.0;  // Stabilizer power (always full)
-    public static final double OUTTAKE_FEED_POWER = 1.0;  // Power to feed ball in (always full)
-    public static final double OUTTAKE_REVERSE_POWER = -1.0; // Power to reverse if needed
+    // Motor power settings - from config
+    public static final double NEGA_SHOOTER_POWER = RobotHardwareConfig.ShooterParams.STABILIZER_POWER;
+    public static final double OUTTAKE_FEED_POWER = RobotHardwareConfig.ShooterParams.FEED_POWER;
+    public static final double OUTTAKE_REVERSE_POWER = RobotHardwareConfig.ShooterParams.REVERSE_FEED_POWER;
 
     private boolean isReady = true;
 
@@ -50,18 +46,18 @@ public class ShooterConfig {
      * Initialize shooter hardware
      */
     public ShooterConfig(HardwareMap hardwareMap) {
-        // Initialize motors
-        shooterMotor = hardwareMap.get(DcMotor.class, "shooter");
-        negaShooterMotor = hardwareMap.get(DcMotor.class, "negashooter");
-        outtakeMotor = hardwareMap.get(DcMotor.class, "outtake");
+        // Initialize motors using names from config
+        shooterMotor = hardwareMap.get(DcMotor.class, RobotHardwareConfig.ShooterMotors.MAIN_SHOOTER);
+        negaShooterMotor = hardwareMap.get(DcMotor.class, RobotHardwareConfig.ShooterMotors.STABILIZER);
+        outtakeMotor = hardwareMap.get(DcMotor.class, RobotHardwareConfig.ShooterMotors.OUTTAKE);
 
-        // Initialize servo
-        shooterServo = hardwareMap.get(Servo.class, "shserver");
+        // Initialize servo using name from config
+        shooterServo = hardwareMap.get(Servo.class, RobotHardwareConfig.ShooterServos.SHOOTER_SERVO);
 
-        // Set motor directions
-        shooterMotor.setDirection(DcMotor.Direction.REVERSE);      // Reversed
-        negaShooterMotor.setDirection(DcMotor.Direction.FORWARD);
-        outtakeMotor.setDirection(DcMotor.Direction.REVERSE);
+        // Set motor directions from config
+        shooterMotor.setDirection(RobotHardwareConfig.ShooterDirections.MAIN_SHOOTER);
+        negaShooterMotor.setDirection(RobotHardwareConfig.ShooterDirections.STABILIZER);
+        outtakeMotor.setDirection(RobotHardwareConfig.ShooterDirections.OUTTAKE);
 
         // Set initial servo position
         shooterServo.setPosition(SERVO_RESET);
@@ -98,16 +94,8 @@ public class ShooterConfig {
      * Calculate motor power based on distance using linear interpolation
      */
     public double calculatePower(double distance) {
-        // Clamp distance to min/max range
-        if (distance <= minDistance) {
-            return minPower;
-        } else if (distance >= maxDistance) {
-            return maxPower;
-        }
-
-        // Linear interpolation between min and max
-        double ratio = (distance - minDistance) / (maxDistance - minDistance);
-        return minPower + (ratio * (maxPower - minPower));
+        // Use centralized calculation method
+        return RobotHardwareConfig.calculateShooterPower(distance);
     }
 
     /**
@@ -115,7 +103,7 @@ public class ShooterConfig {
      */
     public boolean isInRange(Pose currentPose) {
         double distance = calculateDistance(currentPose);
-        return distance >= minDistance && distance <= maxDistance;
+        return RobotHardwareConfig.isInShootingRange(distance);
     }
 
     /**
@@ -271,14 +259,14 @@ public class ShooterConfig {
      * Move servo up (to 90 degrees / position 0.5)
      */
     public void servoUp() {
-        shooterServo.setPosition(0.5);
+        shooterServo.setPosition(RobotHardwareConfig.ShooterServos.UP_POSITION);
     }
 
     /**
      * Move servo down (to 0 degrees / position 0.0)
      */
     public void servoDown() {
-        shooterServo.setPosition(0.0);
+        shooterServo.setPosition(RobotHardwareConfig.ShooterServos.DOWN_POSITION);
     }
 
     /**

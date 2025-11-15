@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.config.RobotConfig;
+import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
 import org.firstinspires.ftc.teamcode.vision.BallDetectionProcessor;
 import org.firstinspires.ftc.vision.VisionPortal;
 
@@ -25,9 +26,9 @@ public class BallDetectionAuto extends LinearOpMode {
         // Initialize ball detector
         ballDetector = new BallDetectionProcessor();
 
-        // Initialize vision portal
+        // Initialize vision portal using webcam name from config
         visionPortal = new VisionPortal.Builder()
-            .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+            .setCamera(hardwareMap.get(WebcamName.class, RobotHardwareConfig.Camera.WEBCAM_NAME))
             .addProcessor(ballDetector)
             .build();
 
@@ -71,8 +72,11 @@ public class BallDetectionAuto extends LinearOpMode {
                     telemetry.update();
 
                     // Example: Activate intake when ball is centered
+                    // Using camera resolution from config
                     BallDetectionProcessor.Detection closestBall =
-                        ballDetector.getClosestDetectionToCenter(640, 480);
+                        ballDetector.getClosestDetectionToCenter(
+                            RobotHardwareConfig.Camera.RESOLUTION_WIDTH,
+                            RobotHardwareConfig.Camera.RESOLUTION_HEIGHT);
 
                     if (closestBall != null && closestBall.label.equals("purpleball")) {
                         // Calculate center of bounding box

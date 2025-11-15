@@ -5,6 +5,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.config.RobotConfig;
+import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 /**
@@ -27,9 +28,9 @@ public class MinervaTeleOp extends OpMode {
     private RobotConfig robot;
     private Follower follower;
 
-    // Shooter control variables
-    private double shooterPower = 0.5;
-    private static final double POWER_INCREMENT = 0.05;
+    // Shooter control variables - using config constants
+    private double shooterPower = (RobotHardwareConfig.ShooterParams.MIN_POWER + RobotHardwareConfig.ShooterParams.MAX_POWER) / 2;  // Start at mid-range
+    private static final double POWER_INCREMENT = RobotHardwareConfig.ShooterParams.POWER_INCREMENT;
     private boolean servoExtended = false;
     private boolean motorsRunning = false;
 
@@ -101,12 +102,12 @@ public class MinervaTeleOp extends OpMode {
         if (bButton && !lastB) {
             if (!servoExtended) {
                 // Shoot: extend servo and activate outtake
-                robot.shooter.setServoPosition(0.9);
+                robot.shooter.setServoPosition(RobotHardwareConfig.ShooterServos.SHOOT_POSITION);
                 robot.shooter.feedBall();
                 servoExtended = true;
             } else {
                 // Reset: retract servo and stop outtake
-                robot.shooter.setServoPosition(0.0);
+                robot.shooter.setServoPosition(RobotHardwareConfig.ShooterServos.RESET_POSITION);
                 robot.shooter.stopFeed();
                 servoExtended = false;
             }
@@ -133,7 +134,7 @@ public class MinervaTeleOp extends OpMode {
         telemetry.addData("=== SHOOTER ===", "");
         telemetry.addData("Power", "%.2f", shooterPower);
         telemetry.addData("Motors", motorsRunning ? "RUNNING" : "STOPPED");
-        telemetry.addData("Servo", servoExtended ? "SHOOT (0.9)" : "RESET (0.0)");
+        telemetry.addData("Servo", servoExtended ? String.format("SHOOT (%.1f)", RobotHardwareConfig.ShooterServos.SHOOT_POSITION) : String.format("RESET (%.1f)", RobotHardwareConfig.ShooterServos.RESET_POSITION));
         telemetry.addData("Outtake", servoExtended ? "ON" : "OFF");
         telemetry.addData("", "");
 

@@ -48,6 +48,7 @@ public class FullTeleFixed extends OpMode {
     private boolean gp2_yPressed = false;
     private boolean gp2_aPressed = false;
     private boolean gp2_bPressed = false;
+    private boolean gp1_xPressed = false;
     private boolean gp1_yPressed = false;
     private boolean gp1_aPressed = false;
     private boolean gp1_bPressed = false;

@@ -6,6 +6,7 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.lang.reflect.Method;
@@ -23,7 +24,12 @@ public class MinervaAuto extends OpMode {
     private Timer pathTimer, opmodeTimer;
     private int pathState;
 
-    private final Pose startPose = new Pose(56.000, 8.000, Math.toRadians(90));
+    // Starting pose from centralized config
+    private final Pose startPose = new Pose(
+        RobotHardwareConfig.AutoStartPositions.DEFAULT_X,
+        RobotHardwareConfig.AutoStartPositions.DEFAULT_Y,
+        Math.toRadians(RobotHardwareConfig.AutoStartPositions.DEFAULT_HEADING)
+    );
 
     private PathChain selectedPath;
 

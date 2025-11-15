@@ -14,55 +14,65 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
 
 public class Constants {
+    // Drive constants using centralized config
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .maxPower(1)
-            .rightFrontMotorName("fr")
-            .rightRearMotorName("br")
-            .leftRearMotorName("bl")
-            .leftFrontMotorName("fl")
-            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(69.87935384114584) //69.25378802442177 70.19213674950788  70.0889349509412
-            .yVelocity(59.3845620143); //60.160392220564724 59.461314283956696 58.53197953832432
+            .maxPower(RobotHardwareConfig.DriveParams.MAX_POWER)
+            .rightFrontMotorName(RobotHardwareConfig.DriveMotors.FRONT_RIGHT)
+            .rightRearMotorName(RobotHardwareConfig.DriveMotors.BACK_RIGHT)
+            .leftRearMotorName(RobotHardwareConfig.DriveMotors.BACK_LEFT)
+            .leftFrontMotorName(RobotHardwareConfig.DriveMotors.FRONT_LEFT)
+            .leftFrontMotorDirection(RobotHardwareConfig.DriveDirections.FRONT_LEFT)
+            .leftRearMotorDirection(RobotHardwareConfig.DriveDirections.BACK_LEFT)
+            .rightFrontMotorDirection(RobotHardwareConfig.DriveDirections.FRONT_RIGHT)
+            .rightRearMotorDirection(RobotHardwareConfig.DriveDirections.BACK_RIGHT)
+            .xVelocity(RobotHardwareConfig.DriveParams.X_VELOCITY)
+            .yVelocity(RobotHardwareConfig.DriveParams.Y_VELOCITY);
+    // Localizer constants using centralized config
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(0)
-            .strafePodX(0)
+            .forwardPodY(RobotHardwareConfig.Odometry.FORWARD_POD_Y_OFFSET)
+            .strafePodX(RobotHardwareConfig.Odometry.STRAFE_POD_X_OFFSET)
             .distanceUnit(DistanceUnit.INCH)
-            .hardwareMapName("pinpoint")
+            .hardwareMapName(RobotHardwareConfig.Odometry.PINPOINT_NAME)
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
+    // Follower constants using centralized config
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(9.24809)
-            .forwardZeroPowerAcceleration(-33.725181778) //-31.803677872989322 , -31.678183588051873 , -37.693683872936724
-            .lateralZeroPowerAcceleration(-64.4723949292) //-63.010523933785336 , -61.48646982675581 , -68.92019102699733
+            .mass(RobotHardwareConfig.RobotPhysics.MASS)
+            .forwardZeroPowerAcceleration(RobotHardwareConfig.RobotPhysics.FORWARD_ZERO_POWER_ACCEL)
+            .lateralZeroPowerAcceleration(RobotHardwareConfig.RobotPhysics.LATERAL_ZERO_POWER_ACCEL)
             .translationalPIDFCoefficients(new PIDFCoefficients(
-                    0.1,
-                    0,
-                    0.01,
-                    0.003
+                    RobotHardwareConfig.PIDFCoefficients.TRANS_P,
+                    RobotHardwareConfig.PIDFCoefficients.TRANS_I,
+                    RobotHardwareConfig.PIDFCoefficients.TRANS_D,
+                    RobotHardwareConfig.PIDFCoefficients.TRANS_F
             ))
             .headingPIDFCoefficients(new PIDFCoefficients(
-                    1,
-                    0,
-                    0,
-                    0.005
+                    RobotHardwareConfig.PIDFCoefficients.HEADING_P,
+                    RobotHardwareConfig.PIDFCoefficients.HEADING_I,
+                    RobotHardwareConfig.PIDFCoefficients.HEADING_D,
+                    RobotHardwareConfig.PIDFCoefficients.HEADING_F
             ))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(
-                    0.5,
-                    0.001,
-                    0.001,
-                    0.6,
-                    0.75
+                    RobotHardwareConfig.PIDFCoefficients.DRIVE_P,
+                    RobotHardwareConfig.PIDFCoefficients.DRIVE_I,
+                    RobotHardwareConfig.PIDFCoefficients.DRIVE_D,
+                    RobotHardwareConfig.PIDFCoefficients.DRIVE_F,
+                    RobotHardwareConfig.PIDFCoefficients.DRIVE_FILTER_DECAY
             ))
-            .centripetalScaling(0.0005);
+            .centripetalScaling(RobotHardwareConfig.PIDFCoefficients.CENTRIPETAL_SCALING);
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
+    // Path constraints using centralized config
+    public static PathConstraints pathConstraints = new PathConstraints(
+            RobotHardwareConfig.PathConstraints.VELOCITY,
+            RobotHardwareConfig.PathConstraints.ACCELERATION,
+            RobotHardwareConfig.PathConstraints.ANGULAR_VELOCITY,
+            RobotHardwareConfig.PathConstraints.ANGULAR_ACCELERATION
+    );
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
