@@ -64,10 +64,6 @@ public class FullTeleFixedKAO extends OpMode {
     private final double positionTolerance = Math.hypot(targetPose.getX(), targetPose.getY()) * POSITION_TOLERANCE_PERCENT;
     private final double HEADING_TOLERANCE_DEGREES = 5.0;
 
-    int r = colorSensor.red();
-    int g = colorSensor.green();
-    int b = colorSensor.blue();
-
     // ===== Sorter system (3 ช่องเก็บบอล) =====
     // 0 = ว่าง, 1 = บอลม่วง, 2 = บอลเขียว
     int[] slots = {0, 0, 0};
@@ -135,6 +131,9 @@ public class FullTeleFixedKAO extends OpMode {
 
     @Override
     public void loop() {
+        int r = colorSensor.red();
+        int g = colorSensor.green();
+        int b = colorSensor.blue();
 
         follower.update();
         Pose currentPose = follower.getPose();
@@ -238,9 +237,9 @@ public class FullTeleFixedKAO extends OpMode {
         turret.setPower(turretPower);
 
         // binit position
-        if (gamepad2.b && !gp2_bPressed && sorter.getPosition() != 0.15 && sorter.getPosition() != 0.533 && sorter.getPosition() != 0.918) {
+        if (gamepad2.b && !gp2_bPressed && Math.abs(sorter.getPosition() - 0.15) > 0.05 && Math.abs(sorter.getPosition() - 0.533) > 0.05 && Math.abs(sorter.getPosition() - 0.918) > 0.05) {
             gp2_bPressed = true;
-            binit.setPosition(0);
+            binit.setPosition(0.13);
             new Thread(() -> {
                 try {
                     Thread.sleep(500);
@@ -290,22 +289,6 @@ public class FullTeleFixedKAO extends OpMode {
         }
 
         if (gamepad2.x && !gp2_xPressed) { // Y+B ยิงบอลม่วง
-
-            if (g > r && g > b && g > 3000) {
-                slots[loadingSlot] = 2; // เขียว
-            } else if (r > 500 && b > 500 && g > 500) {
-                slots[loadingSlot] = 1; // ม่วง
-            } else {
-                slots[loadingSlot] = 0; // ไม่แน่ใจ
-            }
-
-            telemetry.addData("LoadSlot", loadingSlot);
-            telemetry.addData("LoadColor(RGB)", "%d %d %d", r, g, b);
-
-            // reset loading state
-            loading = false;
-            loadingSlot = -1;
-
             gp2_xPressed = true;
             int next = findNextSlotType(1);
             if (next == -1) next = findNextSlotType(2);
