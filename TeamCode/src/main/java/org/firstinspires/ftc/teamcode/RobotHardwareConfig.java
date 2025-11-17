@@ -217,7 +217,7 @@ public class RobotHardwareConfig {
 
         // Motor directions
         public static final DcMotorSimple.Direction OUTTAKE1_DIR = DcMotorSimple.Direction.FORWARD;
-        public static final DcMotorSimple.Direction OUTTAKE2_DIR = DcMotorSimple.Direction.FORWARD;
+        public static final DcMotorSimple.Direction OUTTAKE2_DIR = DcMotorSimple.Direction.REVERSE;
 
         // Motor powers
         public static final double FAR_SHOT_POWER = -0.8;

@@ -18,12 +18,13 @@ public class AutoPath_RS8 extends LinearOpMode {
     @Override
     public void runOpMode() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(88.000, 8.000, Math.toRadians(90)));
+//        follower.setStartingPose(new Pose(88.000, 8.000, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(88.000, 9.3, Math.toRadians(90)));
 
-        // --- Build all paths ---
+        // === Path 1 ===
         PathChain path1 = new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
-                        new Pose(88.000, 8.000),
+                        new Pose(88.000, 9.3),
                         new Pose(83.963, 16.309)))
                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(66))
                 .build();

@@ -19,12 +19,13 @@ public class AutoPath_BS3 extends LinearOpMode {
     @Override
     public void runOpMode() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(88.000, 8.000, Math.toRadians(90)).mirror());
+//        follower.setStartingPose(new Pose(88.000, 8.000, Math.toRadians(90)).mirror());
+        follower.setStartingPose(new Pose(88.000, 9.3, Math.toRadians(90)).mirror());
 
         // === Path 1 ===
         PathChain path1 = new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
-                        new Pose(88.000, 8.000).mirror(),
+                        new Pose(88.000, 9.3).mirror(),
                         new Pose(83.963, 16.309).mirror()))
                 // 90° → 90°, 66° → 114°
                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(114))

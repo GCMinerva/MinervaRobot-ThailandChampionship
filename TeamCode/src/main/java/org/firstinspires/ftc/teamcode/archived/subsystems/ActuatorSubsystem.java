@@ -29,7 +29,7 @@ public class ActuatorSubsystem {
 
         // Set motor directions and behaviors
         outtake1.setDirection(DcMotor.Direction.FORWARD);
-        outtake2.setDirection(DcMotor.Direction.FORWARD);
+        outtake2.setDirection(DcMotor.Direction.REVERSE);
         outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
