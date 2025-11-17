@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
-@TeleOp(name="FullTeleFixed")
+@TeleOp(name="FullTeleFixedKAO")
 public class FullTeleFixedKAO extends OpMode {
     boolean pressed = false;
     boolean lbPressed = false;

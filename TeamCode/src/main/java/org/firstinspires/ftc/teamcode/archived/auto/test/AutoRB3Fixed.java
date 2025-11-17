@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.archived.subsystems.AprilTagSubsystem;
 import org.firstinspires.ftc.teamcode.archived.subsystems.ActuatorSubsystem;
 import org.firstinspires.ftc.teamcode.util.GlobalData;
 
-@Autonomous(name = "RB3April", group = "AprilTest")
+@Autonomous(name = "AUTORB3Fixed", group = "AprilTest")
 public class AutoRB3Fixed extends LinearOpMode {
 
     private Follower follower;
