@@ -226,11 +226,15 @@ public class RobotHardwareConfig {
 
         // Servo names
         public static final String BINIT_SERVO = "binit";
+        public static final String BRINIT_SERVO = "brinit";
         public static final String SORTER_SERVO = "sorter";
 
         // Binit servo positions
         public static final double BINIT_CLOSED = 0.69;
         public static final double BINIT_OPEN = 0.135;
+        public static final double BRINIT_CLOSED = 0.69;
+        public static final double BRINIT_OPEN = 0.135;
+
         public static final double BINIT_INITIAL = 0.35;
 
         // Sorter field positions
