@@ -91,6 +91,36 @@ public class RobotHardwareConfig {
     }
 
     // ==========================
+    // TURRET CONFIGURATION
+    // ==========================
+
+    /** Turret Motor Names */
+    public static final class TurretMotors {
+        public static final String TURRET = "turret";
+    }
+
+    /** Turret Motor Directions */
+    public static final class TurretDirections {
+        public static final DcMotorSimple.Direction TURRET = DcMotorSimple.Direction.FORWARD;
+    }
+
+    /** Turret Control Parameters */
+    public static final class TurretParams {
+        // Power settings
+        public static final double MAX_POWER = 1.0;
+        public static final double MIN_POWER = 0.3;
+        public static final double POWER_SCALING = 0.008;  // Power per degree error
+
+        // Angle tolerance (degrees)
+        public static final double ALIGNMENT_TOLERANCE = 2.0;
+
+        // Turret range limits (degrees, relative to robot heading)
+        // Configure these per autonomous if needed
+        public static final double MIN_ANGLE = -90.0;
+        public static final double MAX_ANGLE = 90.0;
+    }
+
+    // ==========================
     // ODOMETRY CONFIGURATION
     // ==========================
 
