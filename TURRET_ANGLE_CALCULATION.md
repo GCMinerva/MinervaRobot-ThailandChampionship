@@ -64,7 +64,7 @@ This angle is in FIELD coordinates (0° = +X axis, CCW)
 Robot heading from Pedro: θ_robot (in radians)
 
 The turret angle relative to robot is:
-θ_turret = θ_field - θ_robot
+θ_turret = θ_robot - θ_field
 
 Normalize to [-π, π]:
 if θ_turret > π:
@@ -78,46 +78,13 @@ Convert to degrees: θ_turret_deg = θ_turret * 180/π
 ### Step 4: Verify Result
 ```
 Example:
-- θ_field = 133.4° = 2.33 rad
-- Robot heading = 0° = 0 rad
-- θ_turret = 2.33 - 0 = 2.33 rad = 133.4°
+- θ_field = 135° = 2.36 rad (blue goal upper-left)
+- Robot heading = 0° = 0 rad (facing right)
+- θ_turret = 0 - 2.36 = -2.36 rad = -135°
+- Clamp to ±90°: θ_turret = -90° (max left)
 
-Meaning: Turret needs to aim at 133.4° (upper left in field frame)
-Since robot heading is 0° (pointing right):
-  - 90° from field = upper direction = +90° to turret (right from robot view)
-  - No wait, let me recalculate...
-
-Actually with your field orientation:
-- Robot at center facing right (0° heading)
-- Goal at upper-left (133.4° in field frame)
-- From robot's perspective (looking right):
-  - Upper-left would be... behind and left
-  - That's approximately 133.4° - 0° = 133.4° in field frame
-  - But we need to convert to robot-relative (-90° to +90°)
-
-If angle > 90°, we're looking backward/left
-Convert: θ_turret = θ_field - θ_robot (this gives field-relative angle)
-Then clamp to ±90° range if needed
-
-But wait, atan2 can go past ±90°...
-```
-
-## The Issue: Your ±90° Constraint
-
-You said turret can only rotate ±90° (Q1 and Q2, not behind robot):
-
-```
-This means:
-- If goal is to the right: 0° to +90° ✓
-- If goal is to the left: -90° to 0° ✓
-- If goal is behind: Can't aim there ✗
-
-So we need to handle cases where atan2 gives us an angle outside ±90°
-relative to robot heading.
-
-Example: If goal is behind robot
-- θ_field = 180°
-- θ_robot = 0° (robot facing +X)
+Meaning: Goal is behind-left, turret clamps to left limit
+Robot should rotate to face goal for better aiming
 - θ_turret = 180° - 0° = 180° (behind, outside ±90°)
 - This is INVALID for your turret!
 ```
@@ -138,7 +105,7 @@ Example: If goal is behind robot
 θ_robot_rad = robotHeading  // Already in radians from Pedro
 
 // 4. Calculate turret angle relative to robot
-θ_turret_rad = θ_field_rad - θ_robot_rad
+θ_turret_rad = θ_robot_rad - θ_field_rad
 
 // 5. Normalize to [-π, π] range
 while (θ_turret_rad > π):
@@ -168,18 +135,18 @@ Scenario 1: Robot at (72,72) facing right (0°), Goal at (0,144)
 ─────────────────────────────────────────────────────────────
 
 Field coordinates:
-  Δx = 11 - 72 = -61
-  Δy = 135 - 72 = +63
+  Δx = 0 - 72 = -72
+  Δy = 144 - 72 = +72
   
-  θ_field = atan2(63, -61) = 2.33 rad = 133.4°
+  θ_field = atan2(72, -72) = 2.36 rad = 135°
   
 Robot heading: 0°
 
-Turret angle: 133.4° - 0° = 133.4°
+Turret angle: 0° - 135° = -135°
 
-Problem: 133.4° is > 90°, so goal is partially behind robot!
-Solution: Clamp to +90° (turret points to the right, can't reach goal)
-          OR rotate robot to face goal first
+Problem: -135° is outside ±90° range (goal is behind robot!)
+Solution: Clamp to -90° (turret points to the left)
+          Robot should rotate to face goal first for better shooting
 
 ─────────────────────────────────────────────────────────────
 
@@ -187,17 +154,17 @@ Scenario 2: Robot at (72,72) facing upper-left (135°), Goal at (0,144)
 ─────────────────────────────────────────────────────────────
 
 Field coordinates:
-  Δx = 11 - 72 = -61
-  Δy = 135 - 72 = +63
+  Δx = 0 - 72 = -72
+  Δy = 144 - 72 = +72
   
-  θ_field = atan2(63, -61) = 2.33 rad = 133.4°
+  θ_field = atan2(72, -72) = 2.36 rad = 135°
 
 Robot heading: 135° = 2.36 rad
 
-Turret angle: 133.4° - 135° = -1.6° = -0.028 rad ≈ -1.6°
+Turret angle: 135° - 135° = 0°
 
-This is within [-90°, +90°] ✓
-Meaning: Aim slightly left from robot forward
+Result: 0° is within [-90°, +90°] ✓
+Meaning: Aim straight ahead, goal is directly in front of robot ✓
          Robot rotates to face goal, turret adjusts fine
 
 ─────────────────────────────────────────────────────────────

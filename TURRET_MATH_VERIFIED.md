@@ -20,8 +20,8 @@ Your TurretSubsystem.java already implements exactly what you described. Here's 
 2. Find angle using atan2 (handles tan automatically):
    θ_field = atan2(Δy, Δx)  ← This IS tan(theta) calculation!
 
-3. Subtract robot heading (accounts for rotation):
-   θ_turret = θ_field - θ_robot_heading
+3. Subtract goal angle from robot heading (accounts for rotation):
+   θ_turret = θ_robot_heading - θ_field
 
 4. Normalize to [-180°, 180°]:
    Keep angle in valid range
@@ -44,8 +44,8 @@ double deltaY = goalY - robotY;
 // Line 128: atan2 finds the angle (Step 2 ✓)
 double angleToGoalRad = Math.atan2(deltaY, deltaX);
 
-// Line 132: Subtract robot heading (Step 3 ✓)
-double relativeAngleRad = angleToGoalRad - robotHeading;
+// Line 132: Subtract goal angle from robot heading (Step 3 ✓)
+double relativeAngleRad = robotHeading - angleToGoalRad;
 
 // Line 135-141: Normalize angle (Step 4 ✓)
 while (relativeAngleRad > Math.PI) {

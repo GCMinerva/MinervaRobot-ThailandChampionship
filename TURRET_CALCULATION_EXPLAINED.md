@@ -7,7 +7,7 @@ You identified the exact mathematical approach used in professional robotics:
 ```
 1. Calculate vector to goal: Δx, Δy
 2. Find angle using atan2: θ = atan2(Δy, Δx)
-3. Subtract robot heading: θ_turret = θ - heading
+3. Subtract goal angle from robot heading: θ_turret = heading - θ
 4. Result: Turret angle relative to robot
 ```
 
@@ -18,7 +18,7 @@ This is implemented perfectly in your `TurretSubsystem.java`.
 ## The Complete Formula
 
 ```
-TARGET TURRET ANGLE = atan2(goalY - robotY, goalX - robotX) - robotHeading
+TARGET TURRET ANGLE = robotHeading - atan2(goalY - robotY, goalX - robotX)
 
 With normalization to [-180°, 180°] and clamping to [-90°, 90°]
 ```
@@ -38,7 +38,7 @@ Field coordinates (Pedro Pathing):
 This angle is in FIELD frame (where 0° = +X axis)
 ```
 
-### 2. **Subtract Robot Heading** Converts to Robot Frame
+### 2. **Subtract Goal Angle from Robot Heading** Converts to Robot Frame
 
 ```
 Robot heading (from Pedro Pathing):
@@ -48,16 +48,16 @@ Robot heading (from Pedro Pathing):
   - etc.
 
 Turret angle (relative to robot):
-  θ_turret = θ_field - θ_robot_heading
+  θ_turret = θ_robot_heading - θ_field_angle
 
 Example:
-  Goal at 133.7° in field
-  Robot facing 135°
-  Turret angle = 133.7° - 135° = -1.26°
+  Goal at 135° in field
+  Robot facing 170°
+  Turret angle = 170° - 135° = 35°
   
-  Meaning: Aim 1.26° to the left (robot's left side)
-           Since goal is at 133.7° and robot at 135°,
-           goal is slightly left from robot's heading ✓
+  Meaning: Aim 35° to the right
+           Since robot is at 170° and goal at 135°,
+           goal is 35° to the right from robot's heading ✓
 ```
 
 ### 3. **Normalize to [-180°, 180°]** Avoids Wraparound
@@ -103,8 +103,8 @@ public boolean update(Pose robotPose) {
     // STEP 2: Angle to goal in field frame
     double angleToGoalRad = Math.atan2(deltaY, deltaX);
     
-    // STEP 3: Subtract robot heading
-    double relativeAngleRad = angleToGoalRad - robotHeading;
+    // STEP 3: Subtract goal angle from robot heading
+    double relativeAngleRad = robotHeading - angleToGoalRad;
 
     // STEP 4: Normalize to [-π, π]
     while (relativeAngleRad > Math.PI) {
@@ -156,19 +156,19 @@ RESULT: Turret at 0° (straight ahead) ✓
 ```
 SCENARIO:
   Robot at (72, 72), heading 0° (facing right)
-  Goal at (72, 144) (straight up/left from robot)
+  Goal at (72, 144) (straight up from robot)
 
 CALCULATION:
-  Δx = 72 - 72 = 0 (straight)
+  Δx = 72 - 72 = 0
   Δy = 144 - 72 = +72 (up)
   
   θ_field = atan2(+72, 0) = 90° (pointing up in field)
   θ_robot = 0° (robot facing right)
   
-  θ_turret = 90° - 0° = 90°
+  θ_turret = 0° - 90° = -90°
 
-RESULT: Turret at +90° (robot's right side) ✓
-        Makes sense: Goal is 90° from robot heading
+RESULT: Turret at -90° (robot's left side) ✓
+        Makes sense: Goal is 90° to the left of robot heading
 ```
 
 ### Example 3: Goal Behind and Right
@@ -185,14 +185,14 @@ CALCULATION:
   θ_field = atan2(-22, +28) ≈ -38.3° (lower-right in field)
   θ_robot = 90° (robot facing up)
   
-  θ_turret = -38.3° - 90° = -128.3°
+  θ_turret = 90° - (-38.3°) = 128.3°
   
-  NORMALIZE: -128.3° is in [-180°, 180°], OK
+  NORMALIZE: 128.3° is in [-180°, 180°], OK
   
-  CLAMP: |-128.3°| > 90°, clamp to -90°
+  CLAMP: |128.3°| > 90°, clamp to +90°
   
-RESULT: Turret at -90° (robot's left side)
-        Makes sense: Goal is mostly behind, so aim to the side
+RESULT: Turret at +90° (robot's right side)
+        Makes sense: Goal is behind-right, aim to the side
         (Robot should rotate to face goal for better aim)
 ```
 
@@ -230,7 +230,7 @@ This is RELATIVE to robot heading!
 If robot rotates, this frame rotates with it.
 
 Conversion:
-  Robot frame angle = Field angle - Robot heading
+  Robot frame angle = Robot heading - Field angle
 ```
 
 ---
@@ -251,7 +251,7 @@ A: atan has limitations:
    - Unambiguous for all quadrants
 ```
 
-**Q: Why subtract heading?**
+**Q: Why subtract goal angle from robot heading?**
 
 ```
 A: Because turret angle is RELATIVE to robot, not absolute.
@@ -259,14 +259,20 @@ A: Because turret angle is RELATIVE to robot, not absolute.
 If robot is at (72, 72) facing right (0°):
   Goal at (100, 100) is NE in field
   atan2(28, 28) = 45° in field
-  θ_turret = 45° - 0° = 45° (forward-right from robot) ✓
+  θ_turret = 0° - 45° = -45° (left of forward) ✗
+  Wait, that's wrong... let me reconsider
+  
+Actually, the correct formula is:
+  θ_turret = robotHeading - goalAngle
+  θ_turret = 0° - 45° = -45°
+  
+Hmm, if robot faces right (0°) and goal is NE (45°),
+goal should be LEFT of the robot's forward direction = -45° ✓
 
 If robot is at (72, 72) facing up (90°):
-  Same goal (100, 100) is still NE
-  atan2(28, 28) = 45° in field (didn't change)
-  θ_turret = 45° - 90° = -45° (back-right from robot)
-  But robot is facing up, goal is forward-right from robot's view
-  Actually: -45° from "up" = back-right = NE-ish from up = correct! ✓
+  Same goal (100, 100) is NE (45°) in field
+  θ_turret = 90° - 45° = 45° (right of forward from robot)
+  Robot faces up, goal is right-forward = +45° ✓
 ```
 
 **Q: Why normalize to [-π, π]?**

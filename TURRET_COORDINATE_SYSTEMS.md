@@ -29,7 +29,7 @@
 Key Points:
 - Center field: (72, 72)
 - Blue goal: (0, 144)
-- Red goal: (135, 135)
+- Red goal: (144, 144)
 - Corner 0: (0, 0)
 - Corner 1: (144, 0)
 - Corner 2: (144, 144)
@@ -163,14 +163,15 @@ STEP 2: Find angle to goal in FIELD frame
   
   Result: Angle to goal measured from field +X axis
 
-STEP 3: Subtract robot heading
-  θ_turret = θ_field - θ_robot
+STEP 3: Subtract goal angle from robot heading
+  θ_turret = θ_robot - θ_field
   
-  Why subtract?
-  - Robot is rotating in the field
-  - As robot rotates, reference frame rotates
-  - Subtracting heading gives relative angle
-  - Result: Angle measured from robot's forward direction
+  Why subtract this way?
+  - Robot heading is the reference frame
+  - Goal angle is measured from field
+  - Result: How far goal is from robot's heading
+  - Positive = goal to the right
+  - Negative = goal to the left
 
 STEP 4: Normalize to [-π, π]
   while θ_turret > π:
