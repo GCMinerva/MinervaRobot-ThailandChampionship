@@ -39,7 +39,7 @@ import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
  */
 public class TurretSubsystem {
 
-    private DcMotor turretMotor;
+    public DcMotor turretMotor;
 
     // ===== ENCODER CALIBRATION - UPDATE AFTER RUNNING TurretCalibration.java =====
     // Measure using TurretCalibration OpMode by rotating 360° and reading ticks
