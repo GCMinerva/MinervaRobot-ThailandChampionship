@@ -49,7 +49,7 @@ Controls:
 archived/opmodes/TurretTeleOpTest.java
 ├── Purpose: Test turret after calibration
 ├── Runtime: ~5 minutes
-├── Blue goal fixed at (11, 135)
+├── Blue goal fixed at (0, 144)
 ├── Telemetry shows encoder ticks, angle, alignment
 └── Verifies encoder calibration is correct
 
@@ -75,7 +75,7 @@ archived/auto/test/AutoTurretRB3Test.java
 
 What it does:
   ✓ Initializes turret subsystem
-  ✓ Sets goal to blue (11, 135)
+  ✓ Sets goal to blue (0, 144)
   ✓ Calls turret.update() in every loop iteration
   ✓ Turret tracks goal while robot follows paths
   ✓ Shows turret telemetry alongside path data
@@ -259,7 +259,7 @@ Before TeleOp Test:
 Before Autonomous:
   [ ] AutoTurretRB3Test.java compiles
   [ ] Starting pose is correct in code
-  [ ] Goal position set to (11, 135)
+  [ ] Goal position set to (0, 144)
   [ ] All paths build without error
 ```
 
@@ -297,7 +297,7 @@ Once working:
 1. **Red Goal Variant**
    ```java
    // Create new auto
-   turret.setGoalPosition(135.0, 135.0);  // Red goal
+   turret.setGoalPosition(144.0, 144.0);  // Red goal
    ```
 
 2. **Integrate with Shooter**

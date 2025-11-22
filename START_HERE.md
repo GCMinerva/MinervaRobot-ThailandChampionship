@@ -27,7 +27,7 @@ You now have everything you need.
 
 ### 🧪 **Testing OpMode** (Verify It Works)
 3. **TurretTeleOpTest.java** - Confirms calibration is correct
-   - Blue goal fixed (11, 135)
+   - Blue goal fixed (0, 144)
    - Test turret movement and alignment
    - Monitor encoder in real-time
 
@@ -186,7 +186,7 @@ turret.setPIDGains(0.015, 0.0, 0.002);  // Call to update
 1. **Create Red Alliance Variant**
    ```java
    // Create AutoTurretRB3TestRed.java
-   turret.setGoalPosition(135.0, 135.0);  // Red goal instead
+   turret.setGoalPosition(144.0, 144.0);  // Red goal instead
    ```
 
 2. **Integrate Shooting**
@@ -223,7 +223,7 @@ turret.setPIDGains(0.015, 0.0, 0.002);  // Call to update
 // In your autonomous or TeleOp:
 
 // Set goal (field coordinates in inches)
-turret.setGoalPosition(11.0, 135.0);  // Blue goal
+turret.setGoalPosition(0.0, 144.0);  // Blue goal
 
 // Update every loop iteration
 turret.update(robotPose);  // Uses encoder feedback

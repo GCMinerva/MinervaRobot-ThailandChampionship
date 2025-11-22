@@ -124,9 +124,9 @@ public class TurretSubsystem {
         // Angle to goal in field coordinates (atan2 returns radians)
         double angleToGoalRad = Math.atan2(deltaY, deltaX);
 
-        // Calculate relative angle (goal angle - robot heading)
+        // Calculate relative angle (robot heading - goal angle)
         // This gives us the turret angle relative to robot's forward direction
-        double relativeAngleRad = angleToGoalRad - robotHeading;
+        double relativeAngleRad = robotHeading - angleToGoalRad;
 
         // Normalize to [-π, π] range to avoid wraparound issues
         while (relativeAngleRad > Math.PI) {

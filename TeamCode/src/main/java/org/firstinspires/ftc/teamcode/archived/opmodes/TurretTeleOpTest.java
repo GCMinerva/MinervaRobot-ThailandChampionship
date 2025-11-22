@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
  * - Gamepad1 Right Stick Y: Set target turret angle manually (-90° to +90°)
  * - Gamepad1 A: Reset turret to center (0°)
  * 
- * Goal Position: Blue goal (11, 135) - FIXED (same as autonomous)
+ * Goal Position: Blue goal (0, 144) - FIXED (same as autonomous)
  * 
  * Telemetry shows:
  * - Robot position and heading (from odometry)
@@ -29,8 +29,8 @@ public class TurretTeleOpTest extends LinearOpMode {
     private TurretSubsystem turret;
 
     // Goal position - BLUE GOAL (same as autonomous)
-    private static final double GOAL_X = 11.0;
-    private static final double GOAL_Y = 135.0;
+    private static final double GOAL_X = 0.0;
+    private static final double GOAL_Y = 144.0;
 
     // Manual angle control
     private double manualTargetAngle = 0.0;
@@ -42,7 +42,7 @@ public class TurretTeleOpTest extends LinearOpMode {
 
         // === Set starting pose (CUSTOMIZE THIS FOR YOUR TEST) ===
         // Example: starting at center of field facing right
-        Pose startingPose = new Pose(72.0, 72.0, Math.toRadians(0));
+        Pose startingPose = new Pose(110.5, 134.5, Math.toRadians(0));
         follower.setStartingPose(startingPose);
 
         telemetry.addLine("=== Turret TeleOp Test ===");
@@ -50,7 +50,7 @@ public class TurretTeleOpTest extends LinearOpMode {
         telemetry.addLine("Controls:");
         telemetry.addLine("  Right Stick Y: Set turret angle");
         telemetry.addLine("  A: Reset to center");
-        telemetry.addLine("Goal: Blue goal (11, 135)");
+        telemetry.addLine("Goal: Blue goal (0, 144)");
         telemetry.addLine("Waiting for start...");
         telemetry.update();
 

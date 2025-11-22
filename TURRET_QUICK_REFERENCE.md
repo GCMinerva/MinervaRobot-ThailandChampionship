@@ -47,7 +47,7 @@
 │  ─────────────────────────────────────────────────────  │
 │  - Deploy your autonomous                              │
 │  - Turret automatically tracks goal while running      │
-│  - Aiming at Blue Goal (11, 135)                       │
+│  - Aiming at Blue Goal (0, 144)                       │
 │  - Watch telemetry: Turret Angle & Aligned status      │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
@@ -243,7 +243,7 @@ Custom Motor        ❓ MEASURE IT!    ???
 1. **Red Goal Variant**
    ```java
    // Create AutoTurretRB3TestRed.java
-   turret.setGoalPosition(135.0, 135.0);  // Red goal
+   turret.setGoalPosition(144.0, 144.0);  // Red goal
    ```
 
 2. **Optimize PID Gains**

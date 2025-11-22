@@ -35,7 +35,7 @@ public class AutoRB3Fixed extends LinearOpMode {
 
         // === Initialize Turret Subsystem ===
         turret = new TurretSubsystem(hardwareMap);
-        turret.setGoalPosition(134.0, 135.0); // RED goal position
+        turret.setGoalPosition(0.0, 144.0); // BLUE goal position
         telemetry.addLine("🎯 Turret tracking enabled (Blue goal)");
 
         // === INIT Loop: keep scanning before start ===
