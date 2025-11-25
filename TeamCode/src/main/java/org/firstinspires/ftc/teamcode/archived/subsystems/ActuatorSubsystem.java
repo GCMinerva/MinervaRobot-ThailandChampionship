@@ -14,7 +14,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class ActuatorSubsystem {
 
     private DcMotor outtake1, outtake2, intake;
-    private Servo binit, sorter;
+    private Servo binit, brinit, sorter;
     private final Telemetry telemetry;
     private final ElapsedTime timer = new ElapsedTime();
 
@@ -36,6 +36,7 @@ public class ActuatorSubsystem {
 
         // Initialize servos
         binit = hardwareMap.get(Servo.class, "binit");
+        brinit = hardwareMap.get(Servo.class, "brinit");
         sorter = hardwareMap.get(Servo.class, "sorter");
 
         // Default servo positions
@@ -80,14 +81,16 @@ public class ActuatorSubsystem {
 
     /** Open bin (binit) */
     public void openBin() {
-        binit.setPosition(0.135);
+        binit.setPosition(0.1);
+        brinit.setPosition(0.8);
         telemetry.addData("binit", "Opened");
         telemetry.update();
     }
 
     /** Close bin (binit) */
     public void closeBin() {
-        binit.setPosition(0.69);
+        binit.setPosition(0.56);
+        brinit.setPosition(0.34);
         telemetry.addData("binit", "Closed");
         telemetry.update();
     }
