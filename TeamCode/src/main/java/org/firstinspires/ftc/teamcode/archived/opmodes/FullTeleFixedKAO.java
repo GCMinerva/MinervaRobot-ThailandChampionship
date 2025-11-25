@@ -376,7 +376,7 @@ public class FullTeleFixedKAO extends OpMode {
 
         telemetry.addData("=== SERVOS ===", "");
         telemetry.addData("binit", "%.2f", binit.getPosition());
-        telemetry.addData("sorter", "%.2f", sorter.getPosition());
+        telemetry.addData("sorter", sorter.getPosition());
 
         telemetry.update();
     }
