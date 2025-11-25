@@ -22,8 +22,8 @@ public class DualBinitTuning extends LinearOpMode {
 
     private Servo binit;
     private Servo brinit;
-    private double binitPos = 0.0;
-    private double brinitPos = 1.0;
+    private double binitPos = 0.1;
+    private double brinitPos = 0.8;
 
     @Override
     public void runOpMode() {
@@ -46,30 +46,30 @@ public class DualBinitTuning extends LinearOpMode {
 
             // === Individual Control ===
             if (gamepad1.dpad_up) {
-                binitPos = Math.min(1.0, binitPos + 0.05);
+                binitPos = Math.min(1.0, binitPos + 0.01);
             }
             if (gamepad1.dpad_down) {
-                binitPos = Math.max(0.0, binitPos - 0.05);
+                binitPos = Math.max(0.0, binitPos - 0.01);
             }
 
             if (gamepad1.dpad_right) {
-                brinitPos = Math.min(1.0, brinitPos + 0.05);
+                brinitPos = Math.min(1.0, brinitPos + 0.01);
             }
             if (gamepad1.dpad_left) {
-                brinitPos = Math.max(0.0, brinitPos - 0.05);
+                brinitPos = Math.max(0.0, brinitPos - 0.01);
             }
 
             // === Dual Linked Control ===
             if (gamepad1.b) {
                 // B: Move binit up, brinit down
-                binitPos = Math.min(1.0, binitPos + 0.05);
-                brinitPos = Math.max(0.0, brinitPos - 0.05);
+                binitPos = Math.min(1.0, binitPos + 0.01);
+                brinitPos = Math.max(0.0, brinitPos - 0.01);
             }
 
             if (gamepad1.a) {
                 // A: Inverse of B
-                binitPos = Math.max(0.0, binitPos - 0.05);
-                brinitPos = Math.min(1.0, brinitPos + 0.05);
+                binitPos = Math.max(0.0, binitPos - 0.01);
+                brinitPos = Math.min(1.0, brinitPos + 0.01);
             }
 
             // Apply servo positions

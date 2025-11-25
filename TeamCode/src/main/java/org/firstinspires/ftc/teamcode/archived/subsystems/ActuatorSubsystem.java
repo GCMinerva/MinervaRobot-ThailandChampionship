@@ -81,14 +81,16 @@ public class ActuatorSubsystem {
 
     /** Open bin (binit) */
     public void openBin() {
-        binit.setPosition(0.135);
+        binit.setPosition(0.1);
+        brinit.setPosition(0.8);
         telemetry.addData("binit", "Opened");
         telemetry.update();
     }
 
     /** Close bin (binit) */
     public void closeBin() {
-        binit.setPosition(0.69);
+        binit.setPosition(0.56);
+        brinit.setPosition(0.34);
         telemetry.addData("binit", "Closed");
         telemetry.update();
     }
