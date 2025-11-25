@@ -41,11 +41,10 @@ public class TurretSubsystem {
 
     public DcMotor turretMotor;
 
-    // ===== ENCODER CALIBRATION - UPDATE AFTER RUNNING TurretCalibration.java =====
-    // Measure using TurretCalibration OpMode by rotating 360° and reading ticks
-    // Then update TICKS_PER_DEGREE with your measured value
-    // Default: GoBilda 223 RPM = 28.44 ticks/degree
-    public static final double TICKS_PER_DEGREE = 28.44;  // <-- UPDATE THIS VALUE AFTER CALIBRATION
+    // ===== ENCODER CALIBRATION - MEASURED VALUE =====
+    // Calibrated using TurretCalibration.java: 360° = 2231 ticks
+    // GoBilda 5203: 2231 / 360 = 6.19 ticks/degree
+    public static final double TICKS_PER_DEGREE = 6.19;
 
     // Goal position in field coordinates (inches)
     private double goalX = 0.0;

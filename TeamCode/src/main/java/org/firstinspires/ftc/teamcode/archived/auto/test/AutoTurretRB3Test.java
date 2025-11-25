@@ -61,6 +61,8 @@ public class AutoTurretRB3Test extends LinearOpMode {
                         new Pose(110.5, 134.5),
                         new Pose(87.995, 85.144)))
                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(48))
+                .addParametricCallback(1,() -> actuator.runShooterClose())
+                .addParametricCallback(99,() -> actuator.justShoot())
                 .build();
 
         PathChain path2 = new PathBuilder(follower, Constants.pathConstraints)
@@ -69,7 +71,7 @@ public class AutoTurretRB3Test extends LinearOpMode {
                         new Pose(92.923, 84.321),
                         new Pose(102.512, 83.335)))
                 .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
-                .addParametricCallback(90,() -> actuator.runIntake())
+                .addParametricCallback(1,() -> actuator.stopShooter())
                 .addParametricCallback(90,() -> actuator.setSorterIN1())
                 .build();
 

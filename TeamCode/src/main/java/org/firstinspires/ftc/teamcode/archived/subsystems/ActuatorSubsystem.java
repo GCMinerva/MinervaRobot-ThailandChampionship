@@ -148,6 +148,37 @@ public class ActuatorSubsystem {
         telemetry.update();
     }
 
+    // === JUST SHOOT ===
+    public void justShoot() {
+
+        int tag = GlobalData.detectedTagId;
+
+        if (tag == 21) {
+
+            setSorterP3();
+            sleep(0.4);
+            feedBall(1);
+            setSorterP2();
+            sleep(0.4);
+            feedBall(1);
+            setSorterP1();
+            sleep(0.4);
+            feedBall(1);
+
+        } else if (tag == 22) {
+            setSorterP1();
+            setSorterP3();
+            setSorterP2();
+        } else if (tag == 23) {
+            setSorterP1();
+            setSorterP2();
+            setSorterP3();
+        } else {
+            telemetry.addLine("Invalid Tag for Just shoot");
+            telemetry.update();
+        }
+    }
+
     // === FarGO Function ===
     public void FarGO() {
         int tag = GlobalData.detectedTagId;
@@ -258,11 +289,12 @@ public class ActuatorSubsystem {
         sleep(0.3); // Wait briefly after feeding
     }
 
-    // === Sleep helper (used for waiting) ===
+    // === Sleep helper (used for waiting without blocking callbacks) ===
     private void sleep(double seconds) {
-        timer.reset();
-        while (timer.seconds() < seconds) {
-            // simple delay without blocking hardware updates
+        try {
+            Thread.sleep((long)(seconds * 1000));  // Convert to milliseconds
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 }
