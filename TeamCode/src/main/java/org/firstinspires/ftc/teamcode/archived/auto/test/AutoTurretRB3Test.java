@@ -36,6 +36,7 @@ public class AutoTurretRB3Test extends LinearOpMode {
         // === Initialize Turret Subsystem ===
         turret = new TurretSubsystem(hardwareMap);
         turret.setGoalPosition(0.0, 144.0); // BLUE goal position
+        turret.setStartingAngle(0.0);       // Position turret straight ahead
         telemetry.addLine("🎯 Turret tracking enabled (Blue goal)");
 
         // === INIT Loop: keep scanning before start ===
@@ -62,7 +63,7 @@ public class AutoTurretRB3Test extends LinearOpMode {
                         new Pose(87.995, 85.144)))
                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(48))
                 .addParametricCallback(1,() -> actuator.runShooterClose())
-                .addParametricCallback(99,() -> actuator.justShoot())
+                .addParametricCallback(100,() -> actuator.justShoot())
                 .build();
 
         PathChain path2 = new PathBuilder(follower, Constants.pathConstraints)
@@ -72,6 +73,7 @@ public class AutoTurretRB3Test extends LinearOpMode {
                         new Pose(102.512, 83.335)))
                 .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
                 .addParametricCallback(1,() -> actuator.stopShooter())
+                .addParametricCallback(60,() -> actuator.runIntake())
                 .addParametricCallback(90,() -> actuator.setSorterIN1())
                 .build();
 
@@ -100,7 +102,7 @@ public class AutoTurretRB3Test extends LinearOpMode {
                         new Pose(127.602, 75.000),
                         new Pose(87.995, 85.144)))
                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(48))
-                .addParametricCallback(1,() -> actuator.FarGO())
+                .addParametricCallback(100,() -> actuator.FarGO())
                 .build();
 
         PathChain path6 = new PathBuilder(follower, Constants.pathConstraints)
@@ -110,7 +112,7 @@ public class AutoTurretRB3Test extends LinearOpMode {
                         new Pose(102.332, 59.320)))
                 .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
                 .addParametricCallback(1,() -> actuator.stopShooter())
-                .addParametricCallback(90,() -> actuator.runIntake())
+                .addParametricCallback(60,() -> actuator.runIntake())
                 .addParametricCallback(90,() -> actuator.setSorterIN1())
                 .build();
 
@@ -140,7 +142,7 @@ public class AutoTurretRB3Test extends LinearOpMode {
                         new Pose(101.795, 35.216)))
                 .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
                 .addParametricCallback(1,() -> actuator.stopShooter())
-                .addParametricCallback(90,() -> actuator.runIntake())
+                .addParametricCallback(60,() -> actuator.runIntake())
                 .addParametricCallback(90,() -> actuator.setSorterIN1())
                 .build();
 

@@ -101,6 +101,41 @@ public class TurretSubsystem {
     }
 
     /**
+     * Set the starting angle of the turret when robot initializes.
+     * Use this to position the turret at a specific angle relative to robot's forward direction.
+     * 
+     * @param startingAngleDegrees Angle in degrees (-90 to +90)
+     *                            0° = straight ahead
+     *                            +90° = full right
+     *                            -90° = full left
+     */
+    public void setStartingAngle(double startingAngleDegrees) {
+        // Clamp to physical limits
+        double clampedAngle = Math.max(-90.0, Math.min(90.0, startingAngleDegrees));
+        
+        // Convert to encoder ticks
+        int targetTicks = (int)(clampedAngle * TICKS_PER_DEGREE);
+        
+        // Set motor to target position
+        turretMotor.setTargetPosition(targetTicks);
+        turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        turretMotor.setPower(0.25);  // Lower power for initial positioning
+        
+        // Wait for motor to reach position
+        while (turretMotor.isBusy()) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        
+        // Stop motor and reset for normal operation
+        turretMotor.setPower(0.0);
+        turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    /**
      * Update turret alignment based on robot's current pose.
      * Call this continuously in your autonomous loop while following paths.
      *

@@ -58,6 +58,7 @@ public class TurretTeleOpTest extends LinearOpMode {
         // === Initialize Turret Subsystem ===
         turret = new TurretSubsystem(hardwareMap);
         turret.setGoalPosition(GOAL_X, GOAL_Y);
+        turret.setStartingAngle(0.0);  // Position turret straight ahead
 
         waitForStart();
 
