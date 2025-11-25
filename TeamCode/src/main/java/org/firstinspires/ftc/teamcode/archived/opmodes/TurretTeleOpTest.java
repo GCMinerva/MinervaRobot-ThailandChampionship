@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.archived.subsystems.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 /**
- * Turret TeleOp Test
+ * Turret TeleOp Test,
  * 
  * Controls:
  * - Gamepad1 Right Stick Y: Set target turret angle manually (-90° to +90°)
@@ -42,8 +42,8 @@ public class TurretTeleOpTest extends LinearOpMode {
         follower = Constants.createFollower(hardwareMap);
 
         // === Set starting pose (CUSTOMIZE THIS FOR YOUR TEST) ===
-        // Example: starting at center of field facing right
-        Pose startingPose = new Pose(110.5, 134.5, Math.toRadians(0));
+        // Example: starting at RB3 position
+        Pose startingPose = new Pose(110.5, 134.5, Math.toRadians(90));
         follower.setStartingPose(startingPose);
 
         telemetry.addLine("=== Turret TeleOp Test ===");
