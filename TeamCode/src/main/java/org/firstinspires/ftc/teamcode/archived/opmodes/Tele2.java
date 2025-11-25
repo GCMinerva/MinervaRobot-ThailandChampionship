@@ -108,15 +108,12 @@ public class Tele2 extends OpMode {
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        binit1 = hardwareMap.get(Servo.class, "binit1");
+        binit1 = hardwareMap.get(Servo.class, "brinit");
         binit = hardwareMap.get(Servo.class, "binit");
         sorter = hardwareMap.get(Servo.class, "sorter");
 
-        binit.setDirection(Servo.Direction.FORWARD);
-        binit1.setDirection(Servo.Direction.REVERSE);
-
-        binit.setPosition(0.95);
-        binit1.setPosition(0.95);
+        binit.setPosition(0.1);
+        binit1.setPosition(0.8);
         sorter.setPosition(0.15);
 
         telemetry.addData("Status", "Initialized");
@@ -232,7 +229,9 @@ public class Tele2 extends OpMode {
 //                lastSpeedChangeTime = currentTime;
 //            }
 //        }
+
         outtakePower = outtakeSpeed;
+
         outtake1.setPower(outtakePower);
         outtake2.setPower(outtakePower);
 
@@ -243,13 +242,13 @@ public class Tele2 extends OpMode {
         // binit position
         if (gamepad2.b && !gp2_bPressed && Math.abs(sorter.getPosition() - 0.15) > 0.05 && Math.abs(sorter.getPosition() - 0.533) > 0.05 && Math.abs(sorter.getPosition() - 0.918) > 0.05) {
             gp2_bPressed = true;
-            binit.setPosition(0.13);
-            binit1.setPosition(0.13);
+            binit.setPosition(0.56);
+            binit1.setPosition(0.34);
             new Thread(() -> {
                 try {
                     Thread.sleep(500);
-                    binit.setPosition(0.95);
-                    binit1.setPosition(0.95);
+                    binit.setPosition(0.1);
+                    binit1.setPosition(0.8);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
