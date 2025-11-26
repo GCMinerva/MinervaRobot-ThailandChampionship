@@ -45,9 +45,9 @@ public class TurretCalibration extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        // === Initialize motor in RUN_WITHOUT_ENCODER mode for manual control ===
+        // === Initialize motor in RUN_USING_ENCODER mode to read ticks while applying manual power ===
         turretMotor = hardwareMap.get(DcMotor.class, "turret");
-        turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         turretMotor.setPower(0.0);
 
         telemetry.addLine("=== TURRET ENCODER CALIBRATION ===");
@@ -122,7 +122,7 @@ public class TurretCalibration extends LinearOpMode {
         // A: Reset encoder to zero
         if (gamepad1.a) {
             turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             startingTicks = 0;
             currentTicks = 0;
             hasSnapshot = false;
@@ -171,7 +171,7 @@ public class TurretCalibration extends LinearOpMode {
 
         // Reset encoder
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         sleep(200);
 
         // Rotate at 0.5 power (moderate speed)
