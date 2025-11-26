@@ -17,6 +17,7 @@ public class Tele2 extends OpMode {
     boolean pressed = false;
     boolean lbPressed = false;
     boolean shooterOn = false;
+    boolean liftAct = false;
     boolean aPressed = false;
     boolean bPressed = false;
     boolean xPressed = false;
@@ -24,14 +25,17 @@ public class Tele2 extends OpMode {
     boolean yPressed = false;
     boolean rbPressed = false;
     boolean rtPressed = false;
+    boolean upPressed = false;
 
     private Follower follower;
     private boolean sorterBusy = false;
+    private double lifterPos = 0.0;
+    private boolean dpadPressed = false;
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private ColorSensor colorSensor;
     private DcMotor outtake1, outtake2, intake, turret;
-    private Servo binit, sorter, binit1;
+    private Servo binit, sorter, binit1, lifter, lifter1;
     private double outtakePower = 0;
     private double outtakeSpeed = 0.5;
     private long lastSpeedChangeTime = 0;
@@ -108,10 +112,15 @@ public class Tele2 extends OpMode {
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        lifter = hardwareMap.get(Servo.class, "lifter");
+        lifter1 = hardwareMap.get(Servo.class, "lifter1");
+
         binit1 = hardwareMap.get(Servo.class, "brinit");
         binit = hardwareMap.get(Servo.class, "binit");
         sorter = hardwareMap.get(Servo.class, "sorter");
 
+        lifter.setPosition(0);
+        lifter1.setPosition(0);
         binit.setPosition(0.1);
         binit1.setPosition(0.8);
         sorter.setPosition(0.15);
@@ -217,6 +226,45 @@ public class Tele2 extends OpMode {
             outtakeSpeed = Math.max(0.0, outtakeSpeed - 0.05);
         }
         if(gamepad2.right_trigger < 0.1) rtPressed = false;
+
+        if (gamepad2.dpad_up && !upPressed) {
+            upPressed = true;
+            liftAct = !liftAct;
+
+            if (liftAct) {
+                lifter.setPosition(1);
+                lifter1.setPosition(1);  // เปิด shooter
+            } else {
+                lifter.setPosition(0);
+                lifter1.setPosition(0);           // ปิด shooter
+            }
+        }
+        if (!gamepad2.dpad_up) upPressed = false;
+
+
+        // test lifter servo
+        if (gamepad2.dpad_right && !dpadPressed) {
+            dpadPressed = true;
+            lifterPos += 0.05;
+        }
+
+        // ลดตำแหน่ง (Dpad Left)
+        if (gamepad2.dpad_left && !dpadPressed) {
+            dpadPressed = true;
+            lifterPos -= 0.05;
+        }
+
+        // ปล่อยปุ่มเพื่อ reset debounce
+        if (!gamepad2.dpad_right && !gamepad2.dpad_left) {
+            dpadPressed = false;
+        }
+
+        // จำกัดไม่ให้เกินช่วง 0–1
+        lifterPos = Range.clip(lifterPos, 0, 1);
+
+        // ส่งค่ากลับไปที่เซอร์โว
+        lifter.setPosition(lifterPos);
+        lifter1.setPosition(lifterPos);
 
 //        long currentTime = System.currentTimeMillis();
 //        if (currentTime - lastSpeedChangeTime >= 250) {
@@ -369,6 +417,9 @@ public class Tele2 extends OpMode {
         telemetry.addData("=== SERVOS ===", "");
         telemetry.addData("binit", "%.2f", binit.getPosition());
         telemetry.addData("sorter", sorter.getPosition());
+
+        telemetry.addData("Lifter Pos", lifter.getPosition());
+        telemetry.addData("Lifter1 Pos", lifter1.getPosition());
 
         telemetry.update();
     }
