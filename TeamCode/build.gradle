@@ -10,10 +10,22 @@
 
 
 // Custom definitions may go here
-
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://repo.dairy.foundation/releases"
+        }
+    }
+    dependencies {
+        classpath "dev.frozenmilk:Load:0.2.4"
+    }
+}
 // Include common definitions from above.
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
+// there should be 2 or 3 more lines that start with 'apply plugin:' here
+apply plugin: 'dev.frozenmilk.sinister.sloth.load'
 
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
@@ -22,7 +34,33 @@ android {
         jniLibs.useLegacyPackaging true
     }
 }
+repositories {
+    maven {
+        url = "https://repo.dairy.foundation/releases"
+    }
+    maven {
+        url = "https://repo.dairy.foundation/snapshots"
+    }
+
+}
 
 dependencies {
     implementation project(':FtcRobotController')
+    implementation("com.acmerobotics.slothboard:dashboard:0.2.4+0.4.17")
+    implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
+    implementation("dev.frozenmilk.dairy:Core:2.2.4")
+    implementation "org.solverslib:core:0.3.3" // add SolversLib core
+    implementation "org.solverslib:pedroPathing:0.3.3" // pedroPathing
+
+    configurations.all {
+        resolutionStrategy {
+            eachDependency { DependencyResolveDetails details ->
+                if (details.requested.group == 'com.acmerobotics.dashboard') {
+                    details.useTarget 'com.acmerobotics.slothboard:dashboard:0.2.1+0.4.17'
+                }
+            }
+        }
+    }
 }
+
+
