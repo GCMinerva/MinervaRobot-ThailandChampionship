@@ -43,8 +43,8 @@ public class TurretSubsystem {
 
     // ===== ENCODER CALIBRATION - MEASURED VALUE =====
     // Calibrated using TurretCalibration.java: 360° = 2231 ticks
-    // GoBilda 5203: 2231 / 360 = 6.19 ticks/degree
-    public static final double TICKS_PER_DEGREE = 6.19;
+    // GoBilda 5203: 2235 / 360 = 6.20833 ticks/degree
+    public static final double TICKS_PER_DEGREE = 6.208;
 
     // Goal position in field coordinates (inches)
     private double goalX = 0.0;
@@ -62,9 +62,9 @@ public class TurretSubsystem {
     private double maxAngle = 90.0;           // Right limit (Q1)
 
     // PID control
-    private double kP = 0.01;  // Proportional gain (power per degree error)
+    private double kP = 0.035;  // Proportional gain (power per degree error)
     private double kI = 0.0;   // Integral gain (typically 0 for motor control)
-    private double kD = 0.001; // Derivative gain (damping)
+    private double kD = 0.005; // Derivative gain (damping)
 
     private double integralError = 0.0;
     private double lastError = 0.0;
@@ -79,11 +79,11 @@ public class TurretSubsystem {
         // Reset encoder to zero
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         
+        // Set target position BEFORE switching to RUN_TO_POSITION mode
+        turretMotor.setTargetPosition(0);
+        
         // Use RUN_TO_POSITION mode for closed-loop encoder control
         turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        
-        // Set initial position to zero (0 degrees)
-        turretMotor.setTargetPosition(0);
         turretMotor.setPower(0.0);
     }
 
@@ -116,9 +116,8 @@ public class TurretSubsystem {
         // Convert to encoder ticks
         int targetTicks = (int)(clampedAngle * TICKS_PER_DEGREE);
         
-        // Set motor to target position
+        // Set target position (motor is already in RUN_TO_POSITION mode from constructor)
         turretMotor.setTargetPosition(targetTicks);
-        turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         turretMotor.setPower(0.25);  // Lower power for initial positioning
         
         // Wait for motor to reach position
@@ -130,9 +129,8 @@ public class TurretSubsystem {
             }
         }
         
-        // Stop motor and reset for normal operation
+        // Stop motor and keep it at position
         turretMotor.setPower(0.0);
-        turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     /**
@@ -158,9 +156,18 @@ public class TurretSubsystem {
         // Angle to goal in field coordinates (atan2 returns radians)
         double angleToGoalRad = Math.atan2(deltaY, deltaX);
 
-        // Calculate relative angle (robot heading - goal angle)
+        // DEBUG: Log the raw values (uncomment to debug)
+        // System.out.println("=== TURRET CALCULATION ===");
+        // System.out.println("Robot: (" + robotX + ", " + robotY + ") heading=" + Math.toDegrees(robotHeading) + "°");
+        // System.out.println("Goal: (" + goalX + ", " + goalY + ")");
+        // System.out.println("Delta: (" + deltaX + ", " + deltaY + ")");
+        // System.out.println("angleToGoal: " + Math.toDegrees(angleToGoalRad) + "°");
+        // System.out.println("robotHeading: " + Math.toDegrees(robotHeading) + "°");
+
+        // Calculate relative angle (goal angle - robot heading)
         // This gives us the turret angle relative to robot's forward direction
         double relativeAngleRad = robotHeading - angleToGoalRad;
+        // System.out.println("relativeAngle (before norm): " + Math.toDegrees(relativeAngleRad) + "°");
 
         // Normalize to [-π, π] range to avoid wraparound issues
         while (relativeAngleRad > Math.PI) {
@@ -172,9 +179,11 @@ public class TurretSubsystem {
 
         // Convert to degrees and store as target
         targetAngle = relativeAngleRad * 180.0 / Math.PI;
+        // System.out.println("relativeAngle (after norm): " + targetAngle + "°");
 
         // Clamp to turret's physical limits (±90°)
         targetAngle = Math.max(minAngle, Math.min(maxAngle, targetAngle));
+        // System.out.println("targetAngle (after clamp): " + targetAngle + "°");
 
         // === Encoder-based Position Control ===
         // Convert target angle to encoder ticks

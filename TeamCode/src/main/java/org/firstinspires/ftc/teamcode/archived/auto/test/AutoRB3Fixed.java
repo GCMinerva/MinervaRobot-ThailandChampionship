@@ -30,10 +30,16 @@ public class AutoRB3Fixed extends LinearOpMode {
         // === Initialize Actuator Subsystem ===
         actuator = new ActuatorSubsystem(hardwareMap, telemetry);
         telemetry.addLine("⚙️ Actuator ready");
+        
+        // Open bin once during initialization
+        actuator.openBin();
 
         // === INIT Loop: keep scanning before start ===
         while (!isStarted() && !isStopRequested()) {
             tagSubsystem.update(); // scan and filter tags
+            telemetry.addData("Status", "Scanning for AprilTags...");
+            telemetry.addData("Detected Tag", GlobalData.detectedTagId);
+            telemetry.update();
         }
 
         // === Stop camera once start is pressed ===
@@ -46,14 +52,19 @@ public class AutoRB3Fixed extends LinearOpMode {
         // === Pedro follower setup ===
         follower = Constants.createFollower(hardwareMap);
 //        follower.setStartingPose(new Pose(104.000, 136.000, Math.toRadians(90)));
-        follower.setStartingPose(new Pose(110.5, 134.5, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(110.5, 129.5, Math.toRadians(90)));
 
         // --- Build all paths (UNCHANGED) ---
-        PathChain path1 = new PathBuilder(follower, Constants.pathConstraints)
+
+               PathChain path1 = new PathBuilder(follower, Constants.pathConstraints)
+               .addParametricCallback(12,() -> actuator.runShooterClose())
+               .addParametricCallback(95,() -> actuator.justShoot())
                 .addPath(new BezierLine(
-                        new Pose(110.5, 134.5),
+                        new Pose(110.5, 129.5),
                         new Pose(87.995, 85.144)))
                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(48))
+                
+                
                 .build();
 
         PathChain path2 = new PathBuilder(follower, Constants.pathConstraints)
@@ -62,7 +73,8 @@ public class AutoRB3Fixed extends LinearOpMode {
                         new Pose(92.923, 84.321),
                         new Pose(102.512, 83.335)))
                 .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
-                .addParametricCallback(90,() -> actuator.runIntake())
+                .addParametricCallback(1,() -> actuator.stopShooter())
+                .addParametricCallback(60,() -> actuator.runIntake())
                 .addParametricCallback(90,() -> actuator.setSorterIN1())
                 .build();
 
@@ -91,7 +103,7 @@ public class AutoRB3Fixed extends LinearOpMode {
                         new Pose(127.602, 75.000),
                         new Pose(87.995, 85.144)))
                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(48))
-                .addParametricCallback(1,() -> actuator.FarGO())
+                .addParametricCallback(100,() -> actuator.FarGO())
                 .build();
 
         PathChain path6 = new PathBuilder(follower, Constants.pathConstraints)
@@ -101,7 +113,7 @@ public class AutoRB3Fixed extends LinearOpMode {
                         new Pose(102.332, 59.320)))
                 .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
                 .addParametricCallback(1,() -> actuator.stopShooter())
-                .addParametricCallback(90,() -> actuator.runIntake())
+                .addParametricCallback(60,() -> actuator.runIntake())
                 .addParametricCallback(90,() -> actuator.setSorterIN1())
                 .build();
 
@@ -131,7 +143,7 @@ public class AutoRB3Fixed extends LinearOpMode {
                         new Pose(101.795, 35.216)))
                 .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
                 .addParametricCallback(1,() -> actuator.stopShooter())
-                .addParametricCallback(90,() -> actuator.runIntake())
+                .addParametricCallback(60,() -> actuator.runIntake())
                 .addParametricCallback(90,() -> actuator.setSorterIN1())
                 .build();
 

@@ -36,7 +36,7 @@ public class AutoTurretRB3Test extends LinearOpMode {
         // === Initialize Turret Subsystem ===
         turret = new TurretSubsystem(hardwareMap);
         turret.setGoalPosition(0.0, 144.0); // BLUE goal position
-        turret.setStartingAngle(0.0);       // Position turret straight ahead
+        turret.setStartingAngle(-90);       // Position turret straight ahead
         telemetry.addLine("🎯 Turret tracking enabled (Blue goal)");
 
         // === INIT Loop: keep scanning before start ===

@@ -230,7 +230,9 @@ public class Tele2 extends OpMode {
 //            }
 //        }
 
-        outtakePower = outtakeSpeed;
+        if (outtakePower > 0) {
+            outtakePower = outtakeSpeed;
+        }
 
         outtake1.setPower(outtakePower);
         outtake2.setPower(outtakePower);
