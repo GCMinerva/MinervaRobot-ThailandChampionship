@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp(name="hello")
-public class    Control extends LinearOpMode {
+public class Control extends LinearOpMode {
 
     private DcMotor Control;
     private Servo myServo;

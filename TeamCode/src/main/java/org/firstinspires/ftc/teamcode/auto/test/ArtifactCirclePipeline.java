@@ -1,0 +1,159 @@
+package org.firstinspires.ftc.teamcode.auto.test;
+
+import android.graphics.Canvas;
+
+import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
+import org.firstinspires.ftc.vision.VisionProcessor;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+
+public class ArtifactCirclePipeline implements VisionProcessor {
+
+    Mat yCrCbMat = new Mat();
+    Mat crMat = new Mat();
+    Mat cbMat = new Mat();
+    Mat contoursOnPlainImageMat = new Mat();
+
+    Mat pCrMat = new Mat();
+    Mat pCbMat = new Mat();
+    Mat pThresholdMat = new Mat();
+    Mat pMorphedThreshold = new Mat();
+
+    Mat gCrMat = new Mat();
+    Mat gCbMat = new Mat();
+    Mat gThresholdMat = new Mat();
+    Mat gMorphedThreshold = new Mat();
+
+    MatOfPoint2f contour2f = new MatOfPoint2f();
+
+    Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(3, 3));
+    Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(6, 6));
+
+    static final Scalar TEAL = new Scalar(3, 148, 252);
+    static final Scalar PURPLE = new Scalar(158, 52, 235);
+    static final Scalar RED = new Scalar(255, 0, 0);
+    static final Scalar GREEN = new Scalar(0, 255, 0);
+    static final Scalar BLACK = new Scalar(255, 255, 255);
+    static final Scalar BLUE = new Scalar(0, 0, 255);
+
+    static final int CONTOUR_LINE_THICKNESS = 2;
+
+    private ArrayList<Artifact> foundArtifacts;
+
+    public ArrayList<Artifact> getFoundArtifacts() {
+        return foundArtifacts;
+    }
+
+    @Override
+    public void init(int width, int height, CameraCalibration calibration) {}
+
+    @Override
+    public Object processFrame(Mat frame, long captureTimeNanos) {
+        foundArtifacts = new ArrayList<>();
+        analyzeArtifacts(frame, findContours(frame));
+        return frame;
+    }
+
+    @Override
+    public void onDrawFrame(Canvas canvas, int onscreenWidth, int onscreenHeight, float scaleBmpPxToCanvasPx, float scaleCanvasDensity, Object userContext) {}
+
+    List<ArrayList<MatOfPoint>> findContours(Mat input) {
+        ArrayList<MatOfPoint> purpleContours = new ArrayList<>();
+        ArrayList<MatOfPoint> greenContours = new ArrayList<>();
+
+        Imgproc.cvtColor(input, yCrCbMat, Imgproc.COLOR_RGB2YCrCb);
+        Core.extractChannel(yCrCbMat, crMat, 1);
+        Core.extractChannel(yCrCbMat, cbMat, 2);
+
+        Core.inRange(crMat, new Scalar(135), new Scalar(200), pCrMat);
+        Core.inRange(cbMat, new Scalar(135), new Scalar(175), pCbMat);
+
+        Core.bitwise_and(pCrMat, pCbMat, pThresholdMat);
+
+        morphMask(pThresholdMat, pMorphedThreshold);
+        Imgproc.findContours(pMorphedThreshold, purpleContours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+
+        Core.inRange(crMat, new Scalar(50), new Scalar(105), gCrMat);
+        Core.inRange(cbMat, new Scalar(118), new Scalar(145), gCbMat);
+
+        Core.bitwise_and(gCrMat, gCbMat, gThresholdMat);
+
+        morphMask(gThresholdMat, gMorphedThreshold);
+        Imgproc.findContours(gMorphedThreshold, greenContours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+
+        greenContours.removeIf(contour -> Imgproc.contourArea(contour) <= 675);
+        purpleContours.removeIf(contour -> Imgproc.contourArea(contour) <= 675);
+
+        input.copyTo(contoursOnPlainImageMat);
+        Imgproc.drawContours(contoursOnPlainImageMat, purpleContours, -1, PURPLE, CONTOUR_LINE_THICKNESS, 8);
+        Imgproc.drawContours(contoursOnPlainImageMat, greenContours, -1, GREEN, CONTOUR_LINE_THICKNESS, 8);
+
+        return Arrays.asList(purpleContours, greenContours);
+    }
+
+    void morphMask(Mat input, Mat output) {
+        Imgproc.erode(input, output, erodeElement);
+        Imgproc.erode(output, output, erodeElement);
+        Imgproc.erode(output, output, erodeElement);
+
+        Imgproc.dilate(output, output, dilateElement);
+        Imgproc.dilate(output, output, dilateElement);
+        Imgproc.dilate(output, output, dilateElement);
+    }
+
+    void analyzeArtifacts(Mat input, List<ArrayList<MatOfPoint>> contours) {
+        ArrayList<MatOfPoint> purpleContours = contours.get(0);
+        ArrayList<MatOfPoint> greenContours = contours.get(1);
+
+        for (MatOfPoint contour : purpleContours) {
+            analyzeArtifactContour(input, contour, PURPLE, Artifact.Color.PURPLE);
+        }
+
+        for (MatOfPoint contour : greenContours) {
+            analyzeArtifactContour(input, contour, GREEN, Artifact.Color.GREEN);
+        }
+    }
+
+    void analyzeArtifactContour(Mat input, MatOfPoint contour, Scalar drawColor, Artifact.Color color) {
+        contour.convertTo(contour2f, CvType.CV_32F);
+
+        Point center = new Point();
+        float[] radius = new float[1];
+        Imgproc.minEnclosingCircle(contour2f, center, radius);
+
+        Imgproc.circle(input, center, 2, BLACK, 2);
+        Imgproc.putText(input, String.format(Locale.ENGLISH, "%s: %.2f,%.2f", color.name(), center.x, center.y), center, Imgproc.FONT_HERSHEY_PLAIN, 1, drawColor);
+        Imgproc.circle(input, center, (int) radius[0], drawColor, 3);
+
+        foundArtifacts.add(new Artifact(color, center, radius[0]));
+    }
+
+    public static class Artifact {
+        Color color;
+        Point center;
+        double radius;
+
+        public enum Color {
+            PURPLE,
+            GREEN
+        }
+
+        public Artifact(Color color, Point center, double radius) {
+            this.color = color;
+            this.center = center;
+            this.radius = radius;
+        }
+    }
+}
