@@ -119,8 +119,8 @@ public class Tele2 extends OpMode {
         binit = hardwareMap.get(Servo.class, "binit");
         sorter = hardwareMap.get(Servo.class, "sorter");
 
-        lifter.setPosition(0);
-        lifter1.setPosition(0);
+        lifter.setPosition(1);
+        lifter1.setPosition(1);
         binit.setPosition(0.1);
         binit1.setPosition(0.8);
         sorter.setPosition(0.15);
@@ -232,11 +232,9 @@ public class Tele2 extends OpMode {
             liftAct = !liftAct;
 
             if (liftAct) {
-                lifter.setPosition(1);
-                lifter1.setPosition(1);  // เปิด shooter
+                lifterPos = 0;
             } else {
-                lifter.setPosition(0);
-                lifter1.setPosition(0);           // ปิด shooter
+                lifterPos = 1;
             }
         }
         if (!gamepad2.dpad_up) upPressed = false;
