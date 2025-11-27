@@ -29,7 +29,8 @@ public class Tele2 extends OpMode {
 
     private Follower follower;
     private boolean sorterBusy = false;
-    private double lifterPos = 0.0;
+    private double lifterPos = 1.0;
+    private double lifterPos1 = 0.0;
     private boolean dpadPressed = false;
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
@@ -120,7 +121,7 @@ public class Tele2 extends OpMode {
         sorter = hardwareMap.get(Servo.class, "sorter");
 
         lifter.setPosition(1);
-        lifter1.setPosition(1);
+        lifter1.setPosition(0);
         binit.setPosition(0.1);
         binit1.setPosition(0.8);
         sorter.setPosition(0.15);
@@ -239,30 +240,12 @@ public class Tele2 extends OpMode {
         }
         if (!gamepad2.dpad_up) upPressed = false;
 
-
-        // test lifter servo
-        if (gamepad2.dpad_right && !dpadPressed) {
-            dpadPressed = true;
-            lifterPos += 0.05;
-        }
-
-        // ลดตำแหน่ง (Dpad Left)
-        if (gamepad2.dpad_left && !dpadPressed) {
-            dpadPressed = true;
-            lifterPos -= 0.05;
-        }
-
-        // ปล่อยปุ่มเพื่อ reset debounce
-        if (!gamepad2.dpad_right && !gamepad2.dpad_left) {
-            dpadPressed = false;
-        }
-
         // จำกัดไม่ให้เกินช่วง 0–1
         lifterPos = Range.clip(lifterPos, 0, 1);
 
         // ส่งค่ากลับไปที่เซอร์โว
         lifter.setPosition(lifterPos);
-        lifter1.setPosition(lifterPos);
+        lifter1.setPosition(1-lifterPos);
 
 //        long currentTime = System.currentTimeMillis();
 //        if (currentTime - lastSpeedChangeTime >= 250) {
