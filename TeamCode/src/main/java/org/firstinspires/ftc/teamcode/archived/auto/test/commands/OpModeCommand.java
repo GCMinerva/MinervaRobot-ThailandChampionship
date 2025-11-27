@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.archived.auto.test.commands;
 
-import com.arcrobotics.ftclib.command.Command;
-import com.arcrobotics.ftclib.command.CommandScheduler;
-import com.arcrobotics.ftclib.command.Subsystem;
+import com.seattlesolvers.solverslib.command.Command;
+import com.seattlesolvers.solverslib.command.CommandScheduler;
+import com.seattlesolvers.solverslib.command.Subsystem;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 /**
@@ -41,6 +41,14 @@ public abstract class OpModeCommand extends OpMode {
 
     @Override
     public void init() {
+        // Ensure gamepads are initialized to prevent NullPointerException during stop()
+        // This is especially important for Autonomous OpModes
+        if (gamepad1 == null) {
+            gamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
+        }
+        if (gamepad2 == null) {
+            gamepad2 = new com.qualcomm.robotcore.hardware.Gamepad();
+        }
         initialize();
     }
 
@@ -52,8 +60,17 @@ public abstract class OpModeCommand extends OpMode {
 
     @Override
     public void stop() {
-        reset();
-        end();
+        try {
+            // Cancel all commands before resetting to prevent "stuck in stop()" errors
+            CommandScheduler.getInstance().cancelAll();
+            end();
+            reset();
+        } catch (Exception e) {
+            // Catch any exceptions during stop to prevent "stuck in stop()" errors
+            // This commonly happens with NullPointerException on gamepad.resetEdgeDetection()
+            telemetry.addData("Stop Error", e.getMessage());
+            telemetry.update();
+        }
     }
 
     /**

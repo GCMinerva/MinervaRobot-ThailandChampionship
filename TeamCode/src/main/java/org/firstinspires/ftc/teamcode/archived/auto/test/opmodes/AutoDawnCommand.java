@@ -7,10 +7,10 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.arcrobotics.ftclib.command.InstantCommand;
-import com.arcrobotics.ftclib.command.RunCommand;
-import com.arcrobotics.ftclib.command.SequentialCommandGroup;
-import com.arcrobotics.ftclib.command.WaitCommand;
+import com.seattlesolvers.solverslib.command.InstantCommand;
+import com.seattlesolvers.solverslib.command.RunCommand;
+import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
+import com.seattlesolvers.solverslib.command.WaitCommand;
 
 import org.firstinspires.ftc.teamcode.archived.subsystems.ActuatorSubsystem;
 import org.firstinspires.ftc.teamcode.archived.subsystems.AprilTagSubsystem;
@@ -62,9 +62,6 @@ public class AutoDawnCommand extends OpModeCommand {
 
         // Schedule command sequence
         schedule(
-                // Continuous follower update
-                new RunCommand(follower::update),
-                
                 // Telemetry display
                 new RunCommand(() -> {
                     Pose p = follower.getPose();
@@ -259,9 +256,13 @@ public class AutoDawnCommand extends OpModeCommand {
 
     @Override
     public void end() {
-        tagSubsystem.stop();
-        actuator.stopShooter();
-        actuator.stopIntake();
+        if (tagSubsystem != null) {
+            tagSubsystem.stop();
+        }
+        if (actuator != null) {
+            actuator.stopShooter();
+            actuator.stopIntake();
+        }
     }
 
     // Path builders
