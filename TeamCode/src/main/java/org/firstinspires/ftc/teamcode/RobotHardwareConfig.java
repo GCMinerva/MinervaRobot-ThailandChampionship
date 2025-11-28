@@ -34,8 +34,8 @@ public class RobotHardwareConfig {
     /** Drivetrain Parameters */
     public static final class DriveParams {
         public static final double MAX_POWER = 1.0;
-        public static final double X_VELOCITY = 69.87935384114584; // in/s forward velocity
-        public static final double Y_VELOCITY = 59.3845620143; // in/s strafe velocity
+        public static final double X_VELOCITY = 64.74672668937623; // in/s forward velocity
+        public static final double Y_VELOCITY = 51.128709207369596; // in/s strafe velocity
     }
 
     // ==========================
@@ -185,18 +185,18 @@ public class RobotHardwareConfig {
 
     /** Robot Physical Parameters */
     public static final class RobotPhysics {
-        public static final double MASS = 9.24809; // kg
-        public static final double FORWARD_ZERO_POWER_ACCEL = -33.725181778;
-        public static final double LATERAL_ZERO_POWER_ACCEL = -64.4723949292;
+        public static final double MASS = 11.5; // kg
+        public static final double FORWARD_ZERO_POWER_ACCEL = -45.41096843015917;
+        public static final double LATERAL_ZERO_POWER_ACCEL = -72.21687085842304;
     }
 
     /** PIDF Coefficients */
     public static final class PIDFCoefficients {
         // Translational PIDF
-        public static final double TRANS_P = 0.1;
+        public static final double TRANS_P = 0.15;
         public static final double TRANS_I = 0.0;
         public static final double TRANS_D = 0.01;
-        public static final double TRANS_F = 0.003;
+        public static final double TRANS_F = 0.008;
 
         // Heading PIDF
         public static final double HEADING_P = 1.0;
@@ -205,10 +205,10 @@ public class RobotHardwareConfig {
         public static final double HEADING_F = 0.005;
 
         // Drive PIDF (filtered)
-        public static final double DRIVE_P = 0.5;
-        public static final double DRIVE_I = 0.001;
-        public static final double DRIVE_D = 0.001;
-        public static final double DRIVE_F = 0.6;
+        public static final double DRIVE_P = 0.4;
+        public static final double DRIVE_I = 0;
+        public static final double DRIVE_D = 0.0001;
+        public static final double DRIVE_F = 0.07;
         public static final double DRIVE_FILTER_DECAY = 0.75;
 
         // Centripetal scaling
@@ -219,7 +219,7 @@ public class RobotHardwareConfig {
     public static final class PathConstraints {
         public static final double VELOCITY = 0.99;              // in/s
         public static final double ACCELERATION = 100.0;         // in/s²
-        public static final double ANGULAR_VELOCITY = 1.0;       // rad/s
+        public static final double ANGULAR_VELOCITY = 1.1;       // rad/s
         public static final double ANGULAR_ACCELERATION = 1.0;   // rad/s²
     }
 

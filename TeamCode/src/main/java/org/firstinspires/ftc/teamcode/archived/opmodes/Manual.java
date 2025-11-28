@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.archived.opmodes;
 
 import com.pedropathing.follower.Follower;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.Range;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -12,11 +13,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
-@TeleOp(name="FullTeleFixedKAO")
-public class FullTeleFixedKAO extends OpMode {
+@TeleOp(name="Manual")
+public class Manual extends OpMode {
     boolean pressed = false;
+    private Pose currentTargetPose = null;
     boolean lbPressed = false;
     boolean shooterOn = false;
+    boolean liftAct = false;
     boolean aPressed = false;
     boolean bPressed = false;
     boolean xPressed = false;
@@ -24,16 +27,22 @@ public class FullTeleFixedKAO extends OpMode {
     boolean yPressed = false;
     boolean rbPressed = false;
     boolean rtPressed = false;
+    boolean upPressed = false;
+
+    boolean isSlowMode = false;
 
     private Follower follower;
     private boolean sorterBusy = false;
+    private double lifterPos = 1.0;
+    private boolean dpadPressed = false;
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private ColorSensor colorSensor;
     private DcMotor outtake1, outtake2, intake, turret;
-    private Servo binit, sorter;
+
+    private Servo binit, sorter, binit1, lifter, lifter1;
     private double outtakePower = 0;
-    private double outtakeSpeed = 0.5;
+    private double outtakeSpeed = 0.75;
     private long lastSpeedChangeTime = 0;
     private double intakePower = 0;
     private double testpo = 0;
@@ -43,12 +52,15 @@ public class FullTeleFixedKAO extends OpMode {
     private boolean gp2_aPressed = false;
     private boolean gp2_bPressed = false;
     private boolean gp1_yPressed = false;
+    private boolean gp1_xPressed = false;
     private boolean gp1_aPressed = false;
     private boolean gp1_bPressed = false;
     private boolean gp1_rbPressed = false;
     private boolean gp1_lbPressed = false;
+    private boolean goToParking = false;
 
     private int sorterShootMode = 0;
+    private double speed = 0.8;
     private int sorterInputMode = 0;
 
     private boolean autoNavigating = false;
@@ -57,8 +69,10 @@ public class FullTeleFixedKAO extends OpMode {
     private long autoNavStartTime = 0;
     private final long AUTO_NAV_TIMEOUT_MS = 5000;
 
-    private final Pose startPose = new Pose(58, 0, Math.toRadians(90));
+    private final Pose startPose = new Pose(57.22, 10, Math.toRadians(90));
     private final Pose targetPose = new Pose(71.7, 67.1, Math.toRadians(132.2));
+    private final Pose targetPoseX = new Pose(105, 33.5, Math.toRadians(0));
+
 
     private final double POSITION_TOLERANCE_PERCENT = 0.05;
     private final double positionTolerance = Math.hypot(targetPose.getX(), targetPose.getY()) * POSITION_TOLERANCE_PERCENT;
@@ -70,6 +84,9 @@ public class FullTeleFixedKAO extends OpMode {
     int currentSlot = 0;
     double[] loadPositions = {0.15, 0.533, 0.918};
     double[] shootPositions = {0.751, 0, 0.354};
+
+    int loadIndex = 0;
+    int shootIndex = 0;
 
     // loading state (non-blocking): เมื่อกดเก็บ ให้รอเวลาให้ servo หมุนเสร็จก่อนอ่านสี
     private boolean loading = false;
@@ -98,17 +115,24 @@ public class FullTeleFixedKAO extends OpMode {
         intake = hardwareMap.get(DcMotor.class, "intake");
         turret = hardwareMap.get(DcMotor.class, "turret");
 
-        outtake1.setDirection(DcMotor.Direction.FORWARD);
-        outtake2.setDirection(DcMotor.Direction.REVERSE);
+        outtake1.setDirection(DcMotor.Direction.REVERSE);
+        outtake2.setDirection(DcMotor.Direction.FORWARD);
         outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        lifter = hardwareMap.get(Servo.class, "lifter");
+        lifter1 = hardwareMap.get(Servo.class, "lifter1");
+
+        binit1 = hardwareMap.get(Servo.class, "brinit");
         binit = hardwareMap.get(Servo.class, "binit");
         sorter = hardwareMap.get(Servo.class, "sorter");
 
-        binit.setPosition(0.95);
+        lifter.setPosition(1);
+        lifter1.setPosition(0);
+        binit.setPosition(0.1);
+        binit1.setPosition(0.8);
         sorter.setPosition(0.15);
 
         telemetry.addData("Status", "Initialized");
@@ -165,26 +189,49 @@ public class FullTeleFixedKAO extends OpMode {
 
         if (gamepad1.a && !gp1_aPressed && currentPose != null) {
             gp1_aPressed = true;
+            currentTargetPose = targetPose;
             startAutoNavigation(currentPose);
         }
         if (!gamepad1.a) gp1_aPressed = false;
 
-        if (gamepad1.b && !gp1_bPressed) {
-            gp1_bPressed = true;
+        // === NEW: auto navigation (gamepad1.x) . parking zone ===
+        if (gamepad1.x && !gp1_xPressed && currentPose != null) {
+            gp1_xPressed = true;
+            currentTargetPose = targetPoseX;
+            goToParking = true; //indicating lifter servo
+            startAutoNavigationToPose(currentPose, targetPoseX);
+        }
+        if (!gamepad1.x) gp1_xPressed = false;
+
+        if (gamepad1.right_bumper && !gp1_rbPressed) {
+            gp1_rbPressed = true;
             if (autoNavigating) {
                 cancelAutoNavigation();
             }
         }
+        if (!gamepad1.right_bumper) gp1_rbPressed = false;
+
+        // robot speed
+        if (gamepad1.b && !gp1_bPressed) {
+            gp1_bPressed = true;
+            isSlowMode = !isSlowMode;
+        }
         if (!gamepad1.b) gp1_bPressed = false;
+        speed = isSlowMode ? 0.4 : 0.8;
 
-        if (autoNavigating && !follower.isBusy() && !manualOverride) {
+        if (autoNavigating && !follower.isBusy() && !manualOverride && currentTargetPose != null) {
+
             double distanceToTarget = Math.hypot(
-                    currentPose.getX() - targetPose.getX(),
-                    currentPose.getY() - targetPose.getY()
+                    currentPose.getX() - currentTargetPose.getX(),
+                    currentPose.getY() - currentTargetPose.getY()
             );
-            double headingError = Math.abs(Math.toDegrees(currentPose.getHeading() - targetPose.getHeading()));
 
-            if (distanceToTarget <= positionTolerance && headingError <= HEADING_TOLERANCE_DEGREES) {
+            double headingError = Math.abs(
+                    Math.toDegrees(currentPose.getHeading() - currentTargetPose.getHeading())
+            );
+
+            if (distanceToTarget <= positionTolerance &&
+                    headingError <= HEADING_TOLERANCE_DEGREES) {
                 cancelAutoNavigation();
             }
         }
@@ -213,6 +260,25 @@ public class FullTeleFixedKAO extends OpMode {
         }
         if(gamepad2.right_trigger < 0.1) rtPressed = false;
 
+        if (gamepad2.dpad_up && !upPressed) {
+            upPressed = true;
+            liftAct = !liftAct;
+
+            if (liftAct) {
+                lifterPos = 0;
+            } else {
+                lifterPos = 1;
+            }
+        }
+        if (!gamepad2.dpad_up) upPressed = false;
+
+        // จำกัดไม่ให้เกินช่วง 0–1
+        lifterPos = Range.clip(lifterPos, 0, 1);
+
+        // ส่งค่ากลับไปที่เซอร์โว
+        lifter.setPosition(lifterPos);
+        lifter1.setPosition(1-lifterPos);
+
 //        long currentTime = System.currentTimeMillis();
 //        if (currentTime - lastSpeedChangeTime >= 250) {
 //            if (gamepad2.right_bumper) {
@@ -239,11 +305,13 @@ public class FullTeleFixedKAO extends OpMode {
         // binit position
         if (gamepad2.b && !gp2_bPressed && Math.abs(sorter.getPosition() - 0.15) > 0.05 && Math.abs(sorter.getPosition() - 0.533) > 0.05 && Math.abs(sorter.getPosition() - 0.918) > 0.05) {
             gp2_bPressed = true;
-            binit.setPosition(0.13);
+            binit.setPosition(0.56);
+            binit1.setPosition(0.34);
             new Thread(() -> {
                 try {
                     Thread.sleep(500);
-                    binit.setPosition(0.95);
+                    binit.setPosition(0.1);
+                    binit1.setPosition(0.8);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -251,70 +319,57 @@ public class FullTeleFixedKAO extends OpMode {
         }
         if (!gamepad2.b) gp2_bPressed = false;
 
-        // === LOADING (non-blocking) ===
-        if (gamepad2.y && !yPressed && !loading) {
+        // ====== press y to load balls ======
+        if (gamepad2.y && !yPressed) {
             yPressed = true;
-            int next = findNextSlot(0); // หาช่องว่าง
-            if (next != -1) {
-                currentSlot = next;
-                sorter.setPosition(loadPositions[currentSlot]);
 
-                // เริ่ม state loading: รอให้ servo หมุนเสร็จ แล้วค่อยอ่านสี
-                loading = true;
-                loadStartTime = System.currentTimeMillis();
-                loadingSlot = currentSlot;
+            if (!sorterBusy) {
+                sorterBusy = true;
+
+                loadIndex = (loadIndex + 1) % loadPositions.length;
+                sorter.setPosition(loadPositions[loadIndex]);
+
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } finally {
+                        sorterBusy = false;
+                    }
+                }).start();
             }
         }
         if (!gamepad2.y) yPressed = false;
 
-        // เมื่อ loading ผ่านเวลา LOAD_DELAY_MS ให้อ่านสีจริงและอัพเดต slots
-        if (loading && (System.currentTimeMillis() - loadStartTime >= LOAD_DELAY_MS)) {
-            // อ่านค่าสี ณ ตอนนี้ (สด);
 
-            // ตรวจสี (threshold เหมือนตัวอย่างก่อนหน้า) — ปรับตามสนามจริงได้
-            if (g > r && g > b && g > 3000) {
-                slots[loadingSlot] = 2; // เขียว
-            } else if (r > 500 && b > 500 && g > 500) {
-                slots[loadingSlot] = 1; // ม่วง
-            } else {
-                slots[loadingSlot] = 0; // ไม่แน่ใจ
-            }
+        // ====== x for set up to shoot ======
+        if (gamepad2.x && !xPressed) {
+            xPressed = true;
 
-            telemetry.addData("LoadSlot", loadingSlot);
-            telemetry.addData("LoadColor(RGB)", "%d %d %d", r, g, b);
+            if (!sorterBusy) {
+                sorterBusy = true;
 
-            // reset loading state
-            loading = false;
-            loadingSlot = -1;
-        }
+                shootIndex = (shootIndex + 1) % shootPositions.length;
+                sorter.setPosition(shootPositions[shootIndex]);
 
-        if (gamepad2.x && !gp2_xPressed) { // Y+B ยิงบอลม่วง
-            gp2_xPressed = true;
-            int next = findNextSlotType(1);
-            if (next == -1) next = findNextSlotType(2);
-            if (next != -1) {
-                currentSlot = next;
-                if (!sorterBusy) {
-                    final int slot = currentSlot;
-                    sorterBusy = true;
-                    sorter.setPosition(shootPositions[slot]);
-                    new Thread(() -> {
-                        try {
-                            Thread.sleep(500);
-                            slots[slot] = 0;
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                        } finally {
-                            sorterBusy = false;
-                        }
-                    }).start();
-                }
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } finally {
+                        sorterBusy = false;
+                    }
+                }).start();
             }
         }
-        if (!gamepad2.x) gp2_xPressed = false;
+        if (!gamepad2.x) xPressed = false;
 
         //intake
         intakePower = -gamepad2.left_stick_y;
+        if (intakePower < 0) intakePower = -1;
+        else if (intakePower > 0) intakePower = 1;
         intake.setPower(intakePower);
 
         telemetry.addData("=== DRIVETRAIN ===", "");
@@ -378,6 +433,9 @@ public class FullTeleFixedKAO extends OpMode {
         telemetry.addData("binit", "%.2f", binit.getPosition());
         telemetry.addData("sorter", sorter.getPosition());
 
+        telemetry.addData("Lifter Pos", lifter.getPosition());
+        telemetry.addData("Lifter1 Pos", lifter1.getPosition());
+
         telemetry.update();
     }
 
@@ -395,6 +453,20 @@ public class FullTeleFixedKAO extends OpMode {
         autoNavStartTime = System.currentTimeMillis();
     }
 
+    private void startAutoNavigationToPose(Pose currentPose, Pose target) {
+        autoPath = follower.pathBuilder()
+                .addPath(new BezierLine(
+                        new Pose(currentPose.getX(), currentPose.getY(), currentPose.getHeading()),
+                        target
+                ))
+                .setLinearHeadingInterpolation(currentPose.getHeading(), target.getHeading())
+                .build();
+
+        follower.followPath(autoPath, false);
+        autoNavigating = true;
+        autoNavStartTime = System.currentTimeMillis();
+    }
+
     private void cancelAutoNavigation() {
         follower.breakFollowing();
         autoNavigating = false;
@@ -403,6 +475,13 @@ public class FullTeleFixedKAO extends OpMode {
         frontRight.setPower(0);
         backLeft.setPower(0);
         backRight.setPower(0);
+
+        // lift the robot while at the parking zone
+        if (goToParking) {
+            lifter.setPosition(0);
+            lifter1.setPosition(1);
+            goToParking = false;
+        }
     }
 
     private void setManualDrive(double forward, double strafe, double turn) {
@@ -421,10 +500,10 @@ public class FullTeleFixedKAO extends OpMode {
             backRightPower /= maxPower;
         }
 
-        frontLeft.setPower(frontLeftPower);
-        frontRight.setPower(frontRightPower);
-        backLeft.setPower(backLeftPower);
-        backRight.setPower(backRightPower);
+        frontLeft.setPower(frontLeftPower * speed);
+        frontRight.setPower(frontRightPower * speed);
+        backLeft.setPower(backLeftPower * speed);
+        backRight.setPower(backRightPower * speed);
     }
 
     @Override

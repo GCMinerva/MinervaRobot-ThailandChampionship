@@ -11,16 +11,19 @@ import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
  * Controls a GoBilda motor with encoder feedback to precisely align the turret
  * toward Decode FTC Goal locations using closed-loop position control.
  *
- * The turret coordinate system uses the robot's heading as 0°, with a ±90° range
- * covering Quadrants 1 (right/+90°) and 2 (left/-90°) relative to robot heading.
+ * The turret coordinate system uses the robot's heading as 0°, with a ±90°
+ * range
+ * covering Quadrants 1 (right/+90°) and 2 (left/-90°) relative to robot
+ * heading.
  *
  * Coordinate System:
- * - 0°   = Robot heading (forward direction)
+ * - 0° = Robot heading (forward direction)
  * - +90° = Right side (Q1 relative to robot)
  * - -90° = Left side (Q2 relative to robot)
  * 
  * Encoder Calibration:
- * - Default: GoBilda 223 RPM motor: ~28.44 ticks per degree (10,240 ticks per revolution)
+ * - Default: GoBilda 223 RPM motor: ~28.44 ticks per degree (10,240 ticks per
+ * revolution)
  * - Adjust TICKS_PER_DEGREE using TurretCalibration.java OpMode
  * 
  * Calibration Steps:
@@ -57,13 +60,13 @@ public class TurretSubsystem {
     // Control parameters
     private double maxPower = 1.0;
     private double minPower = 0.2;
-    private double alignmentTolerance = 2.0;  // Degrees
-    private double minAngle = -90.0;          // Left limit (Q2)
-    private double maxAngle = 90.0;           // Right limit (Q1)
+    private double alignmentTolerance = 2.0; // Degrees
+    private double minAngle = -90.0; // Left limit (Q2)
+    private double maxAngle = 90.0; // Right limit (Q1)
 
     // PID control
-    private double kP = 0.035;  // Proportional gain (power per degree error)
-    private double kI = 0.0;   // Integral gain (typically 0 for motor control)
+    private double kP = 0.035; // Proportional gain (power per degree error)
+    private double kI = 0.0; // Integral gain (typically 0 for motor control)
     private double kD = 0.005; // Derivative gain (damping)
 
     private double integralError = 0.0;
@@ -71,17 +74,18 @@ public class TurretSubsystem {
 
     /**
      * Initialize turret subsystem
+     * 
      * @param hardwareMap FTC hardware map
      */
     public TurretSubsystem(HardwareMap hardwareMap) {
         turretMotor = hardwareMap.get(DcMotor.class, "turret");
-        
+
         // Reset encoder to zero
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        
+
         // Set target position BEFORE switching to RUN_TO_POSITION mode
         turretMotor.setTargetPosition(0);
-        
+
         // Use RUN_TO_POSITION mode for closed-loop encoder control
         turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         turretMotor.setPower(0.0);
@@ -102,24 +106,26 @@ public class TurretSubsystem {
 
     /**
      * Set the starting angle of the turret when robot initializes.
-     * Use this to position the turret at a specific angle relative to robot's forward direction.
+     * Use this to position the turret at a specific angle relative to robot's
+     * forward direction.
      * 
      * @param startingAngleDegrees Angle in degrees (-90 to +90)
-     *                            0° = straight ahead
-     *                            +90° = full right
-     *                            -90° = full left
+     *                             0° = straight ahead
+     *                             +90° = full right
+     *                             -90° = full left
      */
     public void setStartingAngle(double startingAngleDegrees) {
         // Clamp to physical limits
         double clampedAngle = Math.max(-90.0, Math.min(90.0, startingAngleDegrees));
-        
+
         // Convert to encoder ticks
-        int targetTicks = (int)(clampedAngle * TICKS_PER_DEGREE);
-        
-        // Set target position (motor is already in RUN_TO_POSITION mode from constructor)
+        int targetTicks = (int) (clampedAngle * TICKS_PER_DEGREE);
+
+        // Set target position (motor is already in RUN_TO_POSITION mode from
+        // constructor)
         turretMotor.setTargetPosition(targetTicks);
-        turretMotor.setPower(0.25);  // Lower power for initial positioning
-        
+        turretMotor.setPower(0.25); // Lower power for initial positioning
+
         // Wait for motor to reach position
         while (turretMotor.isBusy()) {
             try {
@@ -128,9 +134,47 @@ public class TurretSubsystem {
                 Thread.currentThread().interrupt();
             }
         }
-        
+
         // Stop motor and keep it at position
         turretMotor.setPower(0.0);
+    }
+
+    /**
+     * Turn turret to a specific angle (blocking call).
+     * Use this at the start of autonomous to position the turret.
+     * 
+     * @param angleDegrees Target angle in degrees (-90 to +90)
+     *                     0° = straight ahead
+     *                     +90° = full right
+     *                     -90° = full left
+     */
+    public void turnToAngle(double angleDegrees) {
+        // Clamp to physical limits
+        double clampedAngle = Math.max(-90.0, Math.min(90.0, angleDegrees));
+
+        // Convert to encoder ticks
+        int targetTicks = (int) (clampedAngle * TICKS_PER_DEGREE);
+
+        // Set target position
+        turretMotor.setTargetPosition(targetTicks);
+        turretMotor.setPower(0.5); // Medium power for positioning
+
+        // Wait for motor to reach position
+        while (turretMotor.isBusy()) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        // Update internal state
+        currentAngle = clampedAngle;
+        targetAngle = clampedAngle;
+
+        // Keep motor at position with low power
+        turretMotor.setPower(0.1);
     }
 
     /**
@@ -158,7 +202,8 @@ public class TurretSubsystem {
 
         // DEBUG: Log the raw values (uncomment to debug)
         // System.out.println("=== TURRET CALCULATION ===");
-        // System.out.println("Robot: (" + robotX + ", " + robotY + ") heading=" + Math.toDegrees(robotHeading) + "°");
+        // System.out.println("Robot: (" + robotX + ", " + robotY + ") heading=" +
+        // Math.toDegrees(robotHeading) + "°");
         // System.out.println("Goal: (" + goalX + ", " + goalY + ")");
         // System.out.println("Delta: (" + deltaX + ", " + deltaY + ")");
         // System.out.println("angleToGoal: " + Math.toDegrees(angleToGoalRad) + "°");
@@ -167,7 +212,8 @@ public class TurretSubsystem {
         // Calculate relative angle (goal angle - robot heading)
         // This gives us the turret angle relative to robot's forward direction
         double relativeAngleRad = robotHeading - angleToGoalRad;
-        // System.out.println("relativeAngle (before norm): " + Math.toDegrees(relativeAngleRad) + "°");
+        // System.out.println("relativeAngle (before norm): " +
+        // Math.toDegrees(relativeAngleRad) + "°");
 
         // Normalize to [-π, π] range to avoid wraparound issues
         while (relativeAngleRad > Math.PI) {
@@ -187,11 +233,11 @@ public class TurretSubsystem {
 
         // === Encoder-based Position Control ===
         // Convert target angle to encoder ticks
-        int targetTicks = (int)(targetAngle * TICKS_PER_DEGREE);
-        
+        int targetTicks = (int) (targetAngle * TICKS_PER_DEGREE);
+
         // Set motor target position
         turretMotor.setTargetPosition(targetTicks);
-        
+
         // Get current encoder position and convert to degrees
         int currentTicks = turretMotor.getCurrentPosition();
         currentAngle = currentTicks / TICKS_PER_DEGREE;
@@ -240,6 +286,7 @@ public class TurretSubsystem {
 
     /**
      * Check if turret is aligned to target goal
+     * 
      * @return true if within alignment tolerance
      */
     public boolean isAligned() {
@@ -253,6 +300,7 @@ public class TurretSubsystem {
 
     /**
      * Get current turret angle relative to robot heading (degrees)
+     * 
      * @return angle in degrees: -90° (left/Q2) to +90° (right/Q1)
      */
     public double getCurrentAngle() {
@@ -305,15 +353,16 @@ public class TurretSubsystem {
 
     /**
      * Configure control sensitivity and limits
-     * @param newMaxPower Maximum motor power (0.0-1.0)
-     * @param newMinPower Minimum motor power (0.0-1.0)
+     * 
+     * @param newMaxPower  Maximum motor power (0.0-1.0)
+     * @param newMinPower  Minimum motor power (0.0-1.0)
      * @param newTolerance Alignment tolerance in degrees
-     * @param newKP Proportional gain (power per degree error)
-     * @param newKI Integral gain (usually 0)
-     * @param newKD Derivative gain (damping)
+     * @param newKP        Proportional gain (power per degree error)
+     * @param newKI        Integral gain (usually 0)
+     * @param newKD        Derivative gain (damping)
      */
-    public void configureControl(double newMaxPower, double newMinPower, 
-                                double newTolerance, double newKP, double newKI, double newKD) {
+    public void configureControl(double newMaxPower, double newMinPower,
+            double newTolerance, double newKP, double newKI, double newKD) {
         this.maxPower = newMaxPower;
         this.minPower = newMinPower;
         this.alignmentTolerance = newTolerance;
@@ -324,6 +373,7 @@ public class TurretSubsystem {
 
     /**
      * Adjust PID gains for tuning
+     * 
      * @param kP Proportional gain
      * @param kI Integral gain
      * @param kD Derivative gain

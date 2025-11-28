@@ -14,6 +14,8 @@ import org.firstinspires.ftc.teamcode.util.CameraCalibrate;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +25,10 @@ public class AprilTagTest extends LinearOpMode {
 
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
+    private DcMotor turretMotor;
+    
+    // Turret encoder calibration (from TurretSubsystem)
+    private static final double TICKS_PER_DEGREE = 6.208;
 
     @Override
     public void runOpMode() {

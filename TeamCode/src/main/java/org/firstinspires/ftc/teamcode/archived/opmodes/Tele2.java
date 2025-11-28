@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.archived.opmodes;
 
 import com.pedropathing.follower.Follower;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.Range;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;

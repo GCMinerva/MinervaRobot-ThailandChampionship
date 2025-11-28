@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.archived.opmodes;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.util.Range;
@@ -12,8 +12,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
-@TeleOp(name="FullTeleFixed")
-public class FullTeleFixed extends OpMode {
+@TeleOp(name="FullTeleFixedKAO")
+public class FullTeleFixedKAO extends OpMode {
     boolean pressed = false;
     boolean lbPressed = false;
     boolean shooterOn = false;
@@ -27,12 +27,6 @@ public class FullTeleFixed extends OpMode {
 
     private Follower follower;
     private boolean sorterBusy = false;
-    private long sorterActionTime = 0;
-    private int sorterActiveSlot = -1;
-    private boolean sorterLBBusy = false;
-    private long sorterLBActionTime = 0;
-    private boolean binitBusy = false;
-    private long binitActionTime = 0;
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private ColorSensor colorSensor;
@@ -48,7 +42,6 @@ public class FullTeleFixed extends OpMode {
     private boolean gp2_yPressed = false;
     private boolean gp2_aPressed = false;
     private boolean gp2_bPressed = false;
-    private boolean gp1_xPressed = false;
     private boolean gp1_yPressed = false;
     private boolean gp1_aPressed = false;
     private boolean gp1_bPressed = false;
@@ -71,12 +64,8 @@ public class FullTeleFixed extends OpMode {
     private final double positionTolerance = Math.hypot(targetPose.getX(), targetPose.getY()) * POSITION_TOLERANCE_PERCENT;
     private final double HEADING_TOLERANCE_DEGREES = 5.0;
 
-    int r = colorSensor.red();
-    int g = colorSensor.green();
-    int b = colorSensor.blue();
-
     // ===== Sorter system (3 ช่องเก็บบอล) =====
-    // 0 = ว่าง, 1 = บอลม่วง, 2 = บอลเขียว/
+    // 0 = ว่าง, 1 = บอลม่วง, 2 = บอลเขียว
     int[] slots = {0, 0, 0};
     int currentSlot = 0;
     double[] loadPositions = {0.15, 0.533, 0.918};
@@ -142,6 +131,9 @@ public class FullTeleFixed extends OpMode {
 
     @Override
     public void loop() {
+        int r = colorSensor.red();
+        int g = colorSensor.green();
+        int b = colorSensor.blue();
 
         follower.update();
         Pose currentPose = follower.getPose();
@@ -197,30 +189,41 @@ public class FullTeleFixed extends OpMode {
             }
         }
 
-        // Toggle state
-        boolean xToggle = false;
-        // Edge detection
-        if (gamepad2.x && !gp2_xPressed) {
-            gp2_xPressed = true;
-            xToggle = !xToggle;   // toggle
-        }
-        if (!gamepad2.x) gp2_xPressed = false;
+        if (gamepad2.left_bumper && !lbPressed) {
+            lbPressed = true;
+            shooterOn = !shooterOn;
 
-        // Apply toggle result
-        outtakePower = xToggle ? outtakeSpeed : 0;
-
-
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastSpeedChangeTime >= 250) {
-            if (gamepad2.dpad_up) {
-                outtakeSpeed = Math.min(1.0, outtakeSpeed + 0.05);
-                lastSpeedChangeTime = currentTime;
-            }
-            if (gamepad2.dpad_down) {
-                outtakeSpeed = Math.max(0.0, outtakeSpeed - 0.05);
-                lastSpeedChangeTime = currentTime;
+            if (shooterOn) {
+                outtakePower = outtakeSpeed;   // เปิด shooter
+            } else {
+                outtakePower = 0;              // ปิด shooter
             }
         }
+        if (!gamepad2.left_bumper) lbPressed = false;
+
+        if (gamepad2.right_bumper && !rbPressed) {
+            rbPressed = true;
+            outtakeSpeed = Math.min(1.0, outtakeSpeed + 0.05);
+        }
+        if (!gamepad2.right_bumper) rbPressed = false;
+
+        if (gamepad2.right_trigger > 0.1 && !rtPressed) {
+            rtPressed = true;
+            outtakeSpeed = Math.max(0.0, outtakeSpeed - 0.05);
+        }
+        if(gamepad2.right_trigger < 0.1) rtPressed = false;
+
+//        long currentTime = System.currentTimeMillis();
+//        if (currentTime - lastSpeedChangeTime >= 250) {
+//            if (gamepad2.right_bumper) {
+//                outtakeSpeed = Math.min(1.0, outtakeSpeed + 0.05);
+//                lastSpeedChangeTime = currentTime;
+//            }
+//            if (gamepad2.right_trigger > 0.1) {
+//                outtakeSpeed = Math.max(0.0, outtakeSpeed - 0.05);
+//                lastSpeedChangeTime = currentTime;
+//            }
+//        }
 
         if (outtakePower > 0) {
             outtakePower = outtakeSpeed;
@@ -230,36 +233,23 @@ public class FullTeleFixed extends OpMode {
         outtake2.setPower(outtakePower);
 
         // Turret control with right joystick (gamepad2)
-        double turretPower = gamepad2.right_stick_y;
+        double turretPower = Range.clip(gamepad2.right_stick_y, -1, 1);
         turret.setPower(turretPower);
 
-        if (gamepad1.left_bumper && !gp1_lbPressed) {
-            gp1_lbPressed = true;
-            sorter.setPosition(1.0);
+        // binit position
+        if (gamepad2.b && !gp2_bPressed && Math.abs(sorter.getPosition() - 0.15) > 0.05 && Math.abs(sorter.getPosition() - 0.533) > 0.05 && Math.abs(sorter.getPosition() - 0.918) > 0.05) {
+            gp2_bPressed = true;
+            binit.setPosition(0.13);
             new Thread(() -> {
                 try {
                     Thread.sleep(500);
-                    sorter.setPosition(0.55);
+                    binit.setPosition(0.95);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
             }).start();
         }
-        if (!gamepad1.left_bumper) gp1_lbPressed = false;
-
-        if (gamepad1.right_bumper && !gp1_rbPressed) {
-            gp1_rbPressed = true;
-            binit.setPosition(0.135);
-            new Thread(() -> {
-                try {
-                    Thread.sleep(500);
-                    binit.setPosition(0.35);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }).start();
-        }
-        if (!gamepad1.right_bumper) gp1_rbPressed = false;
+        if (!gamepad2.b) gp2_bPressed = false;
 
         // === LOADING (non-blocking) ===
         if (gamepad2.y && !yPressed && !loading) {
@@ -298,8 +288,10 @@ public class FullTeleFixed extends OpMode {
             loadingSlot = -1;
         }
 
-        if (gamepad1.b) { // Y+B ยิงบอลม่วง
+        if (gamepad2.x && !gp2_xPressed) { // Y+B ยิงบอลม่วง
+            gp2_xPressed = true;
             int next = findNextSlotType(1);
+            if (next == -1) next = findNextSlotType(2);
             if (next != -1) {
                 currentSlot = next;
                 if (!sorterBusy) {
@@ -319,43 +311,10 @@ public class FullTeleFixed extends OpMode {
                 }
             }
         }
-        if (gamepad1.a) { // Y+A ยิงบอลเขียว
-            int next = findNextSlotType(2);
-            if (next != -1) {
-                currentSlot = next;
-                if (!sorterBusy) {
-                    final int slot = currentSlot;
-                    sorterBusy = true;
-                    sorter.setPosition(shootPositions[slot]);
-                    new Thread(() -> {
-                        try {
-                            Thread.sleep(500);
-                            slots[slot] = 0;
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                        } finally {
-                            sorterBusy = false;
-                        }
-                    }).start();
-                }
-            }
-        }
+        if (!gamepad2.x) gp2_xPressed = false;
 
-        // === intake toggle (X) ===
-        if (gamepad1.x && !gp1_xPressed) {
-            gp1_xPressed = true;
-            x1Pressed = !x1Pressed;  // toggle เมื่อกดปุ่ม (ไม่ใช่ตอนปล่อย)
-
-            if (x1Pressed) {
-                intakePower = -0.75;  // เปิดดูด
-            } else {
-                intakePower = 0;      // ปิดดูด
-            }
-        }
-        if (!gamepad1.x) {
-            gp1_xPressed = false; // รีเซ็ตสถานะกันค้าง
-        }
-
+        //intake
+        intakePower = -gamepad2.left_stick_y;
         intake.setPower(intakePower);
 
         telemetry.addData("=== DRIVETRAIN ===", "");
@@ -417,7 +376,7 @@ public class FullTeleFixed extends OpMode {
 
         telemetry.addData("=== SERVOS ===", "");
         telemetry.addData("binit", "%.2f", binit.getPosition());
-        telemetry.addData("sorter", "%.2f", sorter.getPosition());
+        telemetry.addData("sorter", sorter.getPosition());
 
         telemetry.update();
     }

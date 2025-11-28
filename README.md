@@ -22,6 +22,12 @@ FTC (FIRST Tech Challenge) robot control system with advanced autonomous capabil
 - AprilTag vision detection and tracking
 - Complex multi-path autonomous routines
 
+### 🎮 Robot Subsystems
+- **TurretSubsystem** - PID-controlled turret with automatic goal tracking (±90° range)
+- **ActuatorSubsystem** - Dual shooter motors, intake system, and multi-position sorter
+- **AprilTagSubsystem** - Real-time vision processing for alliance color detection
+- **LiftingSubsystem** - Dual servo lifting mechanism for vertical specimen placement
+
 ### 📊 Real-Time Telemetry
 - **SlothBoard Dashboard** integration for live robot monitoring
 - Custom telemetry displays for debugging
@@ -69,17 +75,135 @@ MinervaRobot/
 └── FtcRobotController/                # FTC Robot Controller app
 ```
 
+## 🤖 Robot Subsystems
+
+### � TurretSubsystem
+Precision turret control with encoder feedback for goal alignment.
+
+**Features:**
+- Closed-loop PID control for accurate positioning
+- Automatic goal tracking using field coordinates
+- ±90° rotation range (left/right from robot heading)
+- Real-time alignment feedback
+
+**Key Methods:**
+- `setGoalPosition(goalX, goalY)` - Set target field coordinates
+- `update(robotPose)` - Update turret angle based on robot position
+- `isAligned()` - Check if turret is on target
+- `setStartingAngle(degrees)` - Initialize turret position
+- `configureControl(maxPower, minPower, tolerance, kP, kI, kD)` - Tune PID
+- `resetToCenter()` - Return to 0° (robot forward)
+
+**Use Case:**
+```java
+turret.setGoalPosition(144, 144); // Aim at goal
+while (!turret.isAligned()) {
+    turret.update(follower.getPose());
+}
+shooter.fire(); // Shoot when aligned
+```
+
+---
+
+### 🔧 ActuatorSubsystem
+Controls shooter wheels, intake, and game piece sorting mechanism.
+
+**Components:**
+- **Dual Shooter Motors** (outtake1, outtake2) - Variable speed shooting
+- **Intake Motor** - Game piece collection
+- **Bin Servos** (binit, brinit) - Ball feeding mechanism
+- **Sorter Servo** - Multi-position sample sorting
+
+**Shooter Methods:**
+- `runShooterFar()` - High power for long-range shots
+- `runShooterClose()` - Lower power for close shots
+- `stopShooter()` - Stop shooter motors
+- `justShoot()` - Quick shot sequence
+- `FarGO()` - Far distance shot with bin control
+- `MidGO()` - Medium distance shot
+- `NearGO()` - Close distance shot
+
+**Intake Methods:**
+- `runIntake()` - Start intake motor
+- `stopIntake()` - Stop intake motor
+
+**Sorter Methods:**
+- `setSorterP1()`, `setSorterP2()`, `setSorterP3()` - Preset positions for shooting
+- `setSorterIN1()`, `setSorterIN2()`, `setSorterIN3()` - Positions for intake
+- `setSorter(position)` - Custom position control
+
+**Bin Control:**
+- `openBin()` - Open ball feeder
+- `closeBin()` - Close ball feeder
+- `feedBall(delaySec)` - Automated feed sequence
+
+---
+
+### 📷 AprilTagSubsystem
+Vision-based AprilTag detection for alliance color identification.
+
+**Features:**
+- Webcam integration for tag detection
+- Real-time tag ID tracking
+- Alliance color determination (Red/Blue)
+- Global data storage for cross-OpMode access
+
+**Key Methods:**
+- `update()` - Process camera frames and detect tags
+- `stop()` - Shutdown vision processor
+
+**Detected Tags:**
+- Tag 21 → Red Alliance
+- Tag 22 → Blue Alliance  
+- Tag 23 → Special pattern
+
+**Usage:**
+```java
+tagSubsystem.update();
+if (GlobalData.detectedTagId == 21) {
+    // Red alliance autonomous
+} else if (GlobalData.detectedTagId == 22) {
+    // Blue alliance autonomous
+}
+```
+
+---
+
 ## 🎮 OpModes
 
-### Autonomous
-- **AutoDawnCommand** - Command-based autonomous with 11-path sequence
-  - Preloaded specimen scoring
-  - Sample pickup and scoring (3 cycles)
-  - Percentage-based action triggers
-  - AprilTag detection for alliance color
+### Autonomous OpModes
 
-### TeleOp
-- Various teleop control modes in development
+#### Command-Based
+- **AutoDawnCommand** - Advanced 11-path autonomous sequence
+  - Preloaded specimen scoring
+  - 3-cycle sample pickup and scoring
+  - Percentage-based action triggers
+  - AprilTag alliance detection
+  - Turret alignment integration
+
+#### Path-Based Autonomous (Pedro Pathing)
+**Blue Bucket (BB):**
+- AutoPath_BB1 through AutoPath_BB7
+
+**Blue Specimen (BS):**
+- AutoPath_BS1 through AutoPath_BS9
+
+**Red Bucket (RB):**
+- AutoPath_RB1 through AutoPath_RB7
+
+**Red Specimen (RS):**
+- AutoPath_RS1 through AutoPath_RS9
+
+#### Specialized Autonomous
+- **AprilTagPatternAuto** - AprilTag-based path selection
+- **BallDetectionAuto** - Vision-based ball detection
+- **ShooterAuto** - Shooter testing autonomous
+- **MinervaAuto** - Main competition autonomous
+- **GeneratedPathAuto** - Dynamically generated paths
+
+### TeleOp OpModes
+- **MinervaTeleOp** - Main driver control
+- **TurretTeleOpTest** - Turret testing and tuning
 
 ## 🔧 Setup & Installation
 

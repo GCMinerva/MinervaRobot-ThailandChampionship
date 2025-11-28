@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.archived.auto.test.opmodes;
+package org.firstinspires.ftc.teamcode.auto;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
@@ -7,6 +7,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -14,6 +15,7 @@ import org.firstinspires.ftc.teamcode.archived.subsystems.AprilTagSubsystem;
 import org.firstinspires.ftc.teamcode.archived.subsystems.ActuatorSubsystem;
 import org.firstinspires.ftc.teamcode.util.GlobalData;
 
+@Disabled
 @Autonomous(name = "AUTORB3Fixed", group = "AprilTest")
 public class AutoRB3Fixed extends LinearOpMode {
 
