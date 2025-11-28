@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 @TeleOp(name="Tele2")
 public class Tele2 extends OpMode {
     boolean pressed = false;
+    private Pose currentTargetPose = null;
     boolean lbPressed = false;
     boolean shooterOn = false;
     boolean liftAct = false;
@@ -27,18 +28,20 @@ public class Tele2 extends OpMode {
     boolean rtPressed = false;
     boolean upPressed = false;
 
+    boolean isSlowMode = false;
+
     private Follower follower;
     private boolean sorterBusy = false;
     private double lifterPos = 1.0;
-    private double lifterPos1 = 0.0;
     private boolean dpadPressed = false;
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private ColorSensor colorSensor;
     private DcMotor outtake1, outtake2, intake, turret;
+
     private Servo binit, sorter, binit1, lifter, lifter1;
     private double outtakePower = 0;
-    private double outtakeSpeed = 0.5;
+    private double outtakeSpeed = 0.75;
     private long lastSpeedChangeTime = 0;
     private double intakePower = 0;
     private double testpo = 0;
@@ -48,12 +51,15 @@ public class Tele2 extends OpMode {
     private boolean gp2_aPressed = false;
     private boolean gp2_bPressed = false;
     private boolean gp1_yPressed = false;
+    private boolean gp1_xPressed = false;
     private boolean gp1_aPressed = false;
     private boolean gp1_bPressed = false;
     private boolean gp1_rbPressed = false;
     private boolean gp1_lbPressed = false;
+    private boolean goToParking = false;
 
     private int sorterShootMode = 0;
+    private double speed = 0.8;
     private int sorterInputMode = 0;
 
     private boolean autoNavigating = false;
@@ -62,8 +68,10 @@ public class Tele2 extends OpMode {
     private long autoNavStartTime = 0;
     private final long AUTO_NAV_TIMEOUT_MS = 5000;
 
-    private final Pose startPose = new Pose(58, 0, Math.toRadians(90));
+    private final Pose startPose = new Pose(57.22, 10, Math.toRadians(90));
     private final Pose targetPose = new Pose(71.7, 67.1, Math.toRadians(132.2));
+    private final Pose targetPoseX = new Pose(105, 33.5, Math.toRadians(0));
+
 
     private final double POSITION_TOLERANCE_PERCENT = 0.05;
     private final double positionTolerance = Math.hypot(targetPose.getX(), targetPose.getY()) * POSITION_TOLERANCE_PERCENT;
@@ -106,8 +114,8 @@ public class Tele2 extends OpMode {
         intake = hardwareMap.get(DcMotor.class, "intake");
         turret = hardwareMap.get(DcMotor.class, "turret");
 
-        outtake1.setDirection(DcMotor.Direction.FORWARD);
-        outtake2.setDirection(DcMotor.Direction.REVERSE);
+        outtake1.setDirection(DcMotor.Direction.REVERSE);
+        outtake2.setDirection(DcMotor.Direction.FORWARD);
         outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -180,26 +188,49 @@ public class Tele2 extends OpMode {
 
         if (gamepad1.a && !gp1_aPressed && currentPose != null) {
             gp1_aPressed = true;
+            currentTargetPose = targetPose;
             startAutoNavigation(currentPose);
         }
         if (!gamepad1.a) gp1_aPressed = false;
 
-        if (gamepad1.b && !gp1_bPressed) {
-            gp1_bPressed = true;
+        // === NEW: auto navigation (gamepad1.x) . parking zone ===
+        if (gamepad1.x && !gp1_xPressed && currentPose != null) {
+            gp1_xPressed = true;
+            currentTargetPose = targetPoseX;
+            goToParking = true; //indicating lifter servo
+            startAutoNavigationToPose(currentPose, targetPoseX);
+        }
+        if (!gamepad1.x) gp1_xPressed = false;
+
+        if (gamepad1.right_bumper && !gp1_rbPressed) {
+            gp1_rbPressed = true;
             if (autoNavigating) {
                 cancelAutoNavigation();
             }
         }
+        if (!gamepad1.right_bumper) gp1_rbPressed = false;
+
+        // robot speed
+        if (gamepad1.b && !gp1_bPressed) {
+            gp1_bPressed = true;
+            isSlowMode = !isSlowMode;
+        }
         if (!gamepad1.b) gp1_bPressed = false;
+        speed = isSlowMode ? 0.4 : 0.8;
 
-        if (autoNavigating && !follower.isBusy() && !manualOverride) {
+        if (autoNavigating && !follower.isBusy() && !manualOverride && currentTargetPose != null) {
+
             double distanceToTarget = Math.hypot(
-                    currentPose.getX() - targetPose.getX(),
-                    currentPose.getY() - targetPose.getY()
+                    currentPose.getX() - currentTargetPose.getX(),
+                    currentPose.getY() - currentTargetPose.getY()
             );
-            double headingError = Math.abs(Math.toDegrees(currentPose.getHeading() - targetPose.getHeading()));
 
-            if (distanceToTarget <= positionTolerance && headingError <= HEADING_TOLERANCE_DEGREES) {
+            double headingError = Math.abs(
+                    Math.toDegrees(currentPose.getHeading() - currentTargetPose.getHeading())
+            );
+
+            if (distanceToTarget <= positionTolerance &&
+                    headingError <= HEADING_TOLERANCE_DEGREES) {
                 cancelAutoNavigation();
             }
         }
@@ -336,6 +367,8 @@ public class Tele2 extends OpMode {
 
         //intake
         intakePower = -gamepad2.left_stick_y;
+        if (intakePower < 0) intakePower = -1;
+        else if (intakePower > 0) intakePower = 1;
         intake.setPower(intakePower);
 
         telemetry.addData("=== DRIVETRAIN ===", "");
@@ -419,6 +452,20 @@ public class Tele2 extends OpMode {
         autoNavStartTime = System.currentTimeMillis();
     }
 
+    private void startAutoNavigationToPose(Pose currentPose, Pose target) {
+        autoPath = follower.pathBuilder()
+                .addPath(new BezierLine(
+                        new Pose(currentPose.getX(), currentPose.getY(), currentPose.getHeading()),
+                        target
+                ))
+                .setLinearHeadingInterpolation(currentPose.getHeading(), target.getHeading())
+                .build();
+
+        follower.followPath(autoPath, false);
+        autoNavigating = true;
+        autoNavStartTime = System.currentTimeMillis();
+    }
+
     private void cancelAutoNavigation() {
         follower.breakFollowing();
         autoNavigating = false;
@@ -427,6 +474,13 @@ public class Tele2 extends OpMode {
         frontRight.setPower(0);
         backLeft.setPower(0);
         backRight.setPower(0);
+
+        // lift the robot while at the parking zone
+        if (goToParking) {
+            lifter.setPosition(0);
+            lifter1.setPosition(1);
+            goToParking = false;
+        }
     }
 
     private void setManualDrive(double forward, double strafe, double turn) {
@@ -445,10 +499,10 @@ public class Tele2 extends OpMode {
             backRightPower /= maxPower;
         }
 
-        frontLeft.setPower(frontLeftPower);
-        frontRight.setPower(frontRightPower);
-        backLeft.setPower(backLeftPower);
-        backRight.setPower(backRightPower);
+        frontLeft.setPower(frontLeftPower * speed);
+        frontRight.setPower(frontRightPower * speed);
+        backLeft.setPower(backLeftPower * speed);
+        backRight.setPower(backRightPower * speed);
     }
 
     @Override
