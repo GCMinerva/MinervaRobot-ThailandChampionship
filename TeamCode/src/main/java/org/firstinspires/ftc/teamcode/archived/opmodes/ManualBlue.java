@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.archived.opmodes;
 
 import com.pedropathing.follower.Follower;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.Range;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -12,10 +11,15 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.qualcomm.robotcore.hardware.ColorSensor;
+import org.firstinspires.ftc.teamcode.archived.subsystems.TurretSubsystem;
+import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 
-@TeleOp(name="Manual")
-public class Manual extends OpMode {
+@TeleOp(name = "Manual[BLUE]")
+public class ManualBlue extends OpMode {
     boolean pressed = false;
+    private long pulseEndTime = 0;
+    private boolean pulsing = false;
+
     private Pose currentTargetPose = null;
     boolean lbPressed = false;
     boolean shooterOn = false;
@@ -59,6 +63,13 @@ public class Manual extends OpMode {
     private boolean gp1_lbPressed = false;
     private boolean goToParking = false;
 
+    // Turret tracking
+    private TurretSubsystem turretSubsystem;
+    private boolean turretTrackingEnabled = true; // Default: tracking enabled
+    private boolean gp2_dpadLeftPressed = false;
+    private Pose goalPose = new Pose(144, 144, 0); // Default: Red goal
+    private String teamColor = "BLUE"; // "RED" or "BLUE"
+
     private int sorterShootMode = 0;
     private double speed = 0.8;
     private int sorterInputMode = 0;
@@ -69,26 +80,27 @@ public class Manual extends OpMode {
     private long autoNavStartTime = 0;
     private final long AUTO_NAV_TIMEOUT_MS = 5000;
 
-    private final Pose startPose = new Pose(57.22, 10, Math.toRadians(90));
+    private final Pose defaultStartPose = new Pose(110.5, 129.5, Math.toRadians(90));
     private final Pose targetPose = new Pose(71.7, 67.1, Math.toRadians(132.2));
-    private final Pose targetPoseX = new Pose(105, 33.5, Math.toRadians(0));
-
+    private final Pose targetPoseX = new Pose(102, 35.5, Math.toRadians(0));
 
     private final double POSITION_TOLERANCE_PERCENT = 0.05;
-    private final double positionTolerance = Math.hypot(targetPose.getX(), targetPose.getY()) * POSITION_TOLERANCE_PERCENT;
+    private final double positionTolerance = Math.hypot(targetPose.getX(), targetPose.getY())
+            * POSITION_TOLERANCE_PERCENT;
     private final double HEADING_TOLERANCE_DEGREES = 5.0;
 
     // ===== Sorter system (3 ช่องเก็บบอล) =====
     // 0 = ว่าง, 1 = บอลม่วง, 2 = บอลเขียว
-    int[] slots = {0, 0, 0};
+    int[] slots = { 0, 0, 0 };
     int currentSlot = 0;
-    double[] loadPositions = {0.15, 0.533, 0.918};
-    double[] shootPositions = {0.751, 0, 0.354};
+    double[] loadPositions = { 0.15, 0.533, 0.918 };
+    double[] shootPositions = { 0.751, 0, 0.354 };
 
     int loadIndex = 0;
     int shootIndex = 0;
 
-    // loading state (non-blocking): เมื่อกดเก็บ ให้รอเวลาให้ servo หมุนเสร็จก่อนอ่านสี
+    // loading state (non-blocking): เมื่อกดเก็บ ให้รอเวลาให้ servo
+    // หมุนเสร็จก่อนอ่านสี
     private boolean loading = false;
     private long loadStartTime = 0;
     private int loadingSlot = -1;
@@ -96,6 +108,17 @@ public class Manual extends OpMode {
 
     @Override
     public void init() {
+        // Initialize turret subsystem
+        turretSubsystem = new TurretSubsystem(hardwareMap);
+
+        // Set starting pose from autonomous or use default
+        Pose startPose;
+        if (GlobalData.hasAutonomousRun && GlobalData.autonomousEndPose != null) {
+            startPose = GlobalData.autonomousEndPose;
+        } else {
+            startPose = defaultStartPose;
+        }
+
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
 
@@ -135,7 +158,14 @@ public class Manual extends OpMode {
         binit1.setPosition(0.8);
         sorter.setPosition(0.15);
 
+        // Configure team color and goal (call setTeamColor("RED") or
+        // setTeamColor("BLUE"))
+        setTeamColor(teamColor);
+
         telemetry.addData("Status", "Initialized");
+        telemetry.addData("Team", teamColor);
+        telemetry.addData("Goal", "(%.0f, %.0f)", goalPose.getX(), goalPose.getY());
+        telemetry.addData("Start Pose", GlobalData.hasAutonomousRun ? "From Auto" : "Default");
         telemetry.update();
     }
 
@@ -166,7 +196,8 @@ public class Manual extends OpMode {
         double strafeSpeed = gamepad1.left_stick_x;
         double turnSpeed = gamepad1.right_stick_x;
 
-        boolean joystickActive = Math.abs(forwardSpeed) > 0.1 || Math.abs(strafeSpeed) > 0.1 || Math.abs(turnSpeed) > 0.1;
+        boolean joystickActive = Math.abs(forwardSpeed) > 0.1 || Math.abs(strafeSpeed) > 0.1
+                || Math.abs(turnSpeed) > 0.1;
 
         if (autoNavigating && (System.currentTimeMillis() - autoNavStartTime) > AUTO_NAV_TIMEOUT_MS) {
             cancelAutoNavigation();
@@ -192,16 +223,18 @@ public class Manual extends OpMode {
             currentTargetPose = targetPose;
             startAutoNavigation(currentPose);
         }
-        if (!gamepad1.a) gp1_aPressed = false;
+        if (!gamepad1.a)
+            gp1_aPressed = false;
 
         // === NEW: auto navigation (gamepad1.x) . parking zone ===
         if (gamepad1.x && !gp1_xPressed && currentPose != null) {
             gp1_xPressed = true;
             currentTargetPose = targetPoseX;
-            goToParking = true; //indicating lifter servo
+            goToParking = true; // indicating lifter servo
             startAutoNavigationToPose(currentPose, targetPoseX);
         }
-        if (!gamepad1.x) gp1_xPressed = false;
+        if (!gamepad1.x)
+            gp1_xPressed = false;
 
         if (gamepad1.right_bumper && !gp1_rbPressed) {
             gp1_rbPressed = true;
@@ -209,26 +242,37 @@ public class Manual extends OpMode {
                 cancelAutoNavigation();
             }
         }
-        if (!gamepad1.right_bumper) gp1_rbPressed = false;
+        if (!gamepad1.right_bumper)
+            gp1_rbPressed = false;
 
         // robot speed
         if (gamepad1.b && !gp1_bPressed) {
             gp1_bPressed = true;
             isSlowMode = !isSlowMode;
         }
-        if (!gamepad1.b) gp1_bPressed = false;
+        if (!gamepad1.b)
+            gp1_bPressed = false;
         speed = isSlowMode ? 0.4 : 0.8;
+
+        // == SHORT BURST CONTROL ==
+        if (gamepad1.dpad_up) {
+            movePulse(0.4, 0, 0); // เดินหน้า
+        } else if (gamepad1.dpad_down) {
+            movePulse(-0.4, 0, 0); // ถอยหลัง
+        } else if (gamepad1.dpad_left) {
+            movePulse(0, -0.4, 0); // เลี้ยว/ไปซ้าย
+        } else if (gamepad1.dpad_right) {
+            movePulse(0, 0.4, 0); // เลี้ยว/ไปขวา
+        }
 
         if (autoNavigating && !follower.isBusy() && !manualOverride && currentTargetPose != null) {
 
             double distanceToTarget = Math.hypot(
                     currentPose.getX() - currentTargetPose.getX(),
-                    currentPose.getY() - currentTargetPose.getY()
-            );
+                    currentPose.getY() - currentTargetPose.getY());
 
             double headingError = Math.abs(
-                    Math.toDegrees(currentPose.getHeading() - currentTargetPose.getHeading())
-            );
+                    Math.toDegrees(currentPose.getHeading() - currentTargetPose.getHeading()));
 
             if (distanceToTarget <= positionTolerance &&
                     headingError <= HEADING_TOLERANCE_DEGREES) {
@@ -241,24 +285,27 @@ public class Manual extends OpMode {
             shooterOn = !shooterOn;
 
             if (shooterOn) {
-                outtakePower = outtakeSpeed;   // เปิด shooter
+                outtakePower = outtakeSpeed; // เปิด shooter
             } else {
-                outtakePower = 0;              // ปิด shooter
+                outtakePower = 0; // ปิด shooter
             }
         }
-        if (!gamepad2.left_bumper) lbPressed = false;
+        if (!gamepad2.left_bumper)
+            lbPressed = false;
 
         if (gamepad2.right_bumper && !rbPressed) {
             rbPressed = true;
             outtakeSpeed = Math.min(1.0, outtakeSpeed + 0.05);
         }
-        if (!gamepad2.right_bumper) rbPressed = false;
+        if (!gamepad2.right_bumper)
+            rbPressed = false;
 
         if (gamepad2.right_trigger > 0.1 && !rtPressed) {
             rtPressed = true;
             outtakeSpeed = Math.max(0.0, outtakeSpeed - 0.05);
         }
-        if(gamepad2.right_trigger < 0.1) rtPressed = false;
+        if (gamepad2.right_trigger < 0.1)
+            rtPressed = false;
 
         if (gamepad2.dpad_up && !upPressed) {
             upPressed = true;
@@ -270,26 +317,48 @@ public class Manual extends OpMode {
                 lifterPos = 1;
             }
         }
-        if (!gamepad2.dpad_up) upPressed = false;
+        if (!gamepad2.dpad_up)
+            upPressed = false;
+
+        // === TURRET TRACKING TOGGLE (gamepad2.dpad_left) ===
+        if (gamepad2.dpad_left && !gp2_dpadLeftPressed) {
+            gp2_dpadLeftPressed = true;
+            turretTrackingEnabled = !turretTrackingEnabled;
+
+            if (!turretTrackingEnabled) {
+                // Turn turret to 0 degrees when tracking disabled
+                turretSubsystem.turnToAngle(0);
+            } else {
+                // Set goal when re-enabling tracking
+                turretSubsystem.setGoalPosition(goalPose.getX(), goalPose.getY());
+            }
+        }
+        if (!gamepad2.dpad_left)
+            gp2_dpadLeftPressed = false;
+
+        // === UPDATE TURRET (continuous tracking when enabled) ===
+        if (turretTrackingEnabled && currentPose != null) {
+            turretSubsystem.update(currentPose);
+        }
 
         // จำกัดไม่ให้เกินช่วง 0–1
         lifterPos = Range.clip(lifterPos, 0, 1);
 
         // ส่งค่ากลับไปที่เซอร์โว
         lifter.setPosition(lifterPos);
-        lifter1.setPosition(1-lifterPos);
+        lifter1.setPosition(1 - lifterPos);
 
-//        long currentTime = System.currentTimeMillis();
-//        if (currentTime - lastSpeedChangeTime >= 250) {
-//            if (gamepad2.right_bumper) {
-//                outtakeSpeed = Math.min(1.0, outtakeSpeed + 0.05);
-//                lastSpeedChangeTime = currentTime;
-//            }
-//            if (gamepad2.right_trigger > 0.1) {
-//                outtakeSpeed = Math.max(0.0, outtakeSpeed - 0.05);
-//                lastSpeedChangeTime = currentTime;
-//            }
-//        }
+        // long currentTime = System.currentTimeMillis();
+        // if (currentTime - lastSpeedChangeTime >= 250) {
+        // if (gamepad2.right_bumper) {
+        // outtakeSpeed = Math.min(1.0, outtakeSpeed + 0.05);
+        // lastSpeedChangeTime = currentTime;
+        // }
+        // if (gamepad2.right_trigger > 0.1) {
+        // outtakeSpeed = Math.max(0.0, outtakeSpeed - 0.05);
+        // lastSpeedChangeTime = currentTime;
+        // }
+        // }
 
         if (outtakePower > 0) {
             outtakePower = outtakeSpeed;
@@ -303,7 +372,8 @@ public class Manual extends OpMode {
         turret.setPower(turretPower);
 
         // binit position
-        if (gamepad2.b && !gp2_bPressed && Math.abs(sorter.getPosition() - 0.15) > 0.05 && Math.abs(sorter.getPosition() - 0.533) > 0.05 && Math.abs(sorter.getPosition() - 0.918) > 0.05) {
+        if (gamepad2.b && !gp2_bPressed && Math.abs(sorter.getPosition() - 0.15) > 0.05
+                && Math.abs(sorter.getPosition() - 0.533) > 0.05 && Math.abs(sorter.getPosition() - 0.918) > 0.05) {
             gp2_bPressed = true;
             binit.setPosition(0.56);
             binit1.setPosition(0.34);
@@ -317,7 +387,8 @@ public class Manual extends OpMode {
                 }
             }).start();
         }
-        if (!gamepad2.b) gp2_bPressed = false;
+        if (!gamepad2.b)
+            gp2_bPressed = false;
 
         // ====== press y to load balls ======
         if (gamepad2.y && !yPressed) {
@@ -340,8 +411,8 @@ public class Manual extends OpMode {
                 }).start();
             }
         }
-        if (!gamepad2.y) yPressed = false;
-
+        if (!gamepad2.y)
+            yPressed = false;
 
         // ====== x for set up to shoot ======
         if (gamepad2.x && !xPressed) {
@@ -364,12 +435,24 @@ public class Manual extends OpMode {
                 }).start();
             }
         }
-        if (!gamepad2.x) xPressed = false;
+        if (!gamepad2.x)
+            xPressed = false;
 
-        //intake
+        // Stop pulse automatically
+        if (pulsing && System.currentTimeMillis() > pulseEndTime) {
+            pulsing = false;
+            frontLeft.setPower(0);
+            frontRight.setPower(0);
+            backLeft.setPower(0);
+            backRight.setPower(0);
+        }
+
+        // intake
         intakePower = -gamepad2.left_stick_y;
-        if (intakePower < 0) intakePower = -1;
-        else if (intakePower > 0) intakePower = 1;
+        if (intakePower < 0)
+            intakePower = -1;
+        else if (intakePower > 0)
+            intakePower = 1;
         intake.setPower(intakePower);
 
         telemetry.addData("=== DRIVETRAIN ===", "");
@@ -379,9 +462,8 @@ public class Manual extends OpMode {
 
             if (autoNavigating) {
                 double distanceToTarget = Math.hypot(
-                        currentPose.getX() - targetPose.getX(),
-                        currentPose.getY() - targetPose.getY()
-                );
+                        currentPose.getX() - currentTargetPose.getX(),
+                        currentPose.getY() - currentTargetPose.getY());
                 telemetry.addData("Distance", "%.2f\" (tol: %.2f\")", distanceToTarget, positionTolerance);
             }
         } else {
@@ -393,19 +475,27 @@ public class Manual extends OpMode {
         for (int i = 0; i < slots.length; i++) {
             String type;
             switch (slots[i]) {
-                case 1: type = "pp"; break; // ม่วง
-                case 2: type = "gr"; break; // เขียว
-                default: type = "nu"; break; // ว่าง
+                case 1:
+                    type = "pp";
+                    break; // ม่วง
+                case 2:
+                    type = "gr";
+                    break; // เขียว
+                default:
+                    type = "nu";
+                    break; // ว่าง
             }
             slotStatus.append(type);
-            if (i < slots.length - 1) slotStatus.append(" | ");
+            if (i < slots.length - 1)
+                slotStatus.append(" | ");
         }
         telemetry.addData("Slots", slotStatus.toString());
         telemetry.addData("Current Slot", currentSlot);
         telemetry.addData("Loading", loading ? "YES" : "NO");
 
         telemetry.addData("Color", "R:%d G:%d B:%d", r, g, b);
-        telemetry.addData("Detected (cur)", slots[currentSlot] == 1 ? "Purple" : slots[currentSlot] == 2 ? "Green" : "Unknown");
+        telemetry.addData("Detected (cur)",
+                slots[currentSlot] == 1 ? "Purple" : slots[currentSlot] == 2 ? "Green" : "Unknown");
         if (autoNavigating) {
             long elapsedTime = System.currentTimeMillis() - autoNavStartTime;
             long remainingTime = (AUTO_NAV_TIMEOUT_MS - elapsedTime) / 1000;
@@ -422,7 +512,11 @@ public class Manual extends OpMode {
         telemetry.addData("", "");
 
         telemetry.addData("=== TURRET ===", "");
-        telemetry.addData("Power", "%.2f", turretPower);
+        telemetry.addData("Tracking", turretTrackingEnabled ? "ENABLED" : "DISABLED");
+        telemetry.addData("Current Angle", "%.1f°", turretSubsystem.getCurrentAngle());
+        telemetry.addData("Target Angle", "%.1f°", turretSubsystem.getTargetAngle());
+        telemetry.addData("Goal", "%s (%.0f, %.0f)", teamColor, goalPose.getX(), goalPose.getY());
+        telemetry.addData("Manual Power", "%.2f", turretPower);
         telemetry.addData("", "");
 
         telemetry.addData("=== INTAKE ===", "");
@@ -443,8 +537,7 @@ public class Manual extends OpMode {
         autoPath = follower.pathBuilder()
                 .addPath(new BezierLine(
                         new Pose(currentPose.getX(), currentPose.getY(), currentPose.getHeading()),
-                        targetPose
-                ))
+                        targetPose))
                 .setLinearHeadingInterpolation(currentPose.getHeading(), targetPose.getHeading())
                 .build();
 
@@ -457,8 +550,7 @@ public class Manual extends OpMode {
         autoPath = follower.pathBuilder()
                 .addPath(new BezierLine(
                         new Pose(currentPose.getX(), currentPose.getY(), currentPose.getHeading()),
-                        target
-                ))
+                        target))
                 .setLinearHeadingInterpolation(currentPose.getHeading(), target.getHeading())
                 .build();
 
@@ -468,6 +560,10 @@ public class Manual extends OpMode {
     }
 
     private void cancelAutoNavigation() {
+        currentTargetPose = null;
+        autoNavigating = false;
+        manualOverride = false;
+
         follower.breakFollowing();
         autoNavigating = false;
         manualOverride = false;
@@ -478,8 +574,8 @@ public class Manual extends OpMode {
 
         // lift the robot while at the parking zone
         if (goToParking) {
-            lifter.setPosition(0);
-            lifter1.setPosition(1);
+            lifter.setPosition(1 - lifter.getPosition());
+            lifter1.setPosition(1 - lifter1.getPosition());
             goToParking = false;
         }
     }
@@ -520,22 +616,60 @@ public class Manual extends OpMode {
 
     private int findNextSlot(int target) {
         for (int i = 0; i < slots.length; i++) {
-            if (slots[i] == target) return i;
+            if (slots[i] == target)
+                return i;
         }
         return -1;
     }
 
     private int findNextSlotWithBall() {
         for (int i = 0; i < slots.length; i++) {
-            if (slots[i] != 0) return i;
+            if (slots[i] != 0)
+                return i;
         }
         return -1;
     }
 
     private int findNextSlotType(int type) {
         for (int i = 0; i < slots.length; i++) {
-            if (slots[i] == type) return i;
+            if (slots[i] == type)
+                return i;
         }
         return -1;
+    }
+
+    private void movePulse(double forward, double strafe, double turn) {
+        double fl = forward + strafe + turn;
+        double fr = forward - strafe - turn;
+        double bl = forward - strafe + turn;
+        double br = forward + strafe - turn;
+
+        frontLeft.setPower(fl);
+        frontRight.setPower(fr);
+        backLeft.setPower(bl);
+        backRight.setPower(br);
+
+        pulsing = true;
+        pulseEndTime = System.currentTimeMillis() + 60; // 120 ms
+    }
+
+    /**
+     * Configure team color and goal position
+     *
+     * @param color "RED" or "BLUE"
+     */
+    private void setTeamColor(String color) {
+        teamColor = color.toUpperCase();
+
+        if (teamColor.equals("RED")) {
+            goalPose = new Pose(144, 144, 0);
+        } else if (teamColor.equals("BLUE")) {
+            goalPose = new Pose(0, 144, 0);
+        }
+
+        // Update turret goal if tracking is enabled
+        if (turretTrackingEnabled) {
+            turretSubsystem.setGoalPosition(goalPose.getX(), goalPose.getY());
+        }
     }
 }

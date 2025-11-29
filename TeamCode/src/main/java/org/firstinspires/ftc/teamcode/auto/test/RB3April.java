@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.archived.subsystems.AprilTagSubsystem;
 import org.firstinspires.ftc.teamcode.archived.subsystems.ActuatorSubsystem;
-import org.firstinspires.ftc.teamcode.util.GlobalData;
+import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 
 @Autonomous(name = "RB3April", group = "AprilTest")
 public class RB3April extends LinearOpMode {

@@ -8,7 +8,6 @@ import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.seattlesolvers.solverslib.command.InstantCommand;
-import com.seattlesolvers.solverslib.command.RunCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
 
@@ -18,7 +17,7 @@ import org.firstinspires.ftc.teamcode.archived.subsystems.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.archived.auto.test.commands.FollowPath;
 import org.firstinspires.ftc.teamcode.archived.auto.test.commands.WaitUntilPathPercent;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.util.GlobalData;
+import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.teamcode.archived.auto.test.commands.OpModeCommand;
 
 @Autonomous(name = "RedFarZone9Art", group = "Auton")
@@ -323,6 +322,13 @@ public class RedFarZone9Art extends OpModeCommand {
 
         @Override
         public void end() {
+                // Save final pose for Manual OpMode
+                Pose finalPose = follower.getPose();
+                if (finalPose != null) {
+                        GlobalData.autonomousEndPose = finalPose;
+                        GlobalData.hasAutonomousRun = true;
+                }
+
                 if (tagSubsystem != null) {
                         tagSubsystem.stop();
                 }
