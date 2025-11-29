@@ -16,6 +16,9 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 @TeleOp(name="Tele2")
 public class Tele2 extends OpMode {
     boolean pressed = false;
+    private long pulseEndTime = 0;
+    private boolean pulsing = false;
+
     private Pose currentTargetPose = null;
     boolean lbPressed = false;
     boolean shooterOn = false;
@@ -71,7 +74,7 @@ public class Tele2 extends OpMode {
 
     private final Pose startPose = new Pose(57.22, 10, Math.toRadians(90));
     private final Pose targetPose = new Pose(71.7, 67.1, Math.toRadians(132.2));
-    private final Pose targetPoseX = new Pose(105, 33.5, Math.toRadians(0));
+    private final Pose targetPoseX = new Pose(102, 35.5, Math.toRadians(0));
 
 
     private final double POSITION_TOLERANCE_PERCENT = 0.05;
@@ -218,6 +221,21 @@ public class Tele2 extends OpMode {
         }
         if (!gamepad1.b) gp1_bPressed = false;
         speed = isSlowMode ? 0.4 : 0.8;
+
+        // == SHORT BURST CONTROL ==
+        if (gamepad1.dpad_up) {
+            movePulse(0.4, 0, 0);   // เดินหน้า
+        }
+        else if (gamepad1.dpad_down) {
+            movePulse(-0.4, 0, 0);  // ถอยหลัง
+        }
+        else if (gamepad1.dpad_left) {
+            movePulse(0, -0.4, 0);  // เลี้ยว/ไปซ้าย
+        }
+        else if (gamepad1.dpad_right) {
+            movePulse(0, 0.4, 0);   // เลี้ยว/ไปขวา
+        }
+
 
         if (autoNavigating && !follower.isBusy() && !manualOverride && currentTargetPose != null) {
 
@@ -366,6 +384,15 @@ public class Tele2 extends OpMode {
         }
         if (!gamepad2.x) xPressed = false;
 
+        // Stop pulse automatically
+        if (pulsing && System.currentTimeMillis() > pulseEndTime) {
+            pulsing = false;
+            frontLeft.setPower(0);
+            frontRight.setPower(0);
+            backLeft.setPower(0);
+            backRight.setPower(0);
+        }
+
         //intake
         intakePower = -gamepad2.left_stick_y;
         if (intakePower < 0) intakePower = -1;
@@ -379,8 +406,8 @@ public class Tele2 extends OpMode {
 
             if (autoNavigating) {
                 double distanceToTarget = Math.hypot(
-                        currentPose.getX() - targetPose.getX(),
-                        currentPose.getY() - targetPose.getY()
+                        currentPose.getX() - currentTargetPose.getX(),
+                        currentPose.getY() - currentTargetPose.getY()
                 );
                 telemetry.addData("Distance", "%.2f\" (tol: %.2f\")", distanceToTarget, positionTolerance);
             }
@@ -468,6 +495,10 @@ public class Tele2 extends OpMode {
     }
 
     private void cancelAutoNavigation() {
+        currentTargetPose = null;
+        autoNavigating = false;
+        manualOverride = false;
+
         follower.breakFollowing();
         autoNavigating = false;
         manualOverride = false;
@@ -478,8 +509,8 @@ public class Tele2 extends OpMode {
 
         // lift the robot while at the parking zone
         if (goToParking) {
-            lifter.setPosition(0);
-            lifter1.setPosition(1);
+            lifter.setPosition(1-lifter.getPosition());
+            lifter1.setPosition(1-lifter1.getPosition());
             goToParking = false;
         }
     }
@@ -537,5 +568,19 @@ public class Tele2 extends OpMode {
             if (slots[i] == type) return i;
         }
         return -1;
+    }
+    private void movePulse(double forward, double strafe, double turn) {
+        double fl = forward + strafe + turn;
+        double fr = forward - strafe - turn;
+        double bl = forward - strafe + turn;
+        double br = forward + strafe - turn;
+
+        frontLeft.setPower(fl);
+        frontRight.setPower(fr);
+        backLeft.setPower(bl);
+        backRight.setPower(br);
+
+        pulsing = true;
+        pulseEndTime = System.currentTimeMillis() + 60;  // 120 ms
     }
 }
