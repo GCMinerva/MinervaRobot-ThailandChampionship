@@ -20,8 +20,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.teamcode.archived.auto.test.commands.OpModeCommand;
 
-@Autonomous(name = "RedFarZone9Art", group = "Auton")
-public class RedFarZone9Art extends OpModeCommand {
+@Autonomous(name = "RedOpt", group = "Auton")
+public class RedOpt extends OpModeCommand {
 
         private Follower follower;
         private AprilTagSubsystem tagSubsystem;

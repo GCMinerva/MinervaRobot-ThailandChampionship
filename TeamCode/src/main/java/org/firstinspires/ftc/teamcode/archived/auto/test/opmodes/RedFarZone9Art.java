@@ -134,29 +134,25 @@ public class RedFarZone9Art extends OpModeCommand {
                                                                                                                                 () -> actuator.setSorterIN1())))),
 
                                                 // Path 3: Continue to sample
-                                                new FollowPath(follower, path3).setMaxPower(0.21)
+                                                new FollowPath(follower, path3).setMaxPower(0.21)  //21
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
                                                                                                 // At 35% sorter IN2
-                                                                                                new WaitCommand(1400)
+                                                                                                new WaitCommand(1400) //1400
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.setSorterIN2())),
+                                                                                                new WaitCommand(10)
+                                                                                                                .andThen(new InstantCommand(
+                                                                                                                                () -> actuator.runShooterClose())),
                                                                                                 // At 60% sorter IN3
-                                                                                                new WaitCommand(850)
+                                                                                                new WaitCommand(840) //840
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.setSorterIN3())))),
                                                 new WaitCommand(500),
 
                                                 // Path 4: Return to shooting position
-                                                new FollowPath(follower, path4).setMaxPower(0.9)
-                                                                .alongWith(
-                                                                                new SequentialCommandGroup(
-                                                                                                // At 12% start shooter
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.12)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.runShooterClose())))),
+                                                new FollowPath(follower, path4).setMaxPower(0.9),
+
                                                 new WaitCommand(400),
 
                                                 // Path 5: Shoot first sample
@@ -376,8 +372,8 @@ public class RedFarZone9Art extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
                                                 new Pose(120.971, 83.246),
-                                                new Pose(120.16830294530153, 84.01683029453015),
-                                                new Pose(113.3015427769986, 63.82047685834502),
+                                                new Pose(115.92706872370267, 86.03646563814867),
+                                                new Pose(108.85834502103786, 72.90883590462833),
                                                 new Pose(127.602, 72.00)))
                                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
                                 .build();
