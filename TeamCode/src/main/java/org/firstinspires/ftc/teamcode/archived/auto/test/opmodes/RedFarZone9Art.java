@@ -108,7 +108,7 @@ public class RedFarZone9Art extends OpModeCommand {
 
                                                 // Release hold point and prepare for path 2
                                                 new InstantCommand(() -> follower.breakFollowing()),
-                                                new WaitCommand(300), // Short wait to ensure follower is ready
+                                                new WaitCommand(700), // Short wait to ensure follower is ready
 
                                                 // Path 2: First sample pickup
                                                 new FollowPath(follower, path2).setMaxPower(1.0)
@@ -157,13 +157,15 @@ public class RedFarZone9Art extends OpModeCommand {
                                                                                                                 0.12)
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.runShooterClose())))),
-                                                new WaitCommand(200),
+                                                new WaitCommand(600),
 
                                                 // Path 5: Shoot first sample
                                                 new FollowPath(follower, path5).setMaxPower(1.0)
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
                                                                                                 // At 10% stop intake
+                                                                                                new InstantCommand(
+                                                                                                                () -> actuator.FarGOready()),
                                                                                                 new WaitUntilPathPercent(
                                                                                                                 follower,
                                                                                                                 0.90)
@@ -233,6 +235,8 @@ public class RedFarZone9Art extends OpModeCommand {
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
                                                                                                 // At 10% stop intake
+                                                                                        new InstantCommand(
+                                                                                                () -> actuator.MidGoready()),
                                                                                                 new WaitUntilPathPercent(
                                                                                                                 follower,
                                                                                                                 0.05)
@@ -401,7 +405,7 @@ public class RedFarZone9Art extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
                                                 new Pose(102.332, 59.320),
-                                                new Pose(134, 59.231)))
+                                                new Pose(128, 59.320)))
                                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                                 .build();
         }
@@ -409,7 +413,7 @@ public class RedFarZone9Art extends OpModeCommand {
         private PathChain buildPath8() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(134, 59.231),
+                                                new Pose(128, 59.320),
                                                 new Pose(93.5, 86)))
                                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
                                 .build();
