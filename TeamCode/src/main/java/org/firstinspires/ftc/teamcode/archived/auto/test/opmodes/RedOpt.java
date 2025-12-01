@@ -138,7 +138,7 @@ public class RedOpt extends OpModeCommand {
                                                                                                                                 () -> actuator.setSorterIN1())))),
 
                                                 // Path 3: Continue to sample with automatic ball detection
-                                                new FollowPath(follower, path3).setMaxPower(0.27) // 21
+                                                new FollowPath(follower, path3).setMaxPower(0.265) // 21
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
                                                                                                 // Start automatic ball
@@ -221,7 +221,7 @@ public class RedOpt extends OpModeCommand {
                                                                                                                                 () -> actuator.setSorterIN1())))),
 
                                                 // Path 7: Continue to second sample
-                                                new FollowPath(follower, path7).setMaxPower(0.19)
+                                                new FollowPath(follower, path7).setMaxPower(0.34)
                                                                 .alongWith(
                                                                         new SequentialCommandGroup(
                                                                                 // Start automatic ball
@@ -265,27 +265,33 @@ public class RedOpt extends OpModeCommand {
                                                 new InstantCommand(() -> follower.breakFollowing()),
                                                 new WaitCommand(400),
 
-                                                new FollowPath(follower, path9).setMaxPower(1.0)
-                                                                .andThen(new InstantCommand(() -> follower
-                                                                                .holdPoint(follower.getPose())))
+                                                new FollowPath(follower, path9).setMaxPower(1.0),
+
+
+
+                                        new FollowPath(follower, path10).setMaxPower(0.34)
+                                                .alongWith(
+                                                        new SequentialCommandGroup(
+                                                                // Start automatic ball
+                                                                // detection
+                                                                new InstantCommand(
+                                                                        () -> actuator.initBallDetection()),
+                                                                // Start shooter after
+                                                                // brief delay
+                                                                new WaitCommand(10)
+                                                                        .andThen(new InstantCommand(
+                                                                                () -> actuator.runShooterClose())),
+                                                                // Run automatic ball
+                                                                // detection until 3
+                                                                // balls collected
+                                                                new AutoBallDetection(
+                                                                        actuator)))
+
+                                                .andThen(new InstantCommand(() -> follower
+                                                        .holdPoint(follower.getPose())))
 
                                 /*
-                                 * // Path 9: Third sample pickup
-                                 * new FollowPath(follower, path9).setMaxPower(1.0)
-                                 * .alongWith(
-                                 * new SequentialCommandGroup(
-                                 * // At 1% stop shooter
-                                 * new WaitUntilPathPercent(follower, 0.01)
-                                 * .andThen(new InstantCommand(() -> actuator.stopShooter())),
-                                 * // At 60% run intake
-                                 * new WaitUntilPathPercent(follower, 0.60)
-                                 * .andThen(new InstantCommand(() -> actuator.runIntake())),
-                                 * // At 90% sorter IN1
-                                 * new WaitUntilPathPercent(follower, 0.90)
-                                 * .andThen(new InstantCommand(() -> actuator.setSorterIN1()))
-                                 * )
-                                 * )
-                                 * /*
+
                                  * // Path 10: Continue to third sample
                                  * new FollowPath(follower, path10).setMaxPower(0.25)
                                  * .alongWith(
@@ -358,7 +364,7 @@ public class RedOpt extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
                                                 new Pose(110.5, 129.5),
-                                                new Pose(93.35, 86)))
+                                                new Pose(93.35, 88)))
                                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(48))
                                 .build();
         }
@@ -366,7 +372,7 @@ public class RedOpt extends OpModeCommand {
         private PathChain buildPath2() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
-                                                new Pose(93.35, 86),
+                                                new Pose(93.35, 88),
                                                 new Pose(92.923, 84.321),
                                                 new Pose(102.512, 83.335)))
                                 .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
@@ -386,9 +392,9 @@ public class RedOpt extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
                                                 new Pose(120.971, 83.246),
-                                                new Pose(108.65638148667603, 85.83450210378682),
-                                                new Pose(108.85834502103786, 69.273492286115),
-                                                new Pose(127.602, 72.00)))
+                                                new Pose(110.65638148667603, 85.83450210378682),
+                                                new Pose(107.85834502103786, 71.273492286115),
+                                                new Pose(127.602, 71.00)))
                                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
                                 .build();
         }
@@ -396,7 +402,7 @@ public class RedOpt extends OpModeCommand {
         private PathChain buildPath5() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(127.602, 72.00),
+                                                new Pose(127.602, 70.00),
                                                 new Pose(93.35, 86)))
                                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(42))
                                 .build();

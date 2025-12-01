@@ -346,106 +346,106 @@ public class RedFarZone9Art extends OpModeCommand {
 
         // Path builders
         private PathChain buildPath1() {
-                return new PathBuilder(follower, Constants.pathConstraints)
-                                .addPath(new BezierLine(
-                                                new Pose(110.5, 129.5),
-                                                new Pose(93.35, 86)))
-                                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(48))
-                                .build();
+            return new PathBuilder(follower, Constants.pathConstraints)
+                    .addPath(new BezierLine(
+                            new Pose(110.5, 129.5),
+                            new Pose(93.35, 88)))
+                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(48))
+                    .build();
         }
 
-        private PathChain buildPath2() {
-                return new PathBuilder(follower, Constants.pathConstraints)
-                                .addPath(new BezierCurve(
-                                                new Pose(93.35, 86),
-                                                new Pose(92.923, 84.321),
-                                                new Pose(102.512, 83.335)))
-                                .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
-                                .build();
-        }
+    private PathChain buildPath2() {
+        return new PathBuilder(follower, Constants.pathConstraints)
+                .addPath(new BezierCurve(
+                        new Pose(93.35, 88),
+                        new Pose(92.923, 84.321),
+                        new Pose(102.512, 83.335)))
+                .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
+                .build();
+    }
 
-        private PathChain buildPath3() {
-                return new PathBuilder(follower, Constants.pathConstraints)
-                                .addPath(new BezierLine(
-                                                new Pose(102.512, 83.335),
-                                                new Pose(120.971, 83.246)))
-                                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
-                                .build();
-        }
+    private PathChain buildPath3() {
+        return new PathBuilder(follower, Constants.pathConstraints)
+                .addPath(new BezierLine(
+                        new Pose(102.512, 83.335),
+                        new Pose(120.971, 83.246)))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                .build();
+    }
 
-        private PathChain buildPath4() {
-                return new PathBuilder(follower, Constants.pathConstraints)
-                                .addPath(new BezierCurve(
-                                                new Pose(120.971, 83.246),
-                                                new Pose(108.65638148667603, 85.83450210378682),
-                                                new Pose(108.85834502103786, 72.90883590462833),
-                                                new Pose(127.602, 72.00)))
-                                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
-                                .build();
-        }
+    private PathChain buildPath4() {
+        return new PathBuilder(follower, Constants.pathConstraints)
+                .addPath(new BezierCurve(
+                        new Pose(120.971, 83.246),
+                        new Pose(110.65638148667603, 85.83450210378682),
+                        new Pose(107.85834502103786, 71.273492286115),
+                        new Pose(127.602, 71.00)))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
+                .build();
+    }
 
-        private PathChain buildPath5() {
-                return new PathBuilder(follower, Constants.pathConstraints)
-                                .addPath(new BezierLine(
-                                                new Pose(127.602, 72.00),
-                                                new Pose(93.35, 86)))
-                                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(42))
-                                .build();
-        }
+    private PathChain buildPath5() {
+        return new PathBuilder(follower, Constants.pathConstraints)
+                .addPath(new BezierLine(
+                        new Pose(127.602, 70.00),
+                        new Pose(93.35, 86)))
+                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(42))
+                .build();
+    }
 
-        private PathChain buildPath6() {
-                return new PathBuilder(follower, Constants.pathConstraints)
-                                .addPath(new BezierCurve(
-                                                new Pose(93.35, 86),
-                                                new Pose(88.174, 59.948),
-                                                new Pose(102.332, 59.320)))
-                                .setLinearHeadingInterpolation(Math.toRadians(42), Math.toRadians(0))
-                                .build();
-        }
+    private PathChain buildPath6() {
+        return new PathBuilder(follower, Constants.pathConstraints)
+                .addPath(new BezierCurve(
+                        new Pose(93.35, 86),
+                        new Pose(88.174, 59.948),
+                        new Pose(102.332, 59.320)))
+                .setLinearHeadingInterpolation(Math.toRadians(42), Math.toRadians(0))
+                .build();
+    }
 
-        private PathChain buildPath7() {
-                return new PathBuilder(follower, Constants.pathConstraints)
-                                .addPath(new BezierLine(
-                                                new Pose(102.332, 59.320),
-                                                new Pose(123, 59.320)))
-                                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
-                                .build();
-        }
+    private PathChain buildPath7() {
+        return new PathBuilder(follower, Constants.pathConstraints)
+                .addPath(new BezierLine(
+                        new Pose(102.332, 59.320),
+                        new Pose(123, 59.320)))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                .build();
+    }
 
-        private PathChain buildPath8() {
-                return new PathBuilder(follower, Constants.pathConstraints)
-                                .addPath(new BezierLine(
-                                                new Pose(123, 59.320),
-                                                new Pose(93.5, 86)))
-                                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
-                                .build();
-        }
+    private PathChain buildPath8() {
+        return new PathBuilder(follower, Constants.pathConstraints)
+                .addPath(new BezierLine(
+                        new Pose(123, 59.320),
+                        new Pose(93.5, 86)))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
+                .build();
+    }
 
-        private PathChain buildPath9() {
-                return new PathBuilder(follower, Constants.pathConstraints)
-                                .addPath(new BezierCurve(
-                                                new Pose(93.5, 86),
-                                                new Pose(75.450, 44.714),
-                                                new Pose(101.795, 35.216)))
-                                .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
-                                .build();
-        }
+    private PathChain buildPath9() {
+        return new PathBuilder(follower, Constants.pathConstraints)
+                .addPath(new BezierCurve(
+                        new Pose(93.5, 86),
+                        new Pose(75.450, 44.714),
+                        new Pose(101.795, 35.216)))
+                .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
+                .build();
+    }
 
-        private PathChain buildPath10() {
-                return new PathBuilder(follower, Constants.pathConstraints)
-                                .addPath(new BezierLine(
-                                                new Pose(101.795, 35.216),
-                                                new Pose(120.254, 35.306)))
-                                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
-                                .build();
-        }
+    private PathChain buildPath10() {
+        return new PathBuilder(follower, Constants.pathConstraints)
+                .addPath(new BezierLine(
+                        new Pose(101.795, 35.216),
+                        new Pose(120.254, 35.306)))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                .build();
+    }
 
-        private PathChain buildPath11() {
-                return new PathBuilder(follower, Constants.pathConstraints)
-                                .addPath(new BezierLine(
-                                                new Pose(120.254, 35.306),
-                                                new Pose(93.35, 86)))
-                                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
-                                .build();
-        }
+    private PathChain buildPath11() {
+        return new PathBuilder(follower, Constants.pathConstraints)
+                .addPath(new BezierLine(
+                        new Pose(120.254, 35.306),
+                        new Pose(93.35, 86)))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
+                .build();
+    }
 }
