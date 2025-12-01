@@ -61,7 +61,7 @@ public class DistanceTest extends LinearOpMode {
             // Read distance sensor value
             double distance = distanceSensor.getDistance(DistanceUnit.CM);
 
-            if (justSorted && sortTimer.seconds() >= 0.01) {
+            if (justSorted && sortTimer.seconds() >= 0.1) {
                 justSorted = false;
             }
 
