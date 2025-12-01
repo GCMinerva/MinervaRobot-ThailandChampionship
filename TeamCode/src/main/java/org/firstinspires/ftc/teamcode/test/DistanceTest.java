@@ -32,6 +32,7 @@ public class DistanceTest extends LinearOpMode {
     private SorterPosition currentSorterPosition = SorterPosition.IN1;
     private final ElapsedTime sortTimer = new ElapsedTime();
     private boolean justSorted = false;
+    private int in1Passes = 0;
 
     @Override
     public void runOpMode() {
@@ -49,11 +50,12 @@ public class DistanceTest extends LinearOpMode {
 
         sorter.setPosition(IN1_POSITION); // Set to default position at start
         currentSorterPosition = SorterPosition.IN1;
-        
+        in1Passes = 1; // We start at IN1
+
         while (opModeIsActive()) {
             // Set intake power based on sorter position
-            if (currentSorterPosition == SorterPosition.IN3) {
-                intake.setPower(0.0); // Stop intake when sorter is at IN3
+            if (currentSorterPosition == SorterPosition.IN1 && in1Passes == 2) {
+                intake.setPower(0.0); // Stop intake when sorter is at IN1 on the second pass
             } else {
                 intake.setPower(-1.0); // Otherwise, run intake
             }
@@ -79,6 +81,7 @@ public class DistanceTest extends LinearOpMode {
                     case IN3:
                         sorter.setPosition(IN1_POSITION);
                         currentSorterPosition = SorterPosition.IN1;
+                        in1Passes++; // a pass is when we return to IN1
                         break;
                 }
                 sortTimer.reset();
