@@ -21,7 +21,7 @@ public class DistanceTest extends LinearOpMode {
     private static final double IN3_POSITION = 0.782;
 
     // Distance threshold to trigger sorter (in cm)
-    private static final double DISTANCE_THRESHOLD_CM = 4.0;
+    private static final double DISTANCE_THRESHOLD_CM = 3.5;
 
     private enum SorterPosition {
         IN1,
@@ -51,13 +51,17 @@ public class DistanceTest extends LinearOpMode {
         currentSorterPosition = SorterPosition.IN1;
         
         while (opModeIsActive()) {
-            // Set intake power
-            intake.setPower(-1.0);
+            // Set intake power based on sorter position
+            if (currentSorterPosition == SorterPosition.IN3) {
+                intake.setPower(0.0); // Stop intake when sorter is at IN3
+            } else {
+                intake.setPower(-1.0); // Otherwise, run intake
+            }
 
             // Read distance sensor value
             double distance = distanceSensor.getDistance(DistanceUnit.CM);
 
-            if (justSorted && sortTimer.seconds() >= 0.1) {
+            if (justSorted && sortTimer.seconds() >= 0.01) {
                 justSorted = false;
             }
 
