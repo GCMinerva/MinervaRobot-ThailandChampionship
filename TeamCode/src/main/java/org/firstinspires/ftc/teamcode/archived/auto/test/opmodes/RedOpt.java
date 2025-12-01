@@ -88,11 +88,9 @@ public class RedOpt extends OpModeCommand {
                                                                 .setMaxPower(1)
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
-                                                                                        new WaitUntilPathPercent(
-                                                                                                follower,
-                                                                                                0.001)
-                                                                                                .andThen(new InstantCommand(
-                                                                                                        () -> actuator.runShooterClose())),
+                                                                                                new WaitCommand(20)
+                                                                                                                .andThen(new InstantCommand(
+                                                                                                                                () -> actuator.runShooterClose())),
 
                                                                                                 new WaitCommand(60) // 1400
                                                                                                                 .andThen(new InstantCommand(
@@ -112,7 +110,7 @@ public class RedOpt extends OpModeCommand {
 
                                                 // Release hold point and prepare for path 2
                                                 new InstantCommand(() -> follower.breakFollowing()),
-                                                new WaitCommand(700), // Short wait to ensure follower is ready
+                                                new WaitCommand(500), // Short wait to ensure follower is ready
 
                                                 // Path 2: First sample pickup
                                                 new FollowPath(follower, path2).setMaxPower(1.0)
@@ -155,12 +153,12 @@ public class RedOpt extends OpModeCommand {
                                                                                                 // balls collected
                                                                                                 new AutoBallDetection(
                                                                                                                 actuator))),
-                                                new WaitCommand(200),
+                                                new WaitCommand(100),
 
                                                 // Path 4: Return to shooting position
                                                 new FollowPath(follower, path4).setMaxPower(0.9),
 
-                                                new WaitCommand(400),
+                                                new WaitCommand(300),
 
                                                 // Path 5: Shoot first sample
                                                 new FollowPath(follower, path5).setMaxPower(1.0)
@@ -259,11 +257,11 @@ public class RedOpt extends OpModeCommand {
                                                 // // Then shoot while stationary
                                                 ,
                                                 // // Then shoot while stationary
-                                                new WaitCommand(200)
+                                                new WaitCommand(100)
                                                                 .andThen(new InstantCommand(() -> actuator.MidGO())),
 
                                                 new InstantCommand(() -> follower.breakFollowing()),
-                                                new WaitCommand(400),
+                                                new WaitCommand(300),
 
                                                 new FollowPath(follower, path9).setMaxPower(1.0),
 
