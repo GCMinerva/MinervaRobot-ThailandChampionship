@@ -14,6 +14,7 @@ import com.seattlesolvers.solverslib.command.WaitCommand;
 import org.firstinspires.ftc.teamcode.archived.subsystems.ActuatorSubsystem;
 import org.firstinspires.ftc.teamcode.archived.subsystems.AprilTagSubsystem;
 import org.firstinspires.ftc.teamcode.archived.subsystems.TurretSubsystem;
+import org.firstinspires.ftc.teamcode.archived.auto.test.commands.AutoBallDetection;
 import org.firstinspires.ftc.teamcode.archived.auto.test.commands.FollowPath;
 import org.firstinspires.ftc.teamcode.archived.auto.test.commands.WaitUntilPathPercent;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -87,16 +88,19 @@ public class RedOpt extends OpModeCommand {
                                                                 .setMaxPower(1)
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
-                                                                                                new InstantCommand(
-                                                                                                                () -> turret.turnToAngle(
-                                                                                                                                90)),
+                                                                                        new WaitUntilPathPercent(
+                                                                                                follower,
+                                                                                                0.001)
+                                                                                                .andThen(new InstantCommand(
+                                                                                                        () -> actuator.runShooterClose())),
+
+                                                                                                new WaitCommand(60) // 1400
+                                                                                                                .andThen(new InstantCommand(
+                                                                                                                                () -> turret.turnToAngle(
+                                                                                                                                                90)))
                                                                                                 // At 1% of path, start
                                                                                                 // shooter to spin up
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.01)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.runShooterClose()))))
+                                                                                                ))
                                                                 // After path completes, hold current position
                                                                 .andThen(new InstantCommand(() -> follower
                                                                                 .holdPoint(follower.getPose())))
@@ -133,30 +137,29 @@ public class RedOpt extends OpModeCommand {
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.setSorterIN1())))),
 
-                                                // Path 3: Continue to sample
-                                                new FollowPath(follower, path3).setMaxPower(0.21)
+                                                // Path 3: Continue to sample with automatic ball detection
+                                                new FollowPath(follower, path3).setMaxPower(0.27) // 21
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
-                                                                                                // At 35% sorter IN2
-                                                                                                new WaitCommand(1400)
+                                                                                                // Start automatic ball
+                                                                                                // detection
+                                                                                                new InstantCommand(
+                                                                                                                () -> actuator.initBallDetection()),
+                                                                                                // Start shooter after
+                                                                                                // brief delay
+                                                                                                new WaitCommand(10)
                                                                                                                 .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.setSorterIN2())),
-                                                                                                // At 60% sorter IN3
-                                                                                                new WaitCommand(850)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.setSorterIN3())))),
-                                                new WaitCommand(500),
+                                                                                                                                () -> actuator.runShooterClose())),
+                                                                                                // Run automatic ball
+                                                                                                // detection until 3
+                                                                                                // balls collected
+                                                                                                new AutoBallDetection(
+                                                                                                                actuator))),
+                                                new WaitCommand(200),
 
                                                 // Path 4: Return to shooting position
-                                                new FollowPath(follower, path4).setMaxPower(0.9)
-                                                                .alongWith(
-                                                                                new SequentialCommandGroup(
-                                                                                                // At 12% start shooter
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.12)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.runShooterClose())))),
+                                                new FollowPath(follower, path4).setMaxPower(0.9),
+
                                                 new WaitCommand(400),
 
                                                 // Path 5: Shoot first sample
@@ -220,18 +223,21 @@ public class RedOpt extends OpModeCommand {
                                                 // Path 7: Continue to second sample
                                                 new FollowPath(follower, path7).setMaxPower(0.19)
                                                                 .alongWith(
-                                                                                new SequentialCommandGroup(
-                                                                                                // At 35% sorter IN2
-                                                                                                new WaitCommand(1300)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.setSorterIN2())),
-                                                                                                new WaitCommand(10)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.runShooterClose())),
-                                                                                                // At 60% sorter IN3
-                                                                                                new WaitCommand(840)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.setSorterIN3())))),
+                                                                        new SequentialCommandGroup(
+                                                                                // Start automatic ball
+                                                                                // detection
+                                                                                new InstantCommand(
+                                                                                        () -> actuator.initBallDetection()),
+                                                                                // Start shooter after
+                                                                                // brief delay
+                                                                                new WaitCommand(10)
+                                                                                        .andThen(new InstantCommand(
+                                                                                                () -> actuator.runShooterClose())),
+                                                                                // Run automatic ball
+                                                                                // detection until 3
+                                                                                // balls collected
+                                                                                new AutoBallDetection(
+                                                                                        actuator))),
 
                                                 // /*
                                                 // Path 8: Shoot second sample
@@ -254,10 +260,14 @@ public class RedOpt extends OpModeCommand {
                                                 ,
                                                 // // Then shoot while stationary
                                                 new WaitCommand(200)
-                                                                .andThen(new InstantCommand(() -> actuator.MidGO()))
+                                                                .andThen(new InstantCommand(() -> actuator.MidGO())),
 
-//                                                new InstantCommand(() -> follower.breakFollowing()),
-//                                                new WaitCommand(400)
+                                                new InstantCommand(() -> follower.breakFollowing()),
+                                                new WaitCommand(400),
+
+                                                new FollowPath(follower, path9).setMaxPower(1.0)
+                                                                .andThen(new InstantCommand(() -> follower
+                                                                                .holdPoint(follower.getPose())))
 
                                 /*
                                  * // Path 9: Third sample pickup
@@ -376,8 +386,8 @@ public class RedOpt extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
                                                 new Pose(120.971, 83.246),
-                                                new Pose(120.16830294530153, 84.01683029453015),
-                                                new Pose(113.3015427769986, 63.82047685834502),
+                                                new Pose(108.65638148667603, 85.83450210378682),
+                                                new Pose(108.85834502103786, 69.273492286115),
                                                 new Pose(127.602, 72.00)))
                                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
                                 .build();

@@ -87,9 +87,9 @@ public class RedFarZone9Art extends OpModeCommand {
                                                                 .setMaxPower(1)
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
-                                                                                                new InstantCommand(
-                                                                                                                () -> turret.turnToAngle(
-                                                                                                                                90)),
+                                                                                                new WaitCommand(100) //1400
+                                                                                                                .andThen(new InstantCommand(
+                                                                                                                    () -> turret.turnToAngle(90))),
                                                                                                 // At 1% of path, start
                                                                                                 // shooter to spin up
                                                                                                 new WaitUntilPathPercent(
@@ -250,10 +250,15 @@ public class RedFarZone9Art extends OpModeCommand {
                                                 ,
                                                 // // Then shoot while stationary
                                                 new WaitCommand(200)
-                                                                .andThen(new InstantCommand(() -> actuator.MidGO()))
+                                                                .andThen(new InstantCommand(() -> actuator.MidGO())),
 
-//                                                new InstantCommand(() -> follower.breakFollowing()),
-//                                                new WaitCommand(400)
+                                                new InstantCommand(() -> follower.breakFollowing()),
+                                                new WaitCommand(400),
+
+
+                    new FollowPath(follower, path9).setMaxPower(1.0)
+                            .andThen(new InstantCommand(() -> follower.holdPoint(follower.getPose())))
+
 
                                 /*
                                  * // Path 9: Third sample pickup
@@ -372,7 +377,7 @@ public class RedFarZone9Art extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
                                                 new Pose(120.971, 83.246),
-                                                new Pose(115.92706872370267, 86.03646563814867),
+                                                new Pose(108.65638148667603, 85.83450210378682),
                                                 new Pose(108.85834502103786, 72.90883590462833),
                                                 new Pose(127.602, 72.00)))
                                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))

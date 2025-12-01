@@ -12,8 +12,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
-@TeleOp(name="FullTeleFixedKAO")
-public class FullTeleFixedKAO extends OpMode {
+@TeleOp(name="MinervaTeleOp V2")
+public class MinervaTeleOp extends OpMode {
     boolean pressed = false;
     boolean lbPressed = false;
     boolean shooterOn = false;
