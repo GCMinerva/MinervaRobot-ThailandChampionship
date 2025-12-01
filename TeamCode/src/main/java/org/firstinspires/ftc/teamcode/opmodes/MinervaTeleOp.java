@@ -4,6 +4,8 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.config.RobotConfig;
 import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -40,6 +42,12 @@ public class MinervaTeleOp extends OpMode {
     private boolean lastX = false;
     private boolean lastDpadUp = false;
     private boolean lastDpadDown = false;
+    private boolean lastGamepad2RightBumper = false;
+
+    // Binit servo
+    private Servo binit;
+    private ElapsedTime binitTimer = new ElapsedTime();
+    private boolean binitSequence = false;
 
     @Override
     public void init() {
@@ -51,6 +59,10 @@ public class MinervaTeleOp extends OpMode {
 
         // Set starting pose (can be adjusted)
         follower.setStartingPose(new Pose(0, 0, 0));
+
+        // Initialize binit servo
+        binit = hardwareMap.get(Servo.class, "binit");
+        binit.setPosition(0.1);
 
         telemetry.addData("Status", "Initialized");
         telemetry.addData("Mode", "TeleOp Ready");
@@ -122,6 +134,19 @@ public class MinervaTeleOp extends OpMode {
             motorsRunning = false;
         }
         lastX = xButton;
+
+        // === Binit Servo Control ===
+        if (gamepad2.right_bumper && !lastGamepad2RightBumper) {
+            binit.setPosition(0.56);
+            binitTimer.reset();
+            binitSequence = true;
+        }
+        lastGamepad2RightBumper = gamepad2.right_bumper;
+
+        if (binitSequence && binitTimer.seconds() > 0.5) {
+            binit.setPosition(0.1);
+            binitSequence = false;
+        }
 
         // === TELEMETRY ===
         Pose currentPose = follower.getPose();
