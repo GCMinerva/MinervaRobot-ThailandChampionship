@@ -21,7 +21,7 @@ public class DistanceTest extends LinearOpMode {
     private static final double IN3_POSITION = 0.782;
 
     // Distance threshold to trigger sorter (in cm)
-    private static final double DISTANCE_THRESHOLD_CM = 3.5;
+    private static final double DISTANCE_THRESHOLD_CM = 4.0;
 
     private enum SorterPosition {
         IN1,
@@ -61,7 +61,7 @@ public class DistanceTest extends LinearOpMode {
             // Read distance sensor value
             double distance = distanceSensor.getDistance(DistanceUnit.CM);
 
-            if (justSorted && sortTimer.seconds() >= 0.1) {
+            if (justSorted && sortTimer.seconds() >= 0.25) {
                 justSorted = false;
             }
 
