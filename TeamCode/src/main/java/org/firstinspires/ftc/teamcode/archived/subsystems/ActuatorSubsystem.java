@@ -202,7 +202,7 @@ public class ActuatorSubsystem {
             sleep(1.1);      // Wait before next position
 
             setSorterP2();
-            sleep(0.45);      // Medium wait - P3 to P2 distance
+            sleep(0.62);      // Medium wait - P3 to P2 distance
             feedBall(1);   // Feed ball (non-blocking)
             sleep(1.1);      // Wait before next position
 
@@ -286,7 +286,7 @@ public class ActuatorSubsystem {
             sleep(1.1);      // Wait before next position
 
             setSorterP3();
-            sleep(0.25);      // Wait for sorter to move to P3
+            sleep(0.6);      // Wait for sorter to move to P3
             feedBall(0.5);   // Feed ball (non-blocking)
             sleep(1.1);
 
@@ -306,7 +306,7 @@ public class ActuatorSubsystem {
             sleep(1.1);
 
             setSorterP3();
-            sleep(0.23);      // Wait for sorter to move to P3
+            sleep(0.6);      // Wait for sorter to move to P3
             feedBall(0.5);   // Feed ball (non-blocking)
             sleep(1.1);
 

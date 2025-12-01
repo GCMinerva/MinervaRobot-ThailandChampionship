@@ -82,14 +82,14 @@ public class RedFarZone9Art extends OpModeCommand {
                                                 // Wait for start
                                                 new WaitCommand(10),
 
-                                                // Turn turret to +90 degrees (full right)
-                                                new InstantCommand(() -> turret.turnToAngle(90)),
-
                                                 // Path 1: Initial scoring - complete path THEN shoot while stationary
                                                 new FollowPath(follower, path1)
                                                                 .setMaxPower(1)
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
+                                                                                                new InstantCommand(
+                                                                                                                () -> turret.turnToAngle(
+                                                                                                                                90)),
                                                                                                 // At 1% of path, start
                                                                                                 // shooter to spin up
                                                                                                 new WaitUntilPathPercent(
@@ -157,7 +157,7 @@ public class RedFarZone9Art extends OpModeCommand {
                                                                                                                 0.12)
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.runShooterClose())))),
-                                                new WaitCommand(600),
+                                                new WaitCommand(400),
 
                                                 // Path 5: Shoot first sample
                                                 new FollowPath(follower, path5).setMaxPower(1.0)
@@ -179,7 +179,7 @@ public class RedFarZone9Art extends OpModeCommand {
                                                 // // Then shoot while stationary
                                                 new WaitCommand(100)
                                                                 .andThen(new InstantCommand(
-                                                                                () -> actuator.justShoot())),
+                                                                                () -> actuator.FarGO())),
                                                 // .andThen(new WaitCommand(4000)), // Wait 4 seconds for justShoot() to
                                                 // complete
 
@@ -225,26 +225,24 @@ public class RedFarZone9Art extends OpModeCommand {
                                                                                                 new WaitCommand(1300)
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.setSorterIN2())),
+                                                                                                new WaitCommand(10)
+                                                                                                                .andThen(new InstantCommand(
+                                                                                                                                () -> actuator.runShooterClose())),
                                                                                                 // At 60% sorter IN3
-                                                                                                new WaitCommand(850)
+                                                                                                new WaitCommand(840)
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.setSorterIN3())))),
+
                                                 // /*
                                                 // Path 8: Shoot second sample
                                                 new FollowPath(follower, path8).setMaxPower(1.0)
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
                                                                                                 // At 10% stop intake
-                                                                                        new InstantCommand(
-                                                                                                () -> actuator.MidGoready()),
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.05)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.runShooterClose())),
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.90)
+                                                                                                new InstantCommand(
+                                                                                                                () -> actuator.MidGoready()),
+
+                                                                                                new WaitCommand(500)
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.stopIntake()))
 
@@ -256,7 +254,10 @@ public class RedFarZone9Art extends OpModeCommand {
                                                 ,
                                                 // // Then shoot while stationary
                                                 new WaitCommand(200)
-                                                                .andThen(new InstantCommand(() -> actuator.justShoot()))
+                                                                .andThen(new InstantCommand(() -> actuator.MidGO()))
+
+//                                                new InstantCommand(() -> follower.breakFollowing()),
+//                                                new WaitCommand(400)
 
                                 /*
                                  * // Path 9: Third sample pickup
@@ -375,8 +376,8 @@ public class RedFarZone9Art extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
                                                 new Pose(120.971, 83.246),
-                                                new Pose(110.87798036465638, 99.9719495091164),
-                                                new Pose(81.330434782608, 63.82047685834502),
+                                                new Pose(120.16830294530153, 84.01683029453015),
+                                                new Pose(113.3015427769986, 63.82047685834502),
                                                 new Pose(127.602, 72.00)))
                                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
                                 .build();
@@ -405,7 +406,7 @@ public class RedFarZone9Art extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
                                                 new Pose(102.332, 59.320),
-                                                new Pose(128, 59.320)))
+                                                new Pose(123, 59.320)))
                                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                                 .build();
         }
@@ -413,7 +414,7 @@ public class RedFarZone9Art extends OpModeCommand {
         private PathChain buildPath8() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(128, 59.320),
+                                                new Pose(123, 59.320),
                                                 new Pose(93.5, 86)))
                                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
                                 .build();
