@@ -21,7 +21,7 @@ public class DistanceTest extends LinearOpMode {
     private static final double IN3_POSITION = 0.782;
 
     // Distance threshold to trigger sorter (in cm)
-    private static final double DISTANCE_THRESHOLD_CM = 19.0;
+    private static final double DISTANCE_THRESHOLD_CM = 4.0;
 
     private enum SorterPosition {
         IN1,
