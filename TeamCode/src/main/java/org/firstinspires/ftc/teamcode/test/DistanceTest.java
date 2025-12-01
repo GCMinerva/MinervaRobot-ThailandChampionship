@@ -21,17 +21,17 @@ public class DistanceTest extends LinearOpMode {
     private static final double IN3_POSITION = 0.782;
 
     // Distance threshold to trigger sorter (in cm)
-    private static final double DISTANCE_THRESHOLD_CM = 5.0;
+    private static final double DISTANCE_THRESHOLD_CM = 19.0;
 
-    private enum SorterState {
-        IDLE,
-        SORTING_STEP_1,
-        SORTING_STEP_2,
-        SORTING_STEP_3
+    private enum SorterPosition {
+        IN1,
+        IN2,
+        IN3
     }
 
-    private SorterState sorterState = SorterState.IDLE;
-    private ElapsedTime sortTimer = new ElapsedTime();
+    private SorterPosition currentSorterPosition = SorterPosition.IN1;
+    private final ElapsedTime sortTimer = new ElapsedTime();
+    private boolean justSorted = false;
 
     @Override
     public void runOpMode() {
@@ -48,6 +48,7 @@ public class DistanceTest extends LinearOpMode {
         waitForStart();
 
         sorter.setPosition(IN1_POSITION); // Set to default position at start
+        currentSorterPosition = SorterPosition.IN1;
         
         while (opModeIsActive()) {
             // Set intake power
@@ -56,44 +57,34 @@ public class DistanceTest extends LinearOpMode {
             // Read distance sensor value
             double distance = distanceSensor.getDistance(DistanceUnit.CM);
 
-            // Sorter State Machine
-            switch (sorterState) {
-                case IDLE:
-                    // If we detect an object close enough, start the sorting sequence.
-                    if (distance < DISTANCE_THRESHOLD_CM) {
-                        sortTimer.reset();
-                        sorterState = SorterState.SORTING_STEP_1;
-                    }
-                    break;
+            if (justSorted && sortTimer.seconds() >= 1) {
+                justSorted = false;
+            }
 
-                case SORTING_STEP_1:
-                    sorter.setPosition(IN2_POSITION);
-                    if (sortTimer.milliseconds() > 250) {
-                        sortTimer.reset();
-                        sorterState = SorterState.SORTING_STEP_2;
-                    }
-                    break;
-
-                case SORTING_STEP_2:
-                    sorter.setPosition(IN3_POSITION);
-                    if (sortTimer.milliseconds() > 250) {
-                        sortTimer.reset();
-                        sorterState = SorterState.SORTING_STEP_3;
-                    }
-                    break;
-
-                case SORTING_STEP_3:
-                    sorter.setPosition(IN1_POSITION); // Return to default
-                    if (sortTimer.milliseconds() > 250) {
-                        sorterState = SorterState.IDLE; // End of sequence
-                    }
-                    break;
+            // Sorter Logic
+            if (!justSorted && distance < DISTANCE_THRESHOLD_CM) {
+                switch (currentSorterPosition) {
+                    case IN1:
+                        sorter.setPosition(IN2_POSITION);
+                        currentSorterPosition = SorterPosition.IN2;
+                        break;
+                    case IN2:
+                        sorter.setPosition(IN3_POSITION);
+                        currentSorterPosition = SorterPosition.IN3;
+                        break;
+                    case IN3:
+                        sorter.setPosition(IN1_POSITION);
+                        currentSorterPosition = SorterPosition.IN1;
+                        break;
+                }
+                sortTimer.reset();
+                justSorted = true;
             }
 
             // Telemetry for debugging
             telemetry.addData("Distance (cm)", distance);
-            telemetry.addData("Sorter State", sorterState.toString());
-            telemetry.addData("Sorter Position", sorter.getPosition());
+            telemetry.addData("Sorter Position", currentSorterPosition.toString());
+            telemetry.addData("Sorter Servo Position", sorter.getPosition());
             telemetry.addData("Intake Power", intake.getPower());
             telemetry.update();
 
