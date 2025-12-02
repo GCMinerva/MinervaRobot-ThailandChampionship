@@ -89,6 +89,11 @@ public class MinervaTeleOp extends OpMode {
     }
 
     @Override
+    public void start() {
+        actuator.closeBin();
+    }
+
+    @Override
     public void loop() {
         follower.update();
         Pose currentPose = follower.getPose();
