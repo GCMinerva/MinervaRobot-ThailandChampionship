@@ -1,156 +1,487 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.pedropathing.follower.Follower;
+import com.qualcomm.robotcore.util.Range;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import org.firstinspires.ftc.teamcode.config.RobotConfig;
-import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 
-/**
- * Minerva TeleOp - Mecanum Drive with Shooter Control
- *
- * Controls:
- * - Left Stick: Strafe (x/y movement)
- * - Right Stick X: Rotation
- * - A Button: Start/Set Shooter Motors
- * - B Button: Toggle Servo & Outtake (Shoot)
- * - X Button: Stop All Motors
- * - D-Pad Up/Down: Adjust Shooter Power
- *
- * @author MinervaRobot Team
- * @version 1.0
- */
-@TeleOp(name = "Minerva TeleOp", group = "TeleOp")
+@TeleOp(name="MinervaTeleOp V2")
 public class MinervaTeleOp extends OpMode {
+    boolean pressed = false;
+    boolean lbPressed = false;
+    boolean shooterOn = false;
+    boolean aPressed = false;
+    boolean bPressed = false;
+    boolean xPressed = false;
+    boolean x1Pressed = false;
+    boolean yPressed = false;
+    boolean rbPressed = false;
+    boolean rtPressed = false;
 
-    private RobotConfig robot;
     private Follower follower;
+    private boolean sorterBusy = false;
 
-    // Shooter control variables - using config constants
-    private double shooterPower = (RobotHardwareConfig.ShooterParams.MIN_POWER + RobotHardwareConfig.ShooterParams.MAX_POWER) / 2;  // Start at mid-range
-    private static final double POWER_INCREMENT = RobotHardwareConfig.ShooterParams.POWER_INCREMENT;
-    private boolean servoExtended = false;
-    private boolean motorsRunning = false;
+    private DcMotor frontLeft, frontRight, backLeft, backRight;
+    private ColorSensor colorSensor;
+    private DcMotor outtake1, outtake2, intake, turret;
+    private Servo binit, sorter;
+    private double outtakePower = 0;
+    private double outtakeSpeed = 0.5;
+    private long lastSpeedChangeTime = 0;
+    private double intakePower = 0;
+    private double testpo = 0;
 
-    // Button state tracking for single press detection
-    private boolean lastA = false;
-    private boolean lastB = false;
-    private boolean lastX = false;
-    private boolean lastDpadUp = false;
-    private boolean lastDpadDown = false;
+    private boolean gp2_xPressed = false;
+    private boolean gp2_yPressed = false;
+    private boolean gp2_aPressed = false;
+    private boolean gp2_bPressed = false;
+    private boolean gp1_yPressed = false;
+    private boolean gp1_aPressed = false;
+    private boolean gp1_bPressed = false;
+    private boolean gp1_rbPressed = false;
+    private boolean gp1_lbPressed = false;
+    private boolean gp1_xPressed = false;
+
+    private double speedMultiplier = 1.0;
+
+    private int sorterShootMode = 0;
+    private int sorterInputMode = 0;
+
+    private boolean autoNavigating = false;
+    private PathChain autoPath;
+    private long autoNavStartTime = 0;
+    private final long AUTO_NAV_TIMEOUT_MS = 5000;
+
+    private final Pose startPose = new Pose(58, 0, Math.toRadians(90));
+    private final Pose targetPoseX = new Pose(14, 135, Math.toRadians(110));
+    private final Pose targetPoseY = new Pose(71.7, 67.1, Math.toRadians(132.2));
+    private final Pose targetPoseA = new Pose(39, 34, Math.toRadians(90));
+    private Pose currentTargetPose = null;
+
+    private final double POSITION_TOLERANCE_PERCENT = 0.05;
+    private final double HEADING_TOLERANCE_DEGREES = 5.0;
+
+    // ===== Sorter system (3 ช่องเก็บบอล) =====
+    // 0 = ว่าง, 1 = บอลม่วง, 2 = บอลเขียว
+    int[] slots = {0, 0, 0};
+    int currentSlot = 0;
+    double[] loadPositions = {0.15, 0.533, 0.918};
+    double[] shootPositions = {0.751, 0, 0.354};
+
+    // loading state (non-blocking): เมื่อกดเก็บ ให้รอเวลาให้ servo หมุนเสร็จก่อนอ่านสี
+    private boolean loading = false;
+    private long loadStartTime = 0;
+    private int loadingSlot = -1;
+    private final int LOAD_DELAY_MS = 700; // ปรับตามความเร็ว servo/กลไก
 
     @Override
     public void init() {
-        // Initialize robot configuration
-        robot = new RobotConfig(hardwareMap);
-
-        // Initialize Pedro Pathing follower for mecanum drive
         follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(startPose);
 
-        // Set starting pose (can be adjusted)
-        follower.setStartingPose(new Pose(0, 0, 0));
+        for (int i = 0; i < 5; i++) {
+            follower.update();
+        }
+
+        frontLeft = hardwareMap.get(DcMotor.class, "fl");
+        frontRight = hardwareMap.get(DcMotor.class, "fr");
+        backLeft = hardwareMap.get(DcMotor.class, "bl");
+        backRight = hardwareMap.get(DcMotor.class, "br");
+
+        colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
+
+        outtake1 = hardwareMap.get(DcMotor.class, "outtake1");
+        outtake2 = hardwareMap.get(DcMotor.class, "outtake2");
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        turret = hardwareMap.get(DcMotor.class, "turret");
+
+        outtake1.setDirection(DcMotor.Direction.FORWARD);
+        outtake2.setDirection(DcMotor.Direction.REVERSE);
+        outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        binit = hardwareMap.get(Servo.class, "binit");
+        sorter = hardwareMap.get(Servo.class, "sorter");
+
+        binit.setPosition(0.35);
+        sorter.setPosition(0.1);
 
         telemetry.addData("Status", "Initialized");
-        telemetry.addData("Mode", "TeleOp Ready");
+        telemetry.update();
+    }
+
+    @Override
+    public void init_loop() {
+        follower.update();
+        Pose pose = follower.getPose();
+
+        if (pose != null) {
+            telemetry.addData("Status", "Ready");
+            telemetry.addData("Position", "X: %.1f, Y: %.1f", pose.getY(), -pose.getX());
+        } else {
+            telemetry.addData("Status", "WAITING for Pinpoint");
+        }
         telemetry.update();
     }
 
     @Override
     public void loop() {
-        // === MECANUM DRIVE CONTROL ===
-        // Get gamepad inputs
-        double forwardSpeed = -gamepad1.left_stick_y;  // Forward/backward
-        double strafeSpeed = -gamepad1.left_stick_x;   // Left/right strafe
-        double turnSpeed = -gamepad1.right_stick_x;    // Rotation
+        int r = colorSensor.red();
+        int g = colorSensor.green();
+        int b = colorSensor.blue();
 
-        // Set drive powers using zero power behavior (brake when sticks centered)
-        follower.setTeleOpDrive(forwardSpeed, strafeSpeed, turnSpeed, true);
         follower.update();
-
-        // === SHOOTER POWER ADJUSTMENT ===
-        // D-Pad Up: Increase shooter power (and update motors if running)
-        if (gamepad1.dpad_up && !lastDpadUp) {
-            shooterPower = Math.min(1.0, shooterPower + POWER_INCREMENT);
-            if (motorsRunning) {
-                robot.shooter.setShooterPower(shooterPower);
-            }
-        }
-        lastDpadUp = gamepad1.dpad_up;
-
-        // D-Pad Down: Decrease shooter power (and update motors if running)
-        if (gamepad1.dpad_down && !lastDpadDown) {
-            shooterPower = Math.max(0.0, shooterPower - POWER_INCREMENT);
-            if (motorsRunning) {
-                robot.shooter.setShooterPower(shooterPower);
-            }
-        }
-        lastDpadDown = gamepad1.dpad_down;
-
-        // === SHOOTER CONTROLS ===
-        // A Button: Set shooter motor power
-        boolean aButton = gamepad1.a;
-        if (aButton && !lastA) {
-            robot.shooter.setShooterPower(shooterPower);
-            motorsRunning = true;
-        }
-        lastA = aButton;
-
-        // B Button: Toggle servo and outtake (shoot/reset)
-        boolean bButton = gamepad1.b;
-        if (bButton && !lastB) {
-            if (!servoExtended) {
-                // Shoot: extend servo and activate outtake
-                robot.shooter.setServoPosition(RobotHardwareConfig.ShooterServos.SHOOT_POSITION);
-                robot.shooter.feedBall();
-                servoExtended = true;
-            } else {
-                // Reset: retract servo and stop outtake
-                robot.shooter.setServoPosition(RobotHardwareConfig.ShooterServos.RESET_POSITION);
-                robot.shooter.stopFeed();
-                servoExtended = false;
-            }
-        }
-        lastB = bButton;
-
-        // X Button: Stop all motors
-        boolean xButton = gamepad1.x;
-        if (xButton && !lastX) {
-            robot.shooter.stopAll();
-            servoExtended = false;
-            motorsRunning = false;
-        }
-        lastX = xButton;
-
-        // === TELEMETRY ===
         Pose currentPose = follower.getPose();
 
-        telemetry.addData("=== DRIVE ===", "");
-        telemetry.addData("Position", "X: %.1f, Y: %.1f", currentPose.getX(), currentPose.getY());
-        telemetry.addData("Heading", "%.1f°", Math.toDegrees(currentPose.getHeading()));
+        double forwardSpeed = -gamepad1.left_stick_y;
+        double strafeSpeed = gamepad1.left_stick_x;
+        double turnSpeed = gamepad1.right_stick_x;
+
+        boolean joystickActive = Math.abs(forwardSpeed) > 0.1 || Math.abs(strafeSpeed) > 0.1 || Math.abs(turnSpeed) > 0.1;
+
+        if (autoNavigating) {
+            if (joystickActive) {
+                cancelAutoNavigation();
+                telemetry.addData("Auto Nav", "CANCELLED - Manual Override");
+            } else if ((System.currentTimeMillis() - autoNavStartTime) > AUTO_NAV_TIMEOUT_MS) {
+                cancelAutoNavigation();
+                telemetry.addData("Auto Nav", "CANCELLED - timeout");
+            }
+        }
+
+        if (!autoNavigating) {
+            setManualDrive(forwardSpeed, strafeSpeed, turnSpeed);
+        }
+
+        if (gamepad1.y && !gp1_yPressed && currentPose != null) {
+            gp1_yPressed = true;
+            startAutoNavigation(currentPose, targetPoseY);
+        }
+        if (!gamepad1.y) gp1_yPressed = false;
+
+        if (gamepad1.x && !gp1_xPressed && currentPose != null) {
+            gp1_xPressed = true;
+            startAutoNavigation(currentPose, targetPoseX);
+        }
+        if (!gamepad1.x) gp1_xPressed = false;
+
+        if (gamepad1.a && !gp1_aPressed && currentPose != null) {
+            gp1_aPressed = true;
+            startAutoNavigation(currentPose, targetPoseA);
+        }
+        if (!gamepad1.a) gp1_aPressed = false;
+
+        if (gamepad1.b && !gp1_bPressed) {
+            gp1_bPressed = true;
+            if (speedMultiplier == 1.0) {
+                speedMultiplier = 0.5;
+            } else {
+                speedMultiplier = 1.0;
+            }
+        }
+        if (!gamepad1.b) gp1_bPressed = false;
+
+        if (gamepad1.right_bumper && !gp1_rbPressed) {
+            gp1_rbPressed = true;
+            if (autoNavigating) {
+                cancelAutoNavigation();
+            }
+        }
+        if (!gamepad1.right_bumper) gp1_rbPressed = false;
+
+        if (autoNavigating && !follower.isBusy() && currentTargetPose != null) {
+            double positionTolerance = Math.hypot(currentTargetPose.getX(), currentTargetPose.getY()) * POSITION_TOLERANCE_PERCENT;
+            double distanceToTarget = Math.hypot(
+                    currentPose.getX() - currentTargetPose.getX(),
+                    currentPose.getY() - currentTargetPose.getY()
+            );
+            double headingError = Math.abs(Math.toDegrees(currentPose.getHeading() - currentTargetPose.getHeading()));
+
+            if (distanceToTarget <= positionTolerance && headingError <= HEADING_TOLERANCE_DEGREES) {
+                cancelAutoNavigation();
+            }
+        }
+
+        if (gamepad2.left_bumper && !lbPressed) {
+            lbPressed = true;
+            shooterOn = !shooterOn;
+
+            if (shooterOn) {
+                outtakePower = outtakeSpeed;   // เปิด shooter
+            } else {
+                outtakePower = 0;              // ปิด shooter
+            }
+        }
+        if (!gamepad2.left_bumper) lbPressed = false;
+
+        if (gamepad2.right_bumper && !rbPressed) {
+            rbPressed = true;
+            outtakeSpeed = Math.min(1.0, outtakeSpeed + 0.05);
+        }
+        if (!gamepad2.right_bumper) rbPressed = false;
+
+        if (gamepad2.right_trigger > 0.1 && !rtPressed) {
+            rtPressed = true;
+            outtakeSpeed = Math.max(0.0, outtakeSpeed - 0.05);
+        }
+        if(gamepad2.right_trigger < 0.1) rtPressed = false;
+
+//        long currentTime = System.currentTimeMillis();
+//        if (currentTime - lastSpeedChangeTime >= 250) {
+//            if (gamepad2.right_bumper) {
+//                outtakeSpeed = Math.min(1.0, outtakeSpeed + 0.05);
+//                lastSpeedChangeTime = currentTime;
+//            }
+//            if (gamepad2.right_trigger > 0.1) {
+//                outtakeSpeed = Math.max(0.0, outtakeSpeed - 0.05);
+//                lastSpeedChangeTime = currentTime;
+//            }
+//        }
+
+        if (outtakePower > 0) {
+            outtakePower = outtakeSpeed;
+        }
+
+        outtake1.setPower(outtakePower);
+        outtake2.setPower(outtakePower);
+
+        // Turret control with right joystick (gamepad2)
+        double turretPower = Range.clip(gamepad2.right_stick_y, -1, 1);
+        turret.setPower(turretPower);
+
+        // binit position
+        if (gamepad2.b && !gp2_bPressed && Math.abs(sorter.getPosition() - 0.15) > 0.05 && Math.abs(sorter.getPosition() - 0.533) > 0.05 && Math.abs(sorter.getPosition() - 0.918) > 0.05) {
+            gp2_bPressed = true;
+            binit.setPosition(0.13);
+            new Thread(() -> {
+                try {
+                    Thread.sleep(500);
+                    binit.setPosition(0.35);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }).start();
+        }
+        if (!gamepad2.b) gp2_bPressed = false;
+
+        // === LOADING (non-blocking) ===
+        if (gamepad2.y && !yPressed && !loading) {
+            yPressed = true;
+            int next = findNextSlot(0); // หาช่องว่าง
+            if (next != -1) {
+                currentSlot = next;
+                sorter.setPosition(loadPositions[currentSlot]);
+
+                // เริ่ม state loading: รอให้ servo หมุนเสร็จ แล้วค่อยอ่านสี
+                loading = true;
+                loadStartTime = System.currentTimeMillis();
+                loadingSlot = currentSlot;
+            }
+        }
+        if (!gamepad2.y) yPressed = false;
+
+        // เมื่อ loading ผ่านเวลา LOAD_DELAY_MS ให้อ่านสีจริงและอัพเดต slots
+        if (loading && (System.currentTimeMillis() - loadStartTime >= LOAD_DELAY_MS)) {
+            // อ่านค่าสี ณ ตอนนี้ (สด);
+
+            // ตรวจสี (threshold เหมือนตัวอย่างก่อนหน้า) — ปรับตามสนามจริงได้
+            if (g > r && g > b && g > 3000) {
+                slots[loadingSlot] = 2; // เขียว
+            } else if (r > 500 && b > 500 && g > 500) {
+                slots[loadingSlot] = 1; // ม่วง
+            } else {
+                slots[loadingSlot] = 0; // ไม่แน่ใจ
+            }
+
+            telemetry.addData("LoadSlot", loadingSlot);
+            telemetry.addData("LoadColor(RGB)", "%d %d %d", r, g, b);
+
+            // reset loading state
+            loading = false;
+            loadingSlot = -1;
+        }
+
+        if (gamepad2.x && !gp2_xPressed) { // Y+B ยิงบอลม่วง
+            gp2_xPressed = true;
+            int next = findNextSlotType(1);
+            if (next == -1) next = findNextSlotType(2);
+            if (next != -1) {
+                currentSlot = next;
+                if (!sorterBusy) {
+                    final int slot = currentSlot;
+                    sorterBusy = true;
+                    sorter.setPosition(shootPositions[slot]);
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(500);
+                            slots[slot] = 0;
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        } finally {
+                            sorterBusy = false;
+                        }
+                    }).start();
+                }
+            }
+        }
+        if (!gamepad2.x) gp2_xPressed = false;
+
+        //intake
+        intakePower = -gamepad2.left_stick_y;
+        intake.setPower(intakePower);
+
+        telemetry.addData("=== DRIVETRAIN ===", "");
+        if (currentPose != null) {
+            telemetry.addData("Position", "X: %.1f, Y: %.1f", currentPose.getX(), currentPose.getY());
+            telemetry.addData("Heading", "%.1f°", Math.toDegrees(currentPose.getHeading()));
+            telemetry.addData("Speed Multiplier", "%.1f", speedMultiplier);
+
+            if (autoNavigating && currentTargetPose != null) {
+                double positionTolerance = Math.hypot(currentTargetPose.getX(), currentTargetPose.getY()) * POSITION_TOLERANCE_PERCENT;
+                double distanceToTarget = Math.hypot(
+                        currentPose.getX() - currentTargetPose.getX(),
+                        currentPose.getY() - currentTargetPose.getY()
+                );
+                telemetry.addData("Distance", "%.2f\" (tol: %.2f\")", distanceToTarget, positionTolerance);
+            }
+        } else {
+            telemetry.addData("Position", "INITIALIZING");
+        }
+
+        // === SLOT STATUS (แสดงทั้ง array) ===
+        StringBuilder slotStatus = new StringBuilder();
+        for (int i = 0; i < slots.length; i++) {
+            String type;
+            switch (slots[i]) {
+                case 1: type = "pp"; break; // ม่วง
+                case 2: type = "gr"; break; // เขียว
+                default: type = "nu"; break; // ว่าง
+            }
+            slotStatus.append(type);
+            if (i < slots.length - 1) slotStatus.append(" | ");
+        }
+        telemetry.addData("Slots", slotStatus.toString());
+        telemetry.addData("Current Slot", currentSlot);
+        telemetry.addData("Loading", loading ? "YES" : "NO");
+
+        telemetry.addData("Color", "R:%d G:%d B:%d", r, g, b);
+        telemetry.addData("Detected (cur)", slots[currentSlot] == 1 ? "Purple" : slots[currentSlot] == 2 ? "Green" : "Unknown");
+        if (autoNavigating) {
+            long elapsedTime = System.currentTimeMillis() - autoNavStartTime;
+            long remainingTime = (AUTO_NAV_TIMEOUT_MS - elapsedTime) / 1000;
+            String status = "Following";
+            telemetry.addData("Auto Nav", "%s [%ds]", status, remainingTime);
+        } else {
+            telemetry.addData("Auto Nav", "Idle");
+        }
         telemetry.addData("", "");
 
-        telemetry.addData("=== SHOOTER ===", "");
-        telemetry.addData("Power", "%.2f", shooterPower);
-        telemetry.addData("Motors", motorsRunning ? "RUNNING" : "STOPPED");
-        telemetry.addData("Servo", servoExtended ? String.format("SHOOT (%.1f)", RobotHardwareConfig.ShooterServos.SHOOT_POSITION) : String.format("RESET (%.1f)", RobotHardwareConfig.ShooterServos.RESET_POSITION));
-        telemetry.addData("Outtake", servoExtended ? "ON" : "OFF");
+        telemetry.addData("=== OUTTAKE ===", "");
+        telemetry.addData("Power", "%.2f", outtakePower);
+        telemetry.addData("Speed", "%.2f", outtakeSpeed);
         telemetry.addData("", "");
 
-        telemetry.addData("=== CONTROLS ===", "");
-        telemetry.addData("Left Stick", "Strafe");
-        telemetry.addData("Right Stick X", "Rotate");
-        telemetry.addData("D-Pad Up/Down", "Adjust Power (Live)");
-        telemetry.addData("A", "Start Motors");
-        telemetry.addData("B", "Toggle Servo & Outtake");
-        telemetry.addData("X", "Stop All Motors");
+        telemetry.addData("=== TURRET ===", "");
+        telemetry.addData("Power", "%.2f", turretPower);
+        telemetry.addData("", "");
+
+        telemetry.addData("=== INTAKE ===", "");
+        telemetry.addData("Power", "%.2f", intakePower);
+        telemetry.addData("", "");
+
+        telemetry.addData("=== SERVOS ===", "");
+        telemetry.addData("binit", "%.2f", binit.getPosition());
+        telemetry.addData("sorter", sorter.getPosition());
 
         telemetry.update();
     }
 
+    private void startAutoNavigation(Pose currentPose, Pose target) {
+        currentTargetPose = target;
+        autoPath = follower.pathBuilder()
+                .addPath(new BezierLine(
+                        new Pose(currentPose.getX(), currentPose.getY(), currentPose.getHeading()),
+                        currentTargetPose
+                ))
+                .setLinearHeadingInterpolation(currentPose.getHeading(), currentTargetPose.getHeading())
+                .build();
+
+        follower.followPath(autoPath, false);
+        autoNavigating = true;
+        autoNavStartTime = System.currentTimeMillis();
+    }
+
+    private void cancelAutoNavigation() {
+        follower.breakFollowing();
+        autoNavigating = false;
+        currentTargetPose = null;
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
+    }
+
+    private void setManualDrive(double forward, double strafe, double turn) {
+        double frontLeftPower = (forward + strafe + turn) * speedMultiplier;
+        double frontRightPower = (forward - strafe - turn) * speedMultiplier;
+        double backLeftPower = (forward - strafe + turn) * speedMultiplier;
+        double backRightPower = (forward + strafe - turn) * speedMultiplier;
+
+        double maxPower = Math.max(Math.abs(frontLeftPower), Math.max(Math.abs(frontRightPower),
+                Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
+
+        if (maxPower > 1.0) {
+            frontLeftPower /= maxPower;
+            frontRightPower /= maxPower;
+            backLeftPower /= maxPower;
+            backRightPower /= maxPower;
+        }
+
+        frontLeft.setPower(frontLeftPower);
+        frontRight.setPower(frontRightPower);
+        backLeft.setPower(backLeftPower);
+        backRight.setPower(backRightPower);
+    }
+
     @Override
     public void stop() {
-        robot.stopAllMotors();
+        outtake1.setPower(0);
+        outtake2.setPower(0);
+        turret.setPower(0);
+        intake.setPower(0);
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
+    }
+
+    private int findNextSlot(int target) {
+        for (int i = 0; i < slots.length; i++) {
+            if (slots[i] == target) return i;
+        }
+        return -1;
+    }
+
+    private int findNextSlotWithBall() {
+        for (int i = 0; i < slots.length; i++) {
+            if (slots[i] != 0) return i;
+        }
+        return -1;
+    }
+
+    private int findNextSlotType(int type) {
+        for (int i = 0; i < slots.length; i++) {
+            if (slots[i] == type) return i;
+        }
+        return -1;
     }
 }

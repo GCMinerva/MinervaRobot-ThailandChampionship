@@ -1,22 +1,41 @@
 package org.firstinspires.ftc.teamcode.archived.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.teamcode.util.GlobalData;
+import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
- * ActuatorSubsystem — controls shooter wheels (outtake1 & outtake2), intake, and servos.
- * Executes different spin patterns depending on detected AprilTag motif (21–23).
+ * ActuatorSubsystem — controls shooter wheels (outtake1 & outtake2), intake,
+ * and servos.
+ * Executes different spin patterns depending on detected AprilTag motif
+ * (21–23).
  */
 public class ActuatorSubsystem {
 
     private DcMotor outtake1, outtake2, intake;
     private Servo binit, brinit, sorter;
+    private DistanceSensor distanceSensor;
     private final Telemetry telemetry;
     private final ElapsedTime timer = new ElapsedTime();
+
+    // Ball detection variables
+    private final ElapsedTime sortTimer = new ElapsedTime();
+    private boolean justSorted = false;
+    private int ballCount = 0;
+    private static final double DISTANCE_THRESHOLD_CM = 4.0;
+    private static final double SORT_DEBOUNCE_TIME = 0.25; // seconds
+
+    // Sorter position tracking
+    private enum SorterPosition {
+        IN1, IN2, IN3, OTHER
+    }
+
+    private SorterPosition currentSorterPosition = SorterPosition.OTHER;
 
     // === Constructor ===
     public ActuatorSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
@@ -29,7 +48,7 @@ public class ActuatorSubsystem {
 
         // Set motor directions and behaviors
         outtake1.setDirection(DcMotor.Direction.FORWARD);
-        outtake2.setDirection(DcMotor.Direction.REVERSE);
+        outtake2.setDirection(DcMotor.Direction.FORWARD);
         outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -39,9 +58,17 @@ public class ActuatorSubsystem {
         brinit = hardwareMap.get(Servo.class, "brinit");
         sorter = hardwareMap.get(Servo.class, "sorter");
 
+        // Initialize distance sensor (optional - may not be present)
+        try {
+            distanceSensor = hardwareMap.get(DistanceSensor.class, "dis");
+        } catch (Exception e) {
+            distanceSensor = null;
+            // telemetry.addLine("Warning: Distance sensor not found");
+        }
+
         // Default servo positions
         binit.setPosition(0.35);
-        sorter.setPosition(0.55);
+        sorter.setPosition(0.441);
 
         // telemetry.addLine("Actuator Initialized");
         // telemetry.update();
@@ -51,7 +78,7 @@ public class ActuatorSubsystem {
 
     /** Run intake motor to collect game pieces */
     public void runIntake() {
-        intake.setPower(-0.93); // Negative to collect
+        intake.setPower(-1); // Negative to collect
         // telemetry.addData("Intake", "Running %.2f", -1);
         // telemetry.update();
     }
@@ -106,21 +133,21 @@ public class ActuatorSubsystem {
 
     /** Set sorter position for Slot 1 */
     public void setSorterP1() {
-        sorter.setPosition(0.751); // Position for Field Position 1
+        sorter.setPosition(0.592); // Position for Field Position 1
         // telemetry.addData("sorter", "Position P1: %.2f", 0.751);
         // telemetry.update();
     }
 
     /** Set sorter position for Slot 2 */
     public void setSorterP2() {
-        sorter.setPosition(0); // Position for Field Position 2
+        sorter.setPosition(0.979); // Position for Field Position 2
         // telemetry.addData("sorter", "Position P2: %.2f", 0);
         // telemetry.update();
     }
 
     /** Set sorter position for Slot 3 */
     public void setSorterP3() {
-        sorter.setPosition(0.354); // Position for Field Position 3
+        sorter.setPosition(0.219); // Position for Field Position 3
         // telemetry.addData("sorter", "Position P3: %.2f", 0.354);
         // telemetry.update();
     }
@@ -129,23 +156,115 @@ public class ActuatorSubsystem {
 
     /** Set sorter position for Intake 1 */
     public void setSorterIN1() {
-        sorter.setPosition(0.157); // Position for Intake Position 1
+        sorter.setPosition(0.035); // Position for Intake Position 1
+        currentSorterPosition = SorterPosition.IN1;
         // telemetry.addData("sorter", "Position IN1: %.2f", 0.15);
         // telemetry.update();
     }
 
     /** Set sorter position for Intake 2 */
     public void setSorterIN2() {
-        sorter.setPosition(0.533); // Position for Intake Position 2
+        sorter.setPosition(0.41); // Position for Intake Position 2 (updated from 0.441)
+        currentSorterPosition = SorterPosition.IN2;
         // telemetry.addData("sorter", "Position IN2: %.2f", 0.533);
         // telemetry.update();
     }
 
     /** Set sorter position for Intake 3 */
     public void setSorterIN3() {
-        sorter.setPosition(0.918); // Position for Intake Position 3
+        sorter.setPosition(0.782); // Position for Intake Position 3
+        currentSorterPosition = SorterPosition.IN3;
         // telemetry.addData("sorter", "Position IN3: %.2f", 0.918);
         // telemetry.update();
+    }
+
+    // === Automatic Ball Detection and Sorting ===
+
+    /**
+     * Initialize ball detection system
+     */
+    public void initBallDetection() {
+        ballCount = 0;
+        justSorted = false;
+        sortTimer.reset();
+        setSorterIN1();
+    }
+
+    /**
+     * Update ball detection - call this periodically in a loop
+     * 
+     * @return true if still collecting (< 3 balls), false if 3+ balls collected
+     */
+    public boolean updateBallDetection() {
+        if (distanceSensor == null) {
+            return true; // No sensor, continue normally
+        }
+
+        // Check if we've reached the ball limit
+        if (ballCount >= 3) {
+            stopIntake();
+            return false;
+        }
+
+        // Read distance sensor
+        double distance = distanceSensor.getDistance(DistanceUnit.CM);
+
+        // Reset debounce flag after timeout
+        if (justSorted && sortTimer.seconds() >= SORT_DEBOUNCE_TIME) {
+            justSorted = false;
+        }
+
+        // Detect ball and advance sorter
+        if (!justSorted && distance < DISTANCE_THRESHOLD_CM) {
+            ballCount++;
+
+            switch (currentSorterPosition) {
+                case IN1:
+                    setSorterIN2();
+                    break;
+                case IN2:
+                    setSorterIN3();
+                    // Check if we've reached the limit
+                    if (ballCount >= 3) {
+                        stopIntake();
+                        return false;
+                    }
+                    break;
+                case IN3:
+                    setSorterIN1();
+                    break;
+                default:
+                    // If position is unknown, reset to IN1
+                    setSorterIN1();
+                    break;
+            }
+
+            sortTimer.reset();
+            justSorted = true;
+        }
+
+        return true; // Continue collecting
+    }
+
+    /**
+     * Get current ball count
+     */
+    public int getBallCount() {
+        return ballCount;
+    }
+
+    /**
+     * Check if 3 or more balls have been collected
+     */
+    public boolean isBallsFull() {
+        return ballCount >= 3;
+    }
+
+    /**
+     * Reset ball count
+     */
+    public void resetBallCount() {
+        ballCount = 0;
     }
 
     // === JUST SHOOT ===
@@ -153,154 +272,277 @@ public class ActuatorSubsystem {
 
         int tag = GlobalData.detectedTagId;
 
-        if (tag == 21) {
+        setSorterP3();
+        sleep(0.2); // Wait for sorter to move to P3
+        feedBall(0.5); // Feed ball (non-blocking)
+        sleep(1.1); // Wait before next position
 
-            setSorterP3();
-            sleep(0.4);
-            feedBall(1);
-            setSorterP2();
-            sleep(0.4);
-            feedBall(1);
-            setSorterP1();
-            sleep(0.4);
-            feedBall(1);
+        setSorterP1();
+        sleep(0.3); // Medium wait - P3 to P2 distance
+        feedBall(0.5); // Feed ball (non-blocking)
+        sleep(1.1); // Wait before next position
 
-        } else if (tag == 22) {
-            setSorterP1();
-            setSorterP3();
-            setSorterP2();
-        } else if (tag == 23) {
-            setSorterP1();
-            setSorterP2();
-            setSorterP3();
-        } else {
-            setSorterP3();
-            sleep(0.2);      // Wait for sorter to move to P3
-            feedBall(0.5);   // Feed ball (non-blocking)
-            sleep(1.1);      // Wait before next position
-            
-            setSorterP2();
-            sleep(0.3);      // Medium wait - P3 to P2 distance
-            feedBall(0.5);   // Feed ball (non-blocking)
-            sleep(1.1);      // Wait before next position
-            
-            setSorterP1();
-            sleep(0.5);      // Longer wait - P2 to P1 is farther distance
-            feedBall(0.5);   // Feed ball (non-blocking)
-            // telemetry.addLine("Invalid Tag for Just shoot");
-            // telemetry.update();
-        }
+        setSorterP2();
+        sleep(0.3); // Longer wait - P2 to P1 is farther distance
+        feedBall(0.5); // Feed ball (non-blocking)
+        // telemetry.addLine("Invalid Tag for Just shoot");
+        // telemetry.update();
+
     }
 
     // === FarGO Function ===
+    public void FarGOready() {
+
+        int tag = GlobalData.detectedTagId;
+        if (tag == 21) {
+
+            setSorterP3();
+
+        } else if (tag == 22) {
+            setSorterP1();
+
+        } else if (tag == 23) {
+            setSorterP1();
+
+        } else {
+
+            setSorterP3();
+
+        }
+
+    }
+
     public void FarGO() {
         int tag = GlobalData.detectedTagId;
 
         if (tag == 21) {
 
-            setSorterP3();
-            sleep(0.4);
-            feedBall(1);
+            feedBall(1); // Feed ball (non-blocking)
+            sleep(1.1); // Wait before next position
+
             setSorterP2();
-            sleep(0.4);
-            feedBall(1);
+            sleep(0.62); // Medium wait - P3 to P2 distance
+            feedBall(1); // Feed ball (non-blocking)
+            sleep(1.1); // Wait before next position
+
             setSorterP1();
-            sleep(0.4);
+            sleep(0.3); // Longer wait - P2 to P1 is farther distance
             feedBall(1);
 
         } else if (tag == 22) {
-            setSorterP1();
+
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
             setSorterP3();
+            sleep(0.27); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
             setSorterP2();
+            sleep(0.44); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
         } else if (tag == 23) {
-            setSorterP1();
+
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
             setSorterP2();
+            sleep(0.3); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
             setSorterP3();
+            sleep(0.6); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
         } else {
-            // telemetry.addLine("Invalid Tag for FarGO");
-            // telemetry.update();
-            setSorterP3();
-            sleep(0.2);      // Wait for sorter to move to P3
-            feedBall(1);   // Feed ball (non-blocking)
-            sleep(1.1);      // Wait before next position
 
-            setSorterP2();
-            sleep(0.3);      // Medium wait - P3 to P2 distance
-            feedBall(1);   // Feed ball (non-blocking)
-            sleep(1.1);      // Wait before next position
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1); // Wait before next position
 
             setSorterP1();
-            sleep(0.5);      // Longer wait - P2 to P1 is farther distance
-            feedBall(1);   // Feed ball (non-blocking)
-            // telemetry.addLine("Invalid Tag for Just shoot");
-            // telemetry.update();
+            sleep(0.3); // Medium wait - P3 to P2 distance
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1); // Wait before next position
+
+            setSorterP2();
+            sleep(0.3); // Longer wait - P2 to P1 is farther distance
+            feedBall(0.5);
         }
     }
 
     // === MidGO Function ===
+    public void MidGoready() {
+
+        int tag = GlobalData.detectedTagId;
+        if (tag == 21) {
+
+            setSorterP2();
+
+        } else if (tag == 22) {
+            setSorterP1();
+
+        } else if (tag == 23) {
+            setSorterP1();
+
+        } else {
+
+            setSorterP3();
+
+        }
+
+    }
+
     public void MidGO() {
         int tag = GlobalData.detectedTagId;
 
         if (tag == 21) {
-            setSorterP2();
+
+            feedBall(1); // Feed ball (non-blocking)
+            sleep(1.1); // Wait before next position
+
             setSorterP3();
+            sleep(0.6); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
             setSorterP1();
+            sleep(0.5); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
         } else if (tag == 22) {
-            setSorterP1();
+
+            feedBall(1); // Feed ball (non-blocking)
+            sleep(1.1); // Wait before next position
+
             setSorterP2();
+            sleep(0.5); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
             setSorterP3();
+            sleep(0.6); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
         } else if (tag == 23) {
-            setSorterP1();
+
+            feedBall(1); // Feed ball (non-blocking)
+            sleep(1.1); // Wait before next position
+
             setSorterP3();
+            sleep(0.3); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
             setSorterP2();
+            sleep(0.6); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
         } else {
             // telemetry.addLine("Invalid Tag for MidGO");
             // telemetry.update();
-            setSorterP3();
-            sleep(0.2);      // Wait for sorter to move to P3
-            feedBall(1);   // Feed ball (non-blocking)
-            sleep(1.1);      // Wait before next position
 
-            setSorterP2();
-            sleep(0.3);      // Medium wait - P3 to P2 distance
-            feedBall(1);   // Feed ball (non-blocking)
-            sleep(1.1);      // Wait before next position
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1); // Wait before next position
 
             setSorterP1();
-            sleep(0.5);      // Longer wait - P2 to P1 is farther distance
-            feedBall(1);
+            sleep(0.3); // Medium wait - P3 to P2 distance
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1); // Wait before next position
+
+            setSorterP2();
+            sleep(0.3); // Longer wait - P2 to P1 is farther distance
+            feedBall(0.5);
         }
     }
 
     // === NearGO Function ===
+    public void NearGOready() {
+
+        int tag = GlobalData.detectedTagId;
+        if (tag == 21) {
+
+            setSorterP1();
+
+        } else if (tag == 22) {
+            setSorterP2();
+
+        } else if (tag == 23) {
+            setSorterP3();
+
+        } else {
+
+            setSorterP3();
+
+        }
+
+    }
+
     public void NearGO() {
         int tag = GlobalData.detectedTagId;
 
         if (tag == 21) {
-            setSorterP1();
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
             setSorterP2();
+            sleep(0.32); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
             setSorterP3();
+            sleep(0.44); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
         } else if (tag == 22) {
-            setSorterP2();
+
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
             setSorterP1();
+            sleep(0.3); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
             setSorterP3();
+            sleep(0.25); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
         } else if (tag == 23) {
-            setSorterP3();
+
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
             setSorterP2();
+            sleep(0.6); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
+
             setSorterP1();
+            sleep(0.3); // Wait for sorter to move to P3
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1);
         } else {
-            setSorterP3();
-            sleep(0.2);      // Wait for sorter to move to P3
-            feedBall(0.5);   // Feed ball (non-blocking)
-            sleep(1.1);      // Wait before next position
+
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1); // Wait before next position
 
             setSorterP2();
-            sleep(0.3);      // Medium wait - P3 to P2 distance
-            feedBall(0.5);   // Feed ball (non-blocking)
-            sleep(1.1);      // Wait before next position
+            sleep(0.3); // Medium wait - P3 to P2 distance
+            feedBall(0.5); // Feed ball (non-blocking)
+            sleep(1.1); // Wait before next position
 
             setSorterP1();
-            sleep(0.5);      // Longer wait - P2 to P1 is farther distance
+            sleep(0.5); // Longer wait - P2 to P1 is farther distance
             feedBall(0.5);
             // telemetry.addLine("Invalid Tag for NearGO");
             // telemetry.update();
@@ -319,8 +561,8 @@ public class ActuatorSubsystem {
 
     /** Run shooter for close distance (lower speed) */
     public void runShooterClose() {
-        outtake1.setPower(-0.59); // Lower power for close shot
-        outtake2.setPower(-0.59); // Lower power for close shot
+        outtake1.setPower(-0.58); // Lower power for close shot
+        outtake2.setPower(-0.58); // Lower power for close shot
         // telemetry.addData("Shooter", "Close shot running at 0.6");
         // telemetry.update();
     }
@@ -341,8 +583,8 @@ public class ActuatorSubsystem {
         closeBin();
         new Thread(() -> {
             try {
-                Thread.sleep((long)(delaySec * 1000));  // Wait specified time
-                openBin();  // Reopen bin
+                Thread.sleep((long) (delaySec * 1000)); // Wait specified time
+                openBin(); // Reopen bin
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -352,7 +594,7 @@ public class ActuatorSubsystem {
     // === Sleep helper (used for waiting without blocking callbacks) ===
     private void sleep(double seconds) {
         try {
-            Thread.sleep((long)(seconds * 1000));  // Convert to milliseconds
+            Thread.sleep((long) (seconds * 1000)); // Convert to milliseconds
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
