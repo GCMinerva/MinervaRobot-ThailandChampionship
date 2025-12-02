@@ -17,7 +17,7 @@ public class DistanceTest extends LinearOpMode {
 
     // Servo positions
     private static final double IN1_POSITION = 0.035;
-    private static final double IN2_POSITION = 0.41;
+    private static final double IN2_POSITION = 0.441;
     private static final double IN3_POSITION = 0.782;
 
     // Distance threshold to trigger sorter (in cm)
