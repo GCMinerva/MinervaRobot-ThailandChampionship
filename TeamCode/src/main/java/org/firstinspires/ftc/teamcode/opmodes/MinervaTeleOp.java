@@ -209,7 +209,8 @@ public class MinervaTeleOp extends OpMode {
         // Right Trigger: Cycle Sorter Outtake Position and cycle bin
         if (gamepad2.right_trigger > 0.1 && !gp2_rtPressed) {
             gp2_rtPressed = true;
-            
+            outtakeOn = true;
+
             // Disable auto ball detection
             if (autoBallDetectionEnabled) {
                 autoBallDetectionEnabled = false;
@@ -239,6 +240,7 @@ public class MinervaTeleOp extends OpMode {
         // X button: Full shooting sequence
         if(gamepad2.x && !gp2_xPressed) {
             gp2_xPressed = true;
+            outtakeOn = true;
             actuator.justShootAsync();
         }
         if(!gamepad2.x) gp2_xPressed = false;
