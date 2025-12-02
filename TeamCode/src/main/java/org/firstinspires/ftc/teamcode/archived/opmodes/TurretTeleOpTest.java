@@ -1,27 +1,32 @@
 package org.firstinspires.ftc.teamcode.archived.opmodes;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.PathBuilder;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.archived.subsystems.TurretSubsystem;
+import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
 
 /**
  * Turret TeleOp Test
- * 
+ *
  * Controls:
  * - Gamepad1 Left Stick: Strafe (forward/back/left/right)
  * - Gamepad1 Right Stick X: Rotate
  * - Gamepad1 D-Pad: Adjust goal position
  * - Gamepad1 A: Reset goal to starting position
  * - Gamepad1 Y: Reset turret to center (0°)
- * 
+ *
  * Goal Position: Adjustable (default: 144, 144) - RED GOAL
- * 
+ *
  * Telemetry shows:
  * - Robot position and heading (from odometry)
  * - Turret current/target angles
@@ -34,14 +39,14 @@ public class TurretTeleOpTest extends LinearOpMode {
 
     private Follower follower;
     private TurretSubsystem turret;
-    
+
     // Drive motors
     private DcMotor frontLeft, frontRight, backLeft, backRight;
 
     // Goal position - RED GOAL
     private static final double GOAL_X = 144.0;
     private static final double GOAL_Y = 144.0;
-    
+
     // Starting pose
     private final Pose startPose = new Pose(110.5, 134.5, Math.toRadians(90));
 
@@ -52,45 +57,45 @@ public class TurretTeleOpTest extends LinearOpMode {
     public void runOpMode() {
         // === Initialize Pedro Follower ===
         follower = Constants.createFollower(hardwareMap);
-        
+
         // Match FullTeleFixed pattern: Set pose, then update a few times
         follower.setStartingPose(startPose);
-        
+
         for (int i = 0; i < 5; i++) {
             follower.update();
         }
-        
+
         // === Initialize Drive Motors ===
         frontLeft = hardwareMap.get(DcMotor.class, RobotHardwareConfig.DriveMotors.FRONT_LEFT);
         frontRight = hardwareMap.get(DcMotor.class, RobotHardwareConfig.DriveMotors.FRONT_RIGHT);
         backLeft = hardwareMap.get(DcMotor.class, RobotHardwareConfig.DriveMotors.BACK_LEFT);
         backRight = hardwareMap.get(DcMotor.class, RobotHardwareConfig.DriveMotors.BACK_RIGHT);
-        
+
         frontLeft.setDirection(RobotHardwareConfig.DriveDirections.FRONT_LEFT);
         frontRight.setDirection(RobotHardwareConfig.DriveDirections.FRONT_RIGHT);
         backLeft.setDirection(RobotHardwareConfig.DriveDirections.BACK_LEFT);
         backRight.setDirection(RobotHardwareConfig.DriveDirections.BACK_RIGHT);
-        
+
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        
+
         // === Initialize Turret Subsystem (before waitForStart) ===
         turret = new TurretSubsystem(hardwareMap);
         turret.setGoalPosition(GOAL_X, GOAL_Y);
         turret.setStartingAngle(-90);  // Position turret to -90° during init
-        
+
         // === Initialization Loop ===
         while (!isStarted() && !isStopRequested()) {
             follower.update();
             Pose currentPose = follower.getPose();
-            
+
             // Auto-correction: If pose is zero (reset by driver), re-apply starting pose
             if (currentPose.getX() == 0 && currentPose.getY() == 0 && currentPose.getHeading() == 0) {
                 follower.setStartingPose(startPose);
             }
-            
+
             // Manual reset
             if (gamepad1.a) {
                 follower.setStartingPose(startPose);
@@ -109,31 +114,31 @@ public class TurretTeleOpTest extends LinearOpMode {
             double forwardSpeed = -gamepad1.left_stick_y;  // Forward/backward
             double strafeSpeed = gamepad1.left_stick_x;    // Left/right strafe
             double turnSpeed = gamepad1.right_stick_x;     // Rotation
-            
+
             // Calculate mecanum drive motor powers
             double frontLeftPower = forwardSpeed + strafeSpeed + turnSpeed;
             double frontRightPower = forwardSpeed - strafeSpeed - turnSpeed;
             double backLeftPower = forwardSpeed - strafeSpeed + turnSpeed;
             double backRightPower = forwardSpeed + strafeSpeed - turnSpeed;
-            
+
             // Normalize powers to ensure they don't exceed 1.0
-            double maxPower = Math.max(Math.abs(frontLeftPower), 
-                              Math.max(Math.abs(frontRightPower),
-                              Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
-            
+            double maxPower = Math.max(Math.abs(frontLeftPower),
+                    Math.max(Math.abs(frontRightPower),
+                            Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
+
             if (maxPower > 1.0) {
                 frontLeftPower /= maxPower;
                 frontRightPower /= maxPower;
                 backLeftPower /= maxPower;
                 backRightPower /= maxPower;
             }
-            
+
             // Set motor powers
             frontLeft.setPower(frontLeftPower);
             frontRight.setPower(frontRightPower);
             backLeft.setPower(backLeftPower);
             backRight.setPower(backRightPower);
-            
+
             // === Update odometry ===
             follower.update();
             Pose robotPose = follower.getPose();
