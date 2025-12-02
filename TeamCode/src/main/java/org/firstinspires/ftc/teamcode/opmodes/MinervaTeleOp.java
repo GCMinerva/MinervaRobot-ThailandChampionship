@@ -1,25 +1,25 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.pedropathing.follower.Follower;
-import com.qualcomm.robotcore.util.Range;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
 import org.firstinspires.ftc.teamcode.archived.subsystems.ActuatorSubsystem;
-import org.firstinspires.ftc.teamcode.archived.subsystems.AprilTagSubsystem;
 import org.firstinspires.ftc.teamcode.archived.subsystems.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import com.qualcomm.robotcore.hardware.ColorSensor;
+import org.firstinspires.ftc.teamcode.util.TeleOpBallDetector;
 
 @TeleOp(name="MinervaTeleOp V2")
 public class MinervaTeleOp extends OpMode {
     private Follower follower;
     private ActuatorSubsystem actuator;
+    private TurretSubsystem turret;
+    private TeleOpBallDetector ballDetector;
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private double speedMultiplier = 1.0;
@@ -29,8 +29,8 @@ public class MinervaTeleOp extends OpMode {
     private long autoNavStartTime = 0;
     private final long AUTO_NAV_TIMEOUT_MS = 5000;
 
-    private final Pose startPose = new Pose(58, 0, Math.toRadians(90));
-    private final Pose targetPoseX = new Pose(14, 135, Math.toRadians(110));
+    private final Pose startPose = new Pose(110, 129.5, Math.toRadians(90));
+    private final Pose targetPoseX = new Pose(64, 16, Math.toRadians(60));
     private final Pose targetPoseY = new Pose(71.7, 67.1, Math.toRadians(132.2));
     private final Pose targetPoseA = new Pose(39, 34, Math.toRadians(90));
     private Pose currentTargetPose = null;
@@ -41,19 +41,25 @@ public class MinervaTeleOp extends OpMode {
     private boolean gp1_rbPressed = false;
     private boolean gp1_xPressed = false;
 
-    private int intakeSorterPosition = 1;
     private int outtakeSorterPosition = 1;
     private boolean outtakeOn = false;
+    private double outtakeSpeed = -0.5; // Default outtake speed
     private boolean gp2_ltPressed = false;
     private boolean gp2_rtPressed = false;
     private boolean gp2_lbPressed = false;
     private boolean gp2_rbPressed = false;
+    private boolean gp2_dpad_up_pressed = false;
+    private boolean gp2_dpad_down_pressed = false;
+    private boolean autoBallDetectionEnabled = false;
 
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
         actuator = new ActuatorSubsystem(hardwareMap, telemetry);
+        turret = new TurretSubsystem(hardwareMap);
+        turret.setGoalPosition(RobotHardwareConfig.ShooterParams.TARGET_X, RobotHardwareConfig.ShooterParams.TARGET_Y);
+        ballDetector = new TeleOpBallDetector(actuator);
 
         frontLeft = hardwareMap.get(DcMotor.class, "fl");
         frontRight = hardwareMap.get(DcMotor.class, "fr");
@@ -83,6 +89,10 @@ public class MinervaTeleOp extends OpMode {
         follower.update();
         Pose currentPose = follower.getPose();
 
+        if (currentPose != null) {
+            turret.update(currentPose);
+        }
+
         // Gamepad 1 controls
         handleGamepad1(currentPose);
 
@@ -105,6 +115,9 @@ public class MinervaTeleOp extends OpMode {
         } else {
             telemetry.addData("Auto Nav", "Idle");
         }
+
+        telemetry.addData("Auto Ball Detection", autoBallDetectionEnabled ? "Running" : "Idle");
+        telemetry.addData("Outtake Speed", "%.2f", Math.abs(outtakeSpeed));
         telemetry.update();
     }
 
@@ -159,26 +172,34 @@ public class MinervaTeleOp extends OpMode {
     }
 
     private void handleGamepad2() {
-        // Left Trigger: Cycle Sorter Intake Position
+        // D-pad for outtake speed control
+        if (gamepad2.dpad_up && !gp2_dpad_up_pressed) {
+            gp2_dpad_up_pressed = true;
+            outtakeSpeed = Math.max(-1.0, outtakeSpeed - 0.05);
+        }
+        if (!gamepad2.dpad_up) gp2_dpad_up_pressed = false;
+
+        if (gamepad2.dpad_down && !gp2_dpad_down_pressed) {
+            gp2_dpad_down_pressed = true;
+            outtakeSpeed = Math.min(0.0, outtakeSpeed + 0.05);
+        }
+        if (!gamepad2.dpad_down) gp2_dpad_down_pressed = false;
+
+        // Left Trigger: Toggle Auto Ball Detection
         if (gamepad2.left_trigger > 0.1 && !gp2_ltPressed) {
             gp2_ltPressed = true;
-            intakeSorterPosition++;
-            if (intakeSorterPosition > 3) {
-                intakeSorterPosition = 1;
-            }
-            switch (intakeSorterPosition) {
-                case 1:
-                    actuator.setSorterIN1();
-                    break;
-                case 2:
-                    actuator.setSorterIN2();
-                    break;
-                case 3:
-                    actuator.setSorterIN3();
-                    break;
+            autoBallDetectionEnabled = !autoBallDetectionEnabled;
+            if (autoBallDetectionEnabled) {
+                ballDetector.start();
+            } else {
+                ballDetector.stop();
             }
         }
         if (gamepad2.left_trigger < 0.1) gp2_ltPressed = false;
+
+        if (autoBallDetectionEnabled) {
+            ballDetector.update();
+        }
 
         // Right Trigger: Cycle Sorter Outtake Position
         if (gamepad2.right_trigger > 0.1 && !gp2_rtPressed) {
@@ -206,12 +227,17 @@ public class MinervaTeleOp extends OpMode {
             gp2_lbPressed = true;
             outtakeOn = !outtakeOn;
             if (outtakeOn) {
-                actuator.runOuttake(1.0); // Or use a variable power
+                actuator.runOuttake(outtakeSpeed);
             } else {
                 actuator.stopOuttake();
             }
         }
         if (!gamepad2.left_bumper) gp2_lbPressed = false;
+
+        // if outtake is on, keep setting the power to the current speed
+        if (outtakeOn) {
+            actuator.runOuttake(outtakeSpeed);
+        }
 
         // Right Bumper: Feed Ball
         if (gamepad2.right_bumper && !gp2_rbPressed) {
@@ -279,6 +305,9 @@ public class MinervaTeleOp extends OpMode {
         if (actuator != null) {
             actuator.stopIntake();
             actuator.stopOuttake();
+        }
+        if (turret != null) {
+            turret.stop();
         }
         frontLeft.setPower(0);
         frontRight.setPower(0);

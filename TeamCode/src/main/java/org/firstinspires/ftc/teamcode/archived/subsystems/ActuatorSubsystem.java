@@ -28,6 +28,7 @@ public class ActuatorSubsystem {
     private final ElapsedTime sortTimer = new ElapsedTime();
     private boolean justSorted = false;
     private int ballCount = 0;
+    private int in1Passes = 0;
     private static final double DISTANCE_THRESHOLD_CM = 4.0;
     private static final double SORT_DEBOUNCE_TIME = 0.25; // seconds
 
@@ -171,7 +172,7 @@ public class ActuatorSubsystem {
 
     /** Set sorter position for Intake 2 */
     public void setSorterIN2() {
-        sorter.setPosition(0.41); // Position for Intake Position 2 (updated from 0.441)
+        sorter.setPosition(0.441); // Position for Intake Position 2 (updated from 0.41)
         currentSorterPosition = SorterPosition.IN2;
         // telemetry.addData("sorter", "Position IN2: %.2f", 0.533);
         // telemetry.update();
@@ -192,6 +193,7 @@ public class ActuatorSubsystem {
      */
     public void initBallDetection() {
         ballCount = 0;
+        in1Passes = 1;
         justSorted = false;
         sortTimer.reset();
         setSorterIN1();
@@ -200,17 +202,11 @@ public class ActuatorSubsystem {
     /**
      * Update ball detection - call this periodically in a loop
      * 
-     * @return true if still collecting (< 3 balls), false if 3+ balls collected
+     * @return true if still collecting, false if 3+ balls collected
      */
     public boolean updateBallDetection() {
         if (distanceSensor == null) {
             return true; // No sensor, continue normally
-        }
-
-        // Check if we've reached the ball limit
-        if (ballCount >= 3) {
-            stopIntake();
-            return false;
         }
 
         // Read distance sensor
@@ -231,14 +227,10 @@ public class ActuatorSubsystem {
                     break;
                 case IN2:
                     setSorterIN3();
-                    // Check if we've reached the limit
-                    if (ballCount >= 3) {
-                        stopIntake();
-                        return false;
-                    }
                     break;
                 case IN3:
                     setSorterIN1();
+                    in1Passes++;
                     break;
                 default:
                     // If position is unknown, reset to IN1
