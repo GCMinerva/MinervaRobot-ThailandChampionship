@@ -26,14 +26,14 @@ public class IntakeSorterSubsystem {
 
     // Servo positions for the three intake slots
     private static final double IN1_POSITION = 0.035;
-    private static final double IN2_POSITION = 0.441;
+    private static final double IN2_POSITION = 0.406;
     private static final double IN3_POSITION = 0.782;
 
     // Distance threshold to trigger sorter (in cm)
     private static final double DISTANCE_THRESHOLD_CM = 4.0;
 
     // Sorter debounce timer (prevents multiple triggers from same ball)
-    private static final double SORT_DEBOUNCE_TIME = 0.25; // seconds
+    private static final double SORT_DEBOUNCE_TIME = 0.3; // seconds
 
     // Sorter position enum
     private enum SorterPosition {

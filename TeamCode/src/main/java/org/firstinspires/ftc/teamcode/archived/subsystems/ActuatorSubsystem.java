@@ -172,7 +172,7 @@ public class ActuatorSubsystem {
 
     /** Set sorter position for Intake 2 */
     public void setSorterIN2() {
-        sorter.setPosition(0.441); // Position for Intake Position 2 (updated from 0.41)
+        sorter.setPosition(0.406); // Position for Intake Position 2 (updated from 0.41)
         currentSorterPosition = SorterPosition.IN2;
         // telemetry.addData("sorter", "Position IN2: %.2f", 0.533);
         // telemetry.update();
@@ -277,7 +277,7 @@ public class ActuatorSubsystem {
         sleep(0.45); // Wait before next position
 
         setSorterP1();
-        sleep(0.3); // Medium wait - P3 to P2 distance
+        sleep(0.33); // Medium wait - P3 to P2 distance
         feedBall(0.3); // Feed ball (non-blocking)
         sleep(0.45); // Wait before next position
 
@@ -522,7 +522,7 @@ public class ActuatorSubsystem {
             sleep(0.45);
 
             setSorterP2();
-            sleep(0.6); // Wait for sorter to move to P3
+            sleep(0.63); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
 
@@ -560,8 +560,8 @@ public class ActuatorSubsystem {
 
     /** Run shooter for close distance (lower speed) */
     public void runShooterClose() {
-        outtake1.setPower(-0.59); // Lower power for close shot
-        outtake2.setPower(-0.59); // Lower power for close shot
+        outtake1.setPower(-0.6); // Lower power for close shot
+        outtake2.setPower(-0.6); // Lower power for close shot
         // telemetry.addData("Shooter", "Close shot running at 0.6");
         // telemetry.update();
     }
