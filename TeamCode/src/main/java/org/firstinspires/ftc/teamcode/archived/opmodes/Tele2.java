@@ -136,7 +136,7 @@ public class Tele2 extends OpMode {
         lifter1.setPosition(0);
         binit.setPosition(0.1);
         binit1.setPosition(0.8);
-        sorter.setPosition(0.035);
+        sorter.setPosition(0.441);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -323,8 +323,8 @@ public class Tele2 extends OpMode {
         // binit position
         if (gamepad2.b && !gp2_bPressed && Math.abs(sorter.getPosition() - 0.035) > 0.05 && Math.abs(sorter.getPosition() - 0.441) > 0.05 && Math.abs(sorter.getPosition() - 0.782) > 0.05) {
             gp2_bPressed = true;
-            binit.setPosition(0.35);
-            binit1.setPosition(0.55);
+            binit.setPosition(0.56);
+            binit1.setPosition(0.34);
             new Thread(() -> {
                 try {
                     Thread.sleep(500);
