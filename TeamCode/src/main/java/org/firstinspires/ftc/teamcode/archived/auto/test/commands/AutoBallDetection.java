@@ -10,12 +10,15 @@ import java.util.Set;
 
 /**
  * Command that automatically detects and sorts balls using the distance sensor.
- * Runs until 3 balls are collected or the command is interrupted.
+ * Runs until 3 balls are collected, 3 seconds elapse, or the command is
+ * interrupted.
  */
 public class AutoBallDetection implements Command {
 
     private final ActuatorSubsystem actuator;
     private boolean initialized = false;
+    private long startTime = 0;
+    private static final long TIMEOUT_MS = 3500; // 3 seconds timeout
 
     public AutoBallDetection(ActuatorSubsystem actuator) {
         this.actuator = actuator;
@@ -30,6 +33,7 @@ public class AutoBallDetection implements Command {
     public void initialize() {
         actuator.initBallDetection();
         initialized = true;
+        startTime = System.currentTimeMillis();
     }
 
     @Override
@@ -43,15 +47,16 @@ public class AutoBallDetection implements Command {
         if (!initialized) {
             return false;
         }
-        // Command finishes when 3 or more balls are collected
-        return actuator.isBallsFull();
+
+        // Check if timeout has elapsed
+        boolean timeoutReached = (System.currentTimeMillis() - startTime) >= TIMEOUT_MS;
+
+        // Command finishes when 3 or more balls are collected OR timeout is reached
+        return actuator.isBallsFull() || timeoutReached;
     }
 
     @Override
     public void end(boolean interrupted) {
-        // Ensure intake is stopped when command ends
-        if (!interrupted) {
-            actuator.stopIntake();
-        }
+        // Command ends - intake continues running
     }
 }

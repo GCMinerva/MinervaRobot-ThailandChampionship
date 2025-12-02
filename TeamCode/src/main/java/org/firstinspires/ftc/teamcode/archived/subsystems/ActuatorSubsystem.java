@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.archived.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -47,8 +48,8 @@ public class ActuatorSubsystem {
         intake = hardwareMap.get(DcMotor.class, "intake");
 
         // Set motor directions and behaviors
-        outtake1.setDirection(DcMotor.Direction.FORWARD);
-        outtake2.setDirection(DcMotor.Direction.FORWARD);
+        outtake1.setDirection(DcMotor.Direction.REVERSE);
+        outtake2.setDirection(DcMotor.Direction.REVERSE);
         outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -67,7 +68,8 @@ public class ActuatorSubsystem {
         }
 
         // Default servo positions
-        binit.setPosition(0.35);
+        binit.setPosition(0.1);
+        brinit.setPosition(0.8);
         sorter.setPosition(0.441);
 
         // telemetry.addLine("Actuator Initialized");
@@ -274,17 +276,17 @@ public class ActuatorSubsystem {
 
         setSorterP3();
         sleep(0.2); // Wait for sorter to move to P3
-        feedBall(0.5); // Feed ball (non-blocking)
-        sleep(1.1); // Wait before next position
+        feedBall(0.3); // Feed ball (non-blocking)
+        sleep(0.45); // Wait before next position
 
         setSorterP1();
         sleep(0.3); // Medium wait - P3 to P2 distance
-        feedBall(0.5); // Feed ball (non-blocking)
-        sleep(1.1); // Wait before next position
+        feedBall(0.3); // Feed ball (non-blocking)
+        sleep(0.45); // Wait before next position
 
         setSorterP2();
         sleep(0.3); // Longer wait - P2 to P1 is farther distance
-        feedBall(0.5); // Feed ball (non-blocking)
+        feedBall(0.3); // Feed ball (non-blocking)
         // telemetry.addLine("Invalid Tag for Just shoot");
         // telemetry.update();
 
@@ -317,61 +319,61 @@ public class ActuatorSubsystem {
 
         if (tag == 21) {
 
-            feedBall(1); // Feed ball (non-blocking)
-            sleep(1.1); // Wait before next position
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45); // Wait before next position
 
             setSorterP2();
             sleep(0.62); // Medium wait - P3 to P2 distance
-            feedBall(1); // Feed ball (non-blocking)
-            sleep(1.1); // Wait before next position
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45); // Wait before next position
 
             setSorterP1();
             sleep(0.3); // Longer wait - P2 to P1 is farther distance
-            feedBall(1);
+            feedBall(0.3);
 
         } else if (tag == 22) {
 
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
             setSorterP3();
             sleep(0.27); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
             setSorterP2();
             sleep(0.44); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
         } else if (tag == 23) {
 
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
             setSorterP2();
             sleep(0.3); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
             setSorterP3();
             sleep(0.6); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
         } else {
 
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1); // Wait before next position
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45); // Wait before next position
 
             setSorterP1();
             sleep(0.3); // Medium wait - P3 to P2 distance
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1); // Wait before next position
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45); // Wait before next position
 
             setSorterP2();
             sleep(0.3); // Longer wait - P2 to P1 is farther distance
-            feedBall(0.5);
+            feedBall(0.3);
         }
     }
 
@@ -402,64 +404,64 @@ public class ActuatorSubsystem {
 
         if (tag == 21) {
 
-            feedBall(1); // Feed ball (non-blocking)
-            sleep(1.1); // Wait before next position
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45); // Wait before next position
 
             setSorterP3();
             sleep(0.6); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
             setSorterP1();
             sleep(0.5); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
         } else if (tag == 22) {
 
-            feedBall(1); // Feed ball (non-blocking)
-            sleep(1.1); // Wait before next position
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45); // Wait before next position
 
             setSorterP2();
             sleep(0.5); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
             setSorterP3();
             sleep(0.6); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
         } else if (tag == 23) {
 
-            feedBall(1); // Feed ball (non-blocking)
-            sleep(1.1); // Wait before next position
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45); // Wait before next position
 
             setSorterP3();
             sleep(0.3); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
             setSorterP2();
             sleep(0.6); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
         } else {
             // telemetry.addLine("Invalid Tag for MidGO");
             // telemetry.update();
 
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1); // Wait before next position
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45); // Wait before next position
 
             setSorterP1();
             sleep(0.3); // Medium wait - P3 to P2 distance
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1); // Wait before next position
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45); // Wait before next position
 
             setSorterP2();
             sleep(0.3); // Longer wait - P2 to P1 is farther distance
-            feedBall(0.5);
+            feedBall(0.3);
         }
     }
 
@@ -489,61 +491,61 @@ public class ActuatorSubsystem {
         int tag = GlobalData.detectedTagId;
 
         if (tag == 21) {
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
             setSorterP2();
             sleep(0.32); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
             setSorterP3();
             sleep(0.44); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
         } else if (tag == 22) {
 
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
             setSorterP1();
             sleep(0.3); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
             setSorterP3();
             sleep(0.25); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
         } else if (tag == 23) {
 
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
             setSorterP2();
             sleep(0.6); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
 
             setSorterP1();
             sleep(0.3); // Wait for sorter to move to P3
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1);
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45);
         } else {
 
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1); // Wait before next position
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45); // Wait before next position
 
             setSorterP2();
             sleep(0.3); // Medium wait - P3 to P2 distance
-            feedBall(0.5); // Feed ball (non-blocking)
-            sleep(1.1); // Wait before next position
+            feedBall(0.3); // Feed ball (non-blocking)
+            sleep(0.45); // Wait before next position
 
             setSorterP1();
             sleep(0.5); // Longer wait - P2 to P1 is farther distance
-            feedBall(0.5);
+            feedBall(0.3);
             // telemetry.addLine("Invalid Tag for NearGO");
             // telemetry.update();
         }
@@ -561,8 +563,8 @@ public class ActuatorSubsystem {
 
     /** Run shooter for close distance (lower speed) */
     public void runShooterClose() {
-        outtake1.setPower(-0.58); // Lower power for close shot
-        outtake2.setPower(-0.58); // Lower power for close shot
+        outtake1.setPower(-0.59); // Lower power for close shot
+        outtake2.setPower(-0.59); // Lower power for close shot
         // telemetry.addData("Shooter", "Close shot running at 0.6");
         // telemetry.update();
     }
