@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.teamcode.archived.auto.test.commands.OpModeCommand;
 
-@Autonomous(name = "BlueFar12Art", group = "Auton")
+@Autonomous(name = "BlueFar[12Art]", group = "Auton")
 public class BlueFar12Art extends OpModeCommand {
 
         private Follower follower;
@@ -97,7 +97,7 @@ public class BlueFar12Art extends OpModeCommand {
                                                                                                 new WaitCommand(60) // 1400
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> turret.turnToAngle(
-                                                                                                                                                90))),
+                                                                                                                                                -90))),
                                                                                                 new WaitCommand(200)
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.runShooterClose()))

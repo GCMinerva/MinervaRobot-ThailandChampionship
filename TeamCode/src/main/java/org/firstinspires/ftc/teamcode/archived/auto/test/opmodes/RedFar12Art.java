@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.teamcode.archived.auto.test.commands.OpModeCommand;
 
-@Autonomous(name = "RedFar12Art", group = "Auton")
+@Autonomous(name = "RedFar[12Art]", group = "Auton")
 public class RedFar12Art extends OpModeCommand {
 
         private Follower follower;
