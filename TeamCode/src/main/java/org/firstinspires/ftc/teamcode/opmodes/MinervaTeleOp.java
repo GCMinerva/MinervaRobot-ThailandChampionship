@@ -53,6 +53,7 @@ public class MinervaTeleOp extends OpMode {
     private boolean autoBallDetectionEnabled = false;
     private boolean rightBumperEnabled = false;
     private int rightBumperPressCount = 0;
+    private boolean joystickIntakeOverride = false;
 
     @Override
     public void init() {
@@ -193,6 +194,7 @@ public class MinervaTeleOp extends OpMode {
         if (gamepad2.left_trigger > 0.1 && !gp2_ltPressed) {
             gp2_ltPressed = true;
             autoBallDetectionEnabled = !autoBallDetectionEnabled;
+            joystickIntakeOverride = false; // Reset override on toggle
             if (autoBallDetectionEnabled) {
                 ballDetector.start();
             } else {
@@ -260,12 +262,19 @@ public class MinervaTeleOp extends OpMode {
         if (!gamepad2.right_bumper) gp2_rbPressed = false;
 
         // Left Joystick: Control Intake
-        if (gamepad2.left_stick_y < -0.5) { // Joystick pushed up
-            actuator.setIntakePower(1.0);
-        } else if (gamepad2.left_stick_y > 0.5) { // Joystick pushed down
-            actuator.setIntakePower(-1.0);
-        } else {
-            actuator.stopIntake();
+        if (Math.abs(gamepad2.left_stick_y) > 0.5) { // Joystick is being used
+            joystickIntakeOverride = true; // Latch the override
+            if (gamepad2.left_stick_y < -0.5) {
+                actuator.setIntakePower(1.0);
+            } else {
+                actuator.setIntakePower(-1.0);
+            }
+        } else { // Joystick is neutral
+            if (autoBallDetectionEnabled && !joystickIntakeOverride) {
+                actuator.setIntakePower(-1.0); // Auto mode runs intake
+            } else {
+                actuator.stopIntake(); // Stop if joystick is neutral and not in auto, or if override is active
+            }
         }
     }
 
