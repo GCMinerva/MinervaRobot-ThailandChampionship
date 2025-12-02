@@ -51,8 +51,6 @@ public class MinervaTeleOp extends OpMode {
     private boolean gp2_dpad_up_pressed = false;
     private boolean gp2_dpad_down_pressed = false;
     private boolean autoBallDetectionEnabled = false;
-    private boolean rightBumperEnabled = false;
-    private int rightBumperPressCount = 0;
     private boolean joystickIntakeOverride = false;
 
     @Override
@@ -61,7 +59,7 @@ public class MinervaTeleOp extends OpMode {
         follower.setStartingPose(startPose);
         actuator = new ActuatorSubsystem(hardwareMap, telemetry);
         turret = new TurretSubsystem(hardwareMap);
-        turret.setGoalPosition(RobotHardwareConfig.ShooterParams.TARGET_X, RobotHardwareConfig.ShooterParams.TARGET_Y);
+        turret.setGoalPosition(135, 135);
         ballDetector = new TeleOpBallDetector(actuator);
 
         frontLeft = hardwareMap.get(DcMotor.class, "fl");
@@ -121,8 +119,6 @@ public class MinervaTeleOp extends OpMode {
 
         telemetry.addData("Auto Ball Detection", autoBallDetectionEnabled ? "Running" : "Idle");
         telemetry.addData("Outtake Speed", "%.2f", Math.abs(outtakeSpeed));
-        telemetry.addData("Right Bumper Enabled", rightBumperEnabled);
-        telemetry.addData("Right Bumper Presses", rightBumperPressCount);
         telemetry.update();
     }
 
@@ -200,9 +196,6 @@ public class MinervaTeleOp extends OpMode {
             } else {
                 ballDetector.stop();
             }
-            // Reset right bumper state when left trigger is pressed
-            rightBumperEnabled = false;
-            rightBumperPressCount = 0;
         }
         if (gamepad2.left_trigger < 0.1) gp2_ltPressed = false;
 
@@ -210,12 +203,17 @@ public class MinervaTeleOp extends OpMode {
             ballDetector.update();
         }
 
-        // Right Trigger: Cycle Sorter Outtake Position and enable Right Bumper
+        // Right Trigger: Cycle Sorter Outtake Position and cycle bin
         if (gamepad2.right_trigger > 0.1 && !gp2_rtPressed) {
             gp2_rtPressed = true;
-            rightBumperEnabled = true;
-            rightBumperPressCount = 0;
             
+            // Disable auto ball detection
+            if (autoBallDetectionEnabled) {
+                autoBallDetectionEnabled = false;
+                ballDetector.stop();
+            }
+            joystickIntakeOverride = false;
+
             outtakeSorterPosition++;
             if (outtakeSorterPosition > 3) {
                 outtakeSorterPosition = 1;
@@ -231,6 +229,7 @@ public class MinervaTeleOp extends OpMode {
                     actuator.setSorterP3();
                     break;
             }
+            actuator.cycleBinAfterSort();
         }
         if (gamepad2.right_trigger < 0.1) gp2_rtPressed = false;
 
@@ -251,15 +250,7 @@ public class MinervaTeleOp extends OpMode {
             actuator.runOuttake(outtakeSpeed);
         }
 
-        // Right Bumper: Feed Ball
-        if (gamepad2.right_bumper && !gp2_rbPressed) {
-            gp2_rbPressed = true;
-            if (rightBumperEnabled && rightBumperPressCount < 3) {
-                actuator.feedBall(0.5);
-                rightBumperPressCount++;
-            }
-        }
-        if (!gamepad2.right_bumper) gp2_rbPressed = false;
+        // Right Bumper is now unused for feeding
 
         // Left Joystick: Control Intake
         if (Math.abs(gamepad2.left_stick_y) > 0.5) { // Joystick is being used

@@ -590,6 +590,20 @@ public class ActuatorSubsystem {
         }).start();
     }
 
+    /** Cycle bin after sorting */
+    public void cycleBinAfterSort() {
+        new Thread(() -> {
+            try {
+                Thread.sleep(200); // 0.2 seconds
+                openBin();
+                Thread.sleep(50); // 0.05 seconds
+                closeBin();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }).start();
+    }
+
     // === Sleep helper (used for waiting without blocking callbacks) ===
     private void sleep(double seconds) {
         try {
