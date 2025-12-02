@@ -51,6 +51,8 @@ public class MinervaTeleOp extends OpMode {
     private boolean gp2_dpad_up_pressed = false;
     private boolean gp2_dpad_down_pressed = false;
     private boolean autoBallDetectionEnabled = false;
+    private boolean rightBumperEnabled = false;
+    private int rightBumperPressCount = 0;
 
     @Override
     public void init() {
@@ -118,6 +120,8 @@ public class MinervaTeleOp extends OpMode {
 
         telemetry.addData("Auto Ball Detection", autoBallDetectionEnabled ? "Running" : "Idle");
         telemetry.addData("Outtake Speed", "%.2f", Math.abs(outtakeSpeed));
+        telemetry.addData("Right Bumper Enabled", rightBumperEnabled);
+        telemetry.addData("Right Bumper Presses", rightBumperPressCount);
         telemetry.update();
     }
 
@@ -194,6 +198,9 @@ public class MinervaTeleOp extends OpMode {
             } else {
                 ballDetector.stop();
             }
+            // Reset right bumper state when left trigger is pressed
+            rightBumperEnabled = false;
+            rightBumperPressCount = 0;
         }
         if (gamepad2.left_trigger < 0.1) gp2_ltPressed = false;
 
@@ -201,9 +208,12 @@ public class MinervaTeleOp extends OpMode {
             ballDetector.update();
         }
 
-        // Right Trigger: Cycle Sorter Outtake Position
+        // Right Trigger: Cycle Sorter Outtake Position and enable Right Bumper
         if (gamepad2.right_trigger > 0.1 && !gp2_rtPressed) {
             gp2_rtPressed = true;
+            rightBumperEnabled = true;
+            rightBumperPressCount = 0;
+            
             outtakeSorterPosition++;
             if (outtakeSorterPosition > 3) {
                 outtakeSorterPosition = 1;
@@ -242,7 +252,10 @@ public class MinervaTeleOp extends OpMode {
         // Right Bumper: Feed Ball
         if (gamepad2.right_bumper && !gp2_rbPressed) {
             gp2_rbPressed = true;
-            actuator.feedBall(0.5);
+            if (rightBumperEnabled && rightBumperPressCount < 3) {
+                actuator.feedBall(0.5);
+                rightBumperPressCount++;
+            }
         }
         if (!gamepad2.right_bumper) gp2_rbPressed = false;
 
