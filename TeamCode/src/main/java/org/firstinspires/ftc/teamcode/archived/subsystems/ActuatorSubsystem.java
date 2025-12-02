@@ -609,6 +609,29 @@ public class ActuatorSubsystem {
         }).start();
     }
 
+    /** A single shot sequence, non-blocking */
+    public void singleShotSequence() {
+        new Thread(() -> {
+            try {
+                Thread.sleep(420); // wait 0.2s
+                
+                // This is the content of feedBall, but made blocking for this sequence
+                closeBin();
+                Thread.sleep(420); // feedBall(0.3)
+                openBin();
+
+                Thread.sleep(420); // wait 0.45s
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }).start();
+    }
+
+    /** Asynchronously executes the justShoot sequence. */
+    public void justShootAsync() {
+        new Thread(this::justShoot).start();
+    }
+
     // === Sleep helper (used for waiting without blocking callbacks) ===
     private void sleep(double seconds) {
         try {
