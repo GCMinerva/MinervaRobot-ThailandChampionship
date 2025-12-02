@@ -8,6 +8,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
+
 import java.util.List;
 
 /**
@@ -62,6 +64,7 @@ public class AprilTagSubsystem {
         if (validCount == 1) { // exactly one valid tag visible
             lastDetection = validTag;
             lastTagId = validTag.id;
+            GlobalData.detectedTagId = lastTagId; // Write to GlobalData
             telemetry.addData("✅ Detected Tag", lastTagId);
         } else if (validCount > 1) {
             telemetry.addData("⚠ Multiple valid tags", validCount);
@@ -76,6 +79,7 @@ public class AprilTagSubsystem {
     }
 
     public void stop() {
-        if (visionPortal != null) visionPortal.close();
+        if (visionPortal != null)
+            visionPortal.close();
     }
 }
