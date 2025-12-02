@@ -85,8 +85,8 @@ public class Tele2 extends OpMode {
     // 0 = ว่าง, 1 = บอลม่วง, 2 = บอลเขียว
     int[] slots = {0, 0, 0};
     int currentSlot = 0;
-    double[] loadPositions = {0.15, 0.533, 0.918};
-    double[] shootPositions = {0.751, 0, 0.354};
+    double[] loadPositions = {0.035, 0.441, 0.782};
+    double[] shootPositions = {0.592, 0.979, 0.219};
 
     int loadIndex = 0;
     int shootIndex = 0;
@@ -119,7 +119,7 @@ public class Tele2 extends OpMode {
         turret = hardwareMap.get(DcMotor.class, "turret");
 
         outtake1.setDirection(DcMotor.Direction.REVERSE);
-        outtake2.setDirection(DcMotor.Direction.FORWARD);
+        outtake2.setDirection(DcMotor.Direction.REVERSE);
         outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -136,7 +136,7 @@ public class Tele2 extends OpMode {
         lifter1.setPosition(0);
         binit.setPosition(0.1);
         binit1.setPosition(0.8);
-        sorter.setPosition(0.15);
+        sorter.setPosition(0.035);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -318,13 +318,13 @@ public class Tele2 extends OpMode {
 
         // Turret control with right joystick (gamepad2)
         double turretPower = Range.clip(gamepad2.right_stick_y, -1, 1);
-        turret.setPower(turretPower);
+        turret.setPower(turretPower*0.4);
 
         // binit position
-        if (gamepad2.b && !gp2_bPressed && Math.abs(sorter.getPosition() - 0.15) > 0.05 && Math.abs(sorter.getPosition() - 0.533) > 0.05 && Math.abs(sorter.getPosition() - 0.918) > 0.05) {
+        if (gamepad2.b && !gp2_bPressed && Math.abs(sorter.getPosition() - 0.035) > 0.05 && Math.abs(sorter.getPosition() - 0.441) > 0.05 && Math.abs(sorter.getPosition() - 0.782) > 0.05) {
             gp2_bPressed = true;
-            binit.setPosition(0.56);
-            binit1.setPosition(0.34);
+            binit.setPosition(0.35);
+            binit1.setPosition(0.55);
             new Thread(() -> {
                 try {
                     Thread.sleep(500);
