@@ -57,6 +57,9 @@ public class AutoBallDetection implements Command {
 
     @Override
     public void end(boolean interrupted) {
-        // Command ends - intake continues running
+        // Ensure intake is stopped when command ends
+        if (!interrupted) {
+            actuator.stopIntake();
+        }
     }
 }
