@@ -338,7 +338,7 @@ public class Tele2 extends OpMode {
         if (!gamepad2.b) gp2_bPressed = false;
 
         // ====== press y to load balls ======
-        if (gamepad2.y && !yPressed) {
+        if ((gamepad2.y && !yPressed) || (g > r && g > b && g > 3000) || (r > 500 && b > 500 && g > 500)) {
             yPressed = true;
 
             if (!sorterBusy) {
