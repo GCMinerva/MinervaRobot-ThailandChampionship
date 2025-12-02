@@ -92,6 +92,11 @@ public class ActuatorSubsystem {
         // telemetry.update();
     }
 
+    /** Set intake power */
+    public void setIntakePower(double power) {
+        intake.setPower(power);
+    }
+
     /** Run outtake motors (both at the same time) */
     public void runOuttake(double power) {
         outtake1.setPower(power);
