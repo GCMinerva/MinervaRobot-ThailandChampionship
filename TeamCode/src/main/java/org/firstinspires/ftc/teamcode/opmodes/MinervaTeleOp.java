@@ -52,6 +52,7 @@ public class MinervaTeleOp extends OpMode {
     private boolean gp2_dpad_down_pressed = false;
     private boolean autoBallDetectionEnabled = false;
     private boolean joystickIntakeOverride = false;
+    private boolean gp2_xPressed = false;
 
     @Override
     public void init() {
@@ -61,6 +62,8 @@ public class MinervaTeleOp extends OpMode {
         turret = new TurretSubsystem(hardwareMap);
         turret.setGoalPosition(135, 135);
         ballDetector = new TeleOpBallDetector(actuator);
+
+        actuator.closeBin();
 
         frontLeft = hardwareMap.get(DcMotor.class, "fl");
         frontRight = hardwareMap.get(DcMotor.class, "fr");
@@ -229,9 +232,16 @@ public class MinervaTeleOp extends OpMode {
                     actuator.setSorterP3();
                     break;
             }
-            actuator.cycleBinAfterSort();
+            actuator.singleShotSequence();
         }
         if (gamepad2.right_trigger < 0.1) gp2_rtPressed = false;
+
+        // X button: Full shooting sequence
+        if(gamepad2.x && !gp2_xPressed) {
+            gp2_xPressed = true;
+            actuator.justShootAsync();
+        }
+        if(!gamepad2.x) gp2_xPressed = false;
 
         // Left Bumper: Toggle Outtake
         if (gamepad2.left_bumper && !gp2_lbPressed) {
@@ -249,8 +259,6 @@ public class MinervaTeleOp extends OpMode {
         if (outtakeOn) {
             actuator.runOuttake(outtakeSpeed);
         }
-
-        // Right Bumper is now unused for feeding
 
         // Left Joystick: Control Intake
         if (Math.abs(gamepad2.left_stick_y) > 0.5) { // Joystick is being used
@@ -279,6 +287,7 @@ public class MinervaTeleOp extends OpMode {
                 .setLinearHeadingInterpolation(currentPose.getHeading(), currentTargetPose.getHeading())
                 .build();
 
+        follower.setMaxPower(1.0);
         follower.followPath(autoPath, false);
         autoNavigating = true;
         autoNavStartTime = System.currentTimeMillis();
@@ -286,6 +295,7 @@ public class MinervaTeleOp extends OpMode {
 
     private void cancelAutoNavigation() {
         follower.breakFollowing();
+        follower.setMaxPower(1.0); // Reset to default
         autoNavigating = false;
         currentTargetPose = null;
         setManualDrive(0,0,0);
