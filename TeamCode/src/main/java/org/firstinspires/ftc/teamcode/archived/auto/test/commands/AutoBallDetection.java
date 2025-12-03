@@ -18,7 +18,7 @@ public class AutoBallDetection implements Command {
     private final ActuatorSubsystem actuator;
     private boolean initialized = false;
     private long startTime = 0;
-    private static final long TIMEOUT_MS = 3500; // 3 seconds timeout
+    private static final long TIMEOUT_MS = 3000; // 3 seconds timeout
 
     public AutoBallDetection(ActuatorSubsystem actuator) {
         this.actuator = actuator;
@@ -58,8 +58,8 @@ public class AutoBallDetection implements Command {
     @Override
     public void end(boolean interrupted) {
         // Ensure intake is stopped when command ends
-        if (!interrupted) {
-            actuator.stopIntake();
-        }
+//        if (!interrupted) {
+//            actuator.stopIntake();
+//        }
     }
 }

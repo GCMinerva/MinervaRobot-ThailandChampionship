@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.archived.auto.test.opmodes;
+package org.firstinspires.ftc.teamcode.archived.auto.test.opmodes.Blue;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
@@ -30,7 +30,7 @@ public class BlueFar12Art extends OpModeCommand {
         private TurretSubsystem turret;
 
         // Starting pose
-        private final Pose startPose = new Pose(110.5, 129.5, Math.toRadians(90)).mirror();
+        private final Pose startPose = new Pose(107.5, 126.5, Math.toRadians(90)).mirror();
 
         @Override
         public void initialize() {
@@ -134,9 +134,7 @@ public class BlueFar12Art extends OpModeCommand {
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.runIntake())),
                                                                                                 // At 90% sorter IN1
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.40)
+                                                                                                new WaitCommand(400)
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.setSorterIN1())))),
 
@@ -224,7 +222,7 @@ public class BlueFar12Art extends OpModeCommand {
                                                                                                                                 () -> actuator.setSorterIN1())))),
 
                                                 // Path 7: Continue to second sample
-                                                new FollowPath(follower, path7).setMaxPower(0.22)
+                                                new FollowPath(follower, path7).setMaxPower(0.25)
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
                                                                                                 // Start automatic ball
@@ -248,8 +246,9 @@ public class BlueFar12Art extends OpModeCommand {
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
                                                                                                 // At 10% stop intake
-                                                                                                new InstantCommand(
-                                                                                                                () -> actuator.MidGoready()),
+                                                                                                new WaitCommand(500)
+                                                                                                                .andThen(new InstantCommand(
+                                                                                                                                () -> actuator.MidGoready())),
 
                                                                                                 new WaitCommand(500)
                                                                                                                 .andThen(new InstantCommand(
@@ -266,7 +265,7 @@ public class BlueFar12Art extends OpModeCommand {
                                                                 .andThen(new InstantCommand(() -> actuator.MidGO())),
 
                                                 new InstantCommand(() -> follower.breakFollowing()),
-                                                new WaitCommand(150),
+                                                new WaitCommand(300),
 
                                                 new FollowPath(follower, path9).setMaxPower(1.0)
                                                                 .alongWith(
@@ -290,7 +289,7 @@ public class BlueFar12Art extends OpModeCommand {
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.setSorterIN1())))),
 
-                                                new FollowPath(follower, path10).setMaxPower(0.29)
+                                                new FollowPath(follower, path10).setMaxPower(0.25)
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
                                                                                                 // Start automatic ball
@@ -312,10 +311,11 @@ public class BlueFar12Art extends OpModeCommand {
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
                                                                                                 // At 10% stop intake
-                                                                                                new InstantCommand(
-                                                                                                                () -> actuator.NearGOready()),
+                                                                                                new WaitCommand(700)
+                                                                                                                .andThen(new InstantCommand(
+                                                                                                                                () -> actuator.NearGOready())),
 
-                                                                                                new WaitCommand(500)
+                                                                                                new WaitCommand(300)
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.stopIntake()))
 
@@ -337,7 +337,7 @@ public class BlueFar12Art extends OpModeCommand {
                                                                                 .holdPoint(follower.getPose())))
 
                                 /*
-                                 * 
+                                 *
                                  * // Path 10: Continue to third sample
                                  * new FollowPath(follower, path10).setMaxPower(0.25)
                                  * .alongWith(
@@ -409,7 +409,7 @@ public class BlueFar12Art extends OpModeCommand {
         private PathChain buildPath1() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(110.5, 129.5).mirror(),
+                                                new Pose(107.5, 126.5).mirror(),
                                                 new Pose(93.35, 94.5).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(128))
                                 .build();
@@ -420,7 +420,7 @@ public class BlueFar12Art extends OpModeCommand {
                                 .addPath(new BezierCurve(
                                                 new Pose(93.35, 94.5).mirror(),
                                                 new Pose(92.923, 84.321).mirror(),
-                                                new Pose(100.512, 83.335).mirror()))
+                                                new Pose(100.512, 81.335).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(132), Math.toRadians(178))
                                 .build();
         }
@@ -428,8 +428,8 @@ public class BlueFar12Art extends OpModeCommand {
         private PathChain buildPath3() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(100.512, 83.335).mirror(),
-                                                new Pose(117.971, 83.246).mirror()))
+                                                new Pose(100.512, 81.335).mirror(),
+                                                new Pose(117.971, 81.246).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(178))
                                 .build();
         }
@@ -437,10 +437,10 @@ public class BlueFar12Art extends OpModeCommand {
         private PathChain buildPath4() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
-                                                new Pose(117.971, 85.246).mirror(),
+                                                new Pose(117.971, 81.246).mirror(),
                                                 new Pose(121.17812061711079, 81.99719495091163).mirror(),
                                                 new Pose(117.94670406732118, 74.12061711079943).mirror(),
-                                                new Pose(127.602, 71.00).mirror()))
+                                                new Pose(123.602, 71.00).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(85))
                                 .build();
         }
@@ -448,18 +448,18 @@ public class BlueFar12Art extends OpModeCommand {
         private PathChain buildPath5() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(127.602, 70.00).mirror(),
-                                                new Pose(93.35, 86).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(140))
+                                                new Pose(123.602, 71.00).mirror(),
+                                                new Pose(93.35, 85).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(143.5))
                                 .build();
         }
 
         private PathChain buildPath6() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
-                                                new Pose(93.35, 86).mirror(),
+                                                new Pose(93.35, 85).mirror(),
                                                 new Pose(88.174, 59.948).mirror(),
-                                                new Pose(102.332, 61.320).mirror()))
+                                                new Pose(100.332, 57.320).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(138), Math.toRadians(180))
                                 .build();
         }
@@ -467,8 +467,8 @@ public class BlueFar12Art extends OpModeCommand {
         private PathChain buildPath7() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(102.332, 61.320).mirror(),
-                                                new Pose(123, 61.320).mirror()))
+                                                new Pose(100.332, 57.320).mirror(),
+                                                new Pose(123, 57.320).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                                 .build();
         }
@@ -476,9 +476,9 @@ public class BlueFar12Art extends OpModeCommand {
         private PathChain buildPath8() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(123, 61.320).mirror(),
+                                                new Pose(123, 54.320).mirror(),
                                                 new Pose(93.5, 86).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(136))
+                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
                                 .build();
         }
 
@@ -487,7 +487,7 @@ public class BlueFar12Art extends OpModeCommand {
                                 .addPath(new BezierCurve(
                                                 new Pose(93.5, 86).mirror(),
                                                 new Pose(93.71107994389902, 46.451612903225815).mirror(),
-                                                new Pose(103.795, 38.216).mirror()))
+                                                new Pose(100.795, 34.216).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(132), Math.toRadians(180))
                                 .build();
         }
@@ -495,8 +495,8 @@ public class BlueFar12Art extends OpModeCommand {
         private PathChain buildPath10() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(103.795, 38.216).mirror(),
-                                                new Pose(120.254, 38.306).mirror()))
+                                                new Pose(100.795, 34.216).mirror(),
+                                                new Pose(120.254, 34.306).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                                 .build();
         }
@@ -505,15 +505,15 @@ public class BlueFar12Art extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
                                                 new Pose(120.254, 34.306).mirror(),
-                                                new Pose(93.35, 86).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(136))
+                                                new Pose(93.35, 85).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
                                 .build();
         }
 
         private PathChain buildPath12() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(93.35, 86).mirror(),
+                                                new Pose(93.35, 85).mirror(),
                                                 new Pose(100, 76).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(136))
                                 .build();

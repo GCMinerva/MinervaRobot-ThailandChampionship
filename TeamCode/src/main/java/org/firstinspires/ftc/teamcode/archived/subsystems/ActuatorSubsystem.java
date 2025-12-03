@@ -346,28 +346,29 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
+            runOuttake(-0.66);
 
             setSorterP2();
             sleep(0.62); // Medium wait - P3 to P2 distance
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.63);
+            runOuttake(-0.68);
 
             setSorterP1();
-            sleep(0.3); // Longer wait - P2 to P1 is farther distance
+            sleep(0.33); // Longer wait - P2 to P1 is farther distance
             feedBall(0.3);
 
         } else if (tag == 22) {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.64);
+            runOuttake(-0.63);
 
             setSorterP3();
             sleep(0.27); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.65);
+            runOuttake(-0.63);
 
             setSorterP2();
             sleep(0.6); // Wait for sorter to move to P3
@@ -437,12 +438,13 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.61);
+            runOuttake(-0.64);
 
             setSorterP3();
             sleep(0.6); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
+            runOuttake(-0.64);
 
             setSorterP1();
             sleep(0.5); // Wait for sorter to move to P3
@@ -531,13 +533,13 @@ public class ActuatorSubsystem {
             runOuttake(-0.65);
 
             setSorterP2();
-            sleep(0.32); // Wait for sorter to move to P3
+            sleep(0.35); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
             runOuttake(-0.62);
 
             setSorterP3();
-            sleep(0.44); // Wait for sorter to move to P3
+            sleep(0.5); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
 //            sleep(0.45);
 

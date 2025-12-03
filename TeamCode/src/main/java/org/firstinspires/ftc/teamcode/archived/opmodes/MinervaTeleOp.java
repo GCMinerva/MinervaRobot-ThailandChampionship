@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.opmodes;
+package org.firstinspires.ftc.teamcode.archived.opmodes;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
@@ -7,14 +7,15 @@ import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
 import org.firstinspires.ftc.teamcode.archived.subsystems.ActuatorSubsystem;
 import org.firstinspires.ftc.teamcode.archived.subsystems.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.util.TeleOpBallDetector;
 
-@TeleOp(name="MinervaTeleOp V2")
+@TeleOp(name = "MinervaTeleOp V2")
 public class MinervaTeleOp extends OpMode {
     private Follower follower;
     private ActuatorSubsystem actuator;
@@ -22,7 +23,11 @@ public class MinervaTeleOp extends OpMode {
     private TeleOpBallDetector ballDetector;
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
+    private Servo lifter, lifter1;
     private double speedMultiplier = 1.0;
+    private double lifterPos = 1.0;
+    private boolean gp1_dpad_up_pressed = false;
+    private boolean liftAct = false;
 
     private boolean autoNavigating = false;
     private PathChain autoPath;
@@ -40,10 +45,12 @@ public class MinervaTeleOp extends OpMode {
     private boolean gp1_bPressed = false;
     private boolean gp1_rbPressed = false;
     private boolean gp1_xPressed = false;
+    private boolean gp1_dpad_left_pressed = false;
+    private boolean turretTrackingEnabled = true;
 
     private int outtakeSorterPosition = 1;
     private boolean outtakeOn = false;
-    private double outtakeSpeed = -0.5; // Default outtake speed
+    private double outtakeSpeed = -0.62; // Default outtake speed
     private boolean gp2_ltPressed = false;
     private boolean gp2_rtPressed = false;
     private boolean gp2_lbPressed = false;
@@ -60,15 +67,21 @@ public class MinervaTeleOp extends OpMode {
         follower.setStartingPose(startPose);
         actuator = new ActuatorSubsystem(hardwareMap, telemetry);
         turret = new TurretSubsystem(hardwareMap);
-        turret.setGoalPosition(135, 135);
+        turret.setGoalPosition(0, 144);
         ballDetector = new TeleOpBallDetector(actuator);
 
-        actuator.closeBin();
+        actuator.openBin();
 
         frontLeft = hardwareMap.get(DcMotor.class, "fl");
         frontRight = hardwareMap.get(DcMotor.class, "fr");
         backLeft = hardwareMap.get(DcMotor.class, "bl");
         backRight = hardwareMap.get(DcMotor.class, "br");
+
+        lifter = hardwareMap.get(Servo.class, "lifter");
+        lifter1 = hardwareMap.get(Servo.class, "lifter1");
+
+        lifter.setPosition(1);
+        lifter1.setPosition(0);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -90,7 +103,7 @@ public class MinervaTeleOp extends OpMode {
 
     @Override
     public void start() {
-        actuator.closeBin();
+        actuator.openBin();
     }
 
     @Override
@@ -98,7 +111,7 @@ public class MinervaTeleOp extends OpMode {
         follower.update();
         Pose currentPose = follower.getPose();
 
-        if (currentPose != null) {
+        if (currentPose != null && turretTrackingEnabled) {
             turret.update(currentPose);
         }
 
@@ -135,7 +148,8 @@ public class MinervaTeleOp extends OpMode {
         double strafeSpeed = gamepad1.left_stick_x;
         double turnSpeed = gamepad1.right_stick_x;
 
-        boolean joystickActive = Math.abs(forwardSpeed) > 0.1 || Math.abs(strafeSpeed) > 0.1 || Math.abs(turnSpeed) > 0.1;
+        boolean joystickActive = Math.abs(forwardSpeed) > 0.1 || Math.abs(strafeSpeed) > 0.1
+                || Math.abs(turnSpeed) > 0.1;
 
         if (autoNavigating) {
             if (joystickActive || (System.currentTimeMillis() - autoNavStartTime) > AUTO_NAV_TIMEOUT_MS) {
@@ -149,7 +163,8 @@ public class MinervaTeleOp extends OpMode {
                 cancelAutoNavigation();
             }
         }
-        if (!gamepad1.right_bumper) gp1_rbPressed = false;
+        if (!gamepad1.right_bumper)
+            gp1_rbPressed = false;
 
         if (!autoNavigating) {
             setManualDrive(forwardSpeed, strafeSpeed, turnSpeed);
@@ -159,40 +174,79 @@ public class MinervaTeleOp extends OpMode {
             gp1_yPressed = true;
             startAutoNavigation(currentPose, targetPoseY);
         }
-        if (!gamepad1.y) gp1_yPressed = false;
+        if (!gamepad1.y)
+            gp1_yPressed = false;
 
         if (gamepad1.x && !gp1_xPressed && currentPose != null) {
             gp1_xPressed = true;
             startAutoNavigation(currentPose, targetPoseX);
         }
-        if (!gamepad1.x) gp1_xPressed = false;
+        if (!gamepad1.x)
+            gp1_xPressed = false;
 
         if (gamepad1.a && !gp1_aPressed && currentPose != null) {
             gp1_aPressed = true;
             startAutoNavigation(currentPose, targetPoseA);
         }
-        if (!gamepad1.a) gp1_aPressed = false;
+        if (!gamepad1.a)
+            gp1_aPressed = false;
 
         if (gamepad1.b && !gp1_bPressed) {
             gp1_bPressed = true;
             speedMultiplier = (speedMultiplier == 1.0) ? 0.5 : 1.0;
         }
-        if (!gamepad1.b) gp1_bPressed = false;
+        if (!gamepad1.b)
+            gp1_bPressed = false;
+
+        // Lifter control with dpad_up
+        if (gamepad1.dpad_up && !gp1_dpad_up_pressed) {
+            gp1_dpad_up_pressed = true;
+            liftAct = !liftAct;
+
+            if (liftAct) {
+                lifterPos = 0; // Lift up
+            } else {
+                lifterPos = 1; // Lower down
+            }
+        }
+        if (!gamepad1.dpad_up)
+            gp1_dpad_up_pressed = false;
+
+        // Clamp lifter position and update servos
+        lifterPos = Range.clip(lifterPos, 0, 1);
+        lifter.setPosition(lifterPos);
+        lifter1.setPosition(1 - lifterPos);
+
+        // Turret tracking toggle with dpad_left
+        if (gamepad1.dpad_left && !gp1_dpad_left_pressed) {
+            gp1_dpad_left_pressed = true;
+            turretTrackingEnabled = !turretTrackingEnabled;
+
+            if (!turretTrackingEnabled) {
+                // Disable tracking - turn turret to 0 degrees (robot heading)
+                turret.turnToAngle(0);
+            }
+            // If enabling tracking, the turret.update() in loop() will handle it
+        }
+        if (!gamepad1.dpad_left)
+            gp1_dpad_left_pressed = false;
     }
 
     private void handleGamepad2() {
         // D-pad for outtake speed control
         if (gamepad2.dpad_up && !gp2_dpad_up_pressed) {
             gp2_dpad_up_pressed = true;
-            outtakeSpeed = Math.max(-1.0, outtakeSpeed - 0.05);
+            outtakeSpeed = Math.max(-1.0, outtakeSpeed - 0.01);
         }
-        if (!gamepad2.dpad_up) gp2_dpad_up_pressed = false;
+        if (!gamepad2.dpad_up)
+            gp2_dpad_up_pressed = false;
 
         if (gamepad2.dpad_down && !gp2_dpad_down_pressed) {
             gp2_dpad_down_pressed = true;
-            outtakeSpeed = Math.min(0.0, outtakeSpeed + 0.05);
+            outtakeSpeed = Math.min(0.0, outtakeSpeed + 0.01);
         }
-        if (!gamepad2.dpad_down) gp2_dpad_down_pressed = false;
+        if (!gamepad2.dpad_down)
+            gp2_dpad_down_pressed = false;
 
         // Left Trigger: Toggle Auto Ball Detection
         if (gamepad2.left_trigger > 0.1 && !gp2_ltPressed) {
@@ -205,7 +259,8 @@ public class MinervaTeleOp extends OpMode {
                 ballDetector.stop();
             }
         }
-        if (gamepad2.left_trigger < 0.1) gp2_ltPressed = false;
+        if (gamepad2.left_trigger < 0.1)
+            gp2_ltPressed = false;
 
         if (autoBallDetectionEnabled) {
             ballDetector.update();
@@ -240,15 +295,17 @@ public class MinervaTeleOp extends OpMode {
             }
             actuator.singleShotSequence();
         }
-        if (gamepad2.right_trigger < 0.1) gp2_rtPressed = false;
+        if (gamepad2.right_trigger < 0.1)
+            gp2_rtPressed = false;
 
         // X button: Full shooting sequence
-        if(gamepad2.x && !gp2_xPressed) {
+        if (gamepad2.x && !gp2_xPressed) {
             gp2_xPressed = true;
             outtakeOn = true;
             actuator.justShootAsync();
         }
-        if(!gamepad2.x) gp2_xPressed = false;
+        if (!gamepad2.x)
+            gp2_xPressed = false;
 
         // Left Bumper: Toggle Outtake
         if (gamepad2.left_bumper && !gp2_lbPressed) {
@@ -260,7 +317,8 @@ public class MinervaTeleOp extends OpMode {
                 actuator.stopOuttake();
             }
         }
-        if (!gamepad2.left_bumper) gp2_lbPressed = false;
+        if (!gamepad2.left_bumper)
+            gp2_lbPressed = false;
 
         // if outtake is on, keep setting the power to the current speed
         if (outtakeOn) {
@@ -289,8 +347,7 @@ public class MinervaTeleOp extends OpMode {
         autoPath = follower.pathBuilder()
                 .addPath(new BezierLine(
                         new Pose(currentPose.getX(), currentPose.getY(), currentPose.getHeading()),
-                        currentTargetPose
-                ))
+                        currentTargetPose))
                 .setLinearHeadingInterpolation(currentPose.getHeading(), currentTargetPose.getHeading())
                 .build();
 
@@ -305,7 +362,7 @@ public class MinervaTeleOp extends OpMode {
         follower.setMaxPower(1.0); // Reset to default
         autoNavigating = false;
         currentTargetPose = null;
-        setManualDrive(0,0,0);
+        setManualDrive(0, 0, 0);
     }
 
     private void setManualDrive(double forward, double strafe, double turn) {

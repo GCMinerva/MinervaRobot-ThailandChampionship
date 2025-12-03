@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.archived.auto.test.opmodes;
+package org.firstinspires.ftc.teamcode.archived.auto.test.opmodes.Red;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
