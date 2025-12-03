@@ -292,6 +292,31 @@ public class ActuatorSubsystem {
 
     }
 
+    public void justShootFAR() {
+
+        int tag = GlobalData.detectedTagId;
+
+        setSorterP3();
+        sleep(0.2); // Wait for sorter to move to P3
+        feedBall(0.3); // Feed ball (non-blocking)
+        sleep(0.45); // Wait before next position
+        runOuttake(-0.96);
+
+        setSorterP1();
+        sleep(0.33); // Medium wait - P3 to P2 distance
+        feedBall(0.3); // Feed ball (non-blocking)
+        sleep(0.45); // Wait before next position
+        runOuttake(-0.86);
+
+        setSorterP2();
+        sleep(0.3); // Longer wait - P2 to P1 is farther distance
+        feedBall(0.3); // Feed ball (non-blocking)
+        sleep(0.1);
+        // telemetry.addLine("Invalid Tag for Just shoot");
+        // telemetry.update();
+
+    }
+
     // === FarGO Function ===
     public void FarGOready() {
 
