@@ -54,7 +54,6 @@ public class IntakeSorterSubsystem {
      */
     public IntakeSorterSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
-
         // Initialize hardware
         intake = hardwareMap.get(DcMotor.class, "intake");
         sorter = hardwareMap.get(Servo.class, "sorter");
