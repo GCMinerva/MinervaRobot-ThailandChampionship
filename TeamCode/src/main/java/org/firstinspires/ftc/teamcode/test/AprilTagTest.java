@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.test;
 
 import android.util.Size;
+
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -13,7 +15,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import java.util.List;
-
+@Disabled
 @TeleOp(name = "AprilTag Test", group = "Test")
 public class AprilTagTest extends LinearOpMode {
 

@@ -205,14 +205,14 @@ public class RobotHardwareConfig {
         public static final double HEADING_F = 0.005;
 
         // Drive PIDF (filtered)
-        public static final double DRIVE_P = 0.4;
+        public static final double DRIVE_P = 0.5;
         public static final double DRIVE_I = 0;
         public static final double DRIVE_D = 0.0001;
         public static final double DRIVE_F = 0.07;
         public static final double DRIVE_FILTER_DECAY = 0.75;
 
         // Centripetal scaling
-        public static final double CENTRIPETAL_SCALING = 0.0005;
+        public static final double CENTRIPETAL_SCALING = 0.0003;
     }
 
     /** Path Following Constraints */

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -29,6 +30,7 @@ import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
  * - Encoder position (ticks)
  * - Current goal position
  */
+@Disabled
 @TeleOp(name = "Turret TeleOp Test", group = "Test")
 public class TurretTeleOpTest extends LinearOpMode {
 

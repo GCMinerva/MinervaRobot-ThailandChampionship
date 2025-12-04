@@ -541,7 +541,7 @@ public class ActuatorSubsystem {
             setSorterP3();
             sleep(0.5); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
-//            sleep(0.45);
+            // sleep(0.45);
 
         } else if (tag == 22) {
             sleep(0.1);
@@ -558,7 +558,7 @@ public class ActuatorSubsystem {
             setSorterP3();
             sleep(0.25); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
-//            sleep(0.45);
+            // sleep(0.45);
 
         } else if (tag == 23) {
             sleep(0.1);
@@ -640,14 +640,14 @@ public class ActuatorSubsystem {
     public void singleShotSequence() {
         new Thread(() -> {
             try {
-                Thread.sleep(420); // wait 0.2s
-                
+                Thread.sleep(600); // wait 0.2s
+
                 // This is the content of feedBall, but made blocking for this sequence
                 closeBin();
                 Thread.sleep(420); // feedBall(0.3)
                 openBin();
 
-                Thread.sleep(420); // wait 0.45s
+                Thread.sleep(400); // wait 0.45s
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

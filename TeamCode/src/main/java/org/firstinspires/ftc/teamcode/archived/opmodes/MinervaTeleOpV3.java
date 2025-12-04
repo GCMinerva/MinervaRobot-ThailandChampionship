@@ -11,15 +11,18 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.archived.subsystems.ActuatorSubsystem;
-import org.firstinspires.ftc.teamcode.archived.subsystems.TurretSubsystem;
+import org.firstinspires.ftc.teamcode.archived.subsystems.TurretAprilTagSubsystem;
+import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.util.TeleOpBallDetector;
+import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
 
-@TeleOp(name = "MinervaTeleOp V2")
-public class MinervaTeleOp extends OpMode {
+@TeleOp(name = "MinervaTeleOp V3")
+public class MinervaTeleOpV3 extends OpMode {
     private Follower follower;
     private ActuatorSubsystem actuator;
-    private TurretSubsystem turret;
+    private TurretAprilTagSubsystem turretAprilTag;
+    private DcMotor turret;
     private TeleOpBallDetector ballDetector;
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
@@ -34,10 +37,18 @@ public class MinervaTeleOp extends OpMode {
     private long autoNavStartTime = 0;
     private final long AUTO_NAV_TIMEOUT_MS = 5000;
 
+    // RED GOAL
     private final Pose startPose = new Pose(110, 129.5, Math.toRadians(90));
-    private final Pose targetPoseX = new Pose(64, 16, Math.toRadians(60));
-    private final Pose targetPoseY = new Pose(71.7, 67.1, Math.toRadians(132.2));
-    private final Pose targetPoseA = new Pose(39, 34, Math.toRadians(90));
+    private final Pose targetPoseX = new Pose(80, 16, Math.toRadians(65));
+    private final Pose targetPoseY = new Pose(73.91865357643759, 90.68162692847125, Math.toRadians(38));
+    private final Pose targetPoseA = new Pose(105.4249649368864, 41.20056100981767, Math.toRadians(90));
+
+    // BLUE GOAL
+    // private final Pose startPose = new Pose(110, 129.5, Math.toRadians(90));
+    // private final Pose targetPoseX = new Pose(64, 16, Math.toRadians(65));
+    // private final Pose targetPoseY = new Pose(73.7, 90.1, Math.toRadians(142));
+    // private final Pose targetPoseA = new Pose(38.57503506311361, 39.382889200561,
+    // Math.toRadians(90));
     private Pose currentTargetPose = null;
 
     private boolean gp1_yPressed = false;
@@ -47,6 +58,15 @@ public class MinervaTeleOp extends OpMode {
     private boolean gp1_xPressed = false;
     private boolean gp1_dpad_left_pressed = false;
     private boolean turretTrackingEnabled = true;
+
+    // Turret configuration
+    private int targetAprilTagId = 24; // Default: Tag 24 (Red goal)
+    // private int targetAprilTagId = 20; // Default: Tag 20 (Blue goal)
+    private double turretStartingAngle = 0.0; // Starting angle
+    private static final double TICKS_PER_DEGREE = 6.208;
+    private static final double MIN_ANGLE = -90.0;
+    private static final double MAX_ANGLE = 90.0;
+    private static final double TRACKING_POWER = 0.55;
 
     private int outtakeSorterPosition = 1;
     private boolean outtakeOn = false;
@@ -59,15 +79,50 @@ public class MinervaTeleOp extends OpMode {
     private boolean gp2_dpad_down_pressed = false;
     private boolean autoBallDetectionEnabled = false;
     private boolean joystickIntakeOverride = false;
-    private boolean gp2_xPressed = false;
+
+    // Right trigger cooldown timer
+    private long lastShootTime = 0;
+    private static final long SHOOT_COOLDOWN_MS = 1400; // 1.4 seconds cooldown
+
+    // Smart sorter cycling variables
+    private int ballCount = 0;
+    private boolean[] slotFilled = { false, false, false }; // P1, P2, P3
+    private int[] shootingOrder = new int[3]; // Dynamic shooting order
+    private int shootingOrderLength = 0;
+    private int currentShootIndex = 0;
 
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(startPose);
+
+        // Use autonomous end pose if available, otherwise use default startPose
+        Pose initialPose = startPose;
+        if (GlobalData.hasAutonomousRun && GlobalData.autonomousEndPose != null) {
+            initialPose = GlobalData.autonomousEndPose;
+            telemetry.addData("✅ Using Autonomous End Pose", "");
+            telemetry.addData("X", "%.2f", initialPose.getX());
+            telemetry.addData("Y", "%.2f", initialPose.getY());
+            telemetry.addData("Heading", "%.2f°", Math.toDegrees(initialPose.getHeading()));
+        } else {
+            telemetry.addData("ℹ️ Using Default Start Pose", "");
+        }
+        telemetry.update();
+
+        follower.setStartingPose(initialPose);
         actuator = new ActuatorSubsystem(hardwareMap, telemetry);
-        turret = new TurretSubsystem(hardwareMap);
-        turret.setGoalPosition(0, 144);
+
+        // Initialize AprilTag turret
+        turretAprilTag = new TurretAprilTagSubsystem(hardwareMap, telemetry);
+        turretAprilTag.setTargetTagId(targetAprilTagId);
+
+        // Initialize turret motor
+        turret = hardwareMap.get(DcMotor.class, "turret");
+        turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turret.setTargetPosition(0);
+        turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        turret.setPower(0.0);
+
         ballDetector = new TeleOpBallDetector(actuator);
 
         actuator.openBin();
@@ -83,7 +138,11 @@ public class MinervaTeleOp extends OpMode {
         lifter.setPosition(1);
         lifter1.setPosition(0);
 
+        // Set turret to starting angle
+        setTurretAngle(turretStartingAngle);
+
         telemetry.addData("Status", "Initialized");
+        telemetry.addData("Turret Target Tag", targetAprilTagId);
         telemetry.update();
     }
 
@@ -111,8 +170,9 @@ public class MinervaTeleOp extends OpMode {
         follower.update();
         Pose currentPose = follower.getPose();
 
-        if (currentPose != null && turretTrackingEnabled) {
-            turret.update(currentPose);
+        // Update AprilTag turret tracking
+        if (turretTrackingEnabled) {
+            updateTurretTracking();
         }
 
         // Gamepad 1 controls
@@ -140,6 +200,15 @@ public class MinervaTeleOp extends OpMode {
 
         telemetry.addData("Auto Ball Detection", autoBallDetectionEnabled ? "Running" : "Idle");
         telemetry.addData("Outtake Speed", "%.2f", Math.abs(outtakeSpeed));
+
+        // Smart sorter status (show in shooting order: P2, P1, P3)
+        String slotStatus = String.format("P2:%s P1:%s P3:%s",
+                slotFilled[1] ? "●" : "○",
+                slotFilled[0] ? "●" : "○",
+                slotFilled[2] ? "●" : "○");
+        telemetry.addData("Ball Count", ballCount);
+        telemetry.addData("Slots (Shoot Order)", slotStatus);
+
         telemetry.update();
     }
 
@@ -223,13 +292,22 @@ public class MinervaTeleOp extends OpMode {
             turretTrackingEnabled = !turretTrackingEnabled;
 
             if (!turretTrackingEnabled) {
-                // Disable tracking - turn turret to 0 degrees (robot heading)
-                turret.turnToAngle(0);
+                // Disable tracking - turn turret to 0 degrees
+                setTurretAngle(0);
             }
-            // If enabling tracking, the turret.update() in loop() will handle it
         }
         if (!gamepad1.dpad_left)
             gp1_dpad_left_pressed = false;
+
+        // Switch target tag with dpad_right (Red/Blue goal)
+        if (gamepad1.dpad_right) {
+            targetAprilTagId = (targetAprilTagId == 24) ? 20 : 24;
+            turretAprilTag.setTargetTagId(targetAprilTagId);
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+            }
+        }
     }
 
     private void handleGamepad2() {
@@ -264,48 +342,76 @@ public class MinervaTeleOp extends OpMode {
 
         if (autoBallDetectionEnabled) {
             ballDetector.update();
+            // Sync ball count from auto detector (cap at 3 max)
+            int detectedCount = actuator.getBallCount();
+            if (detectedCount != ballCount) {
+                ballCount = Math.min(3, detectedCount); // Cap at 3 balls maximum
+                updateSlotStatus(ballCount);
+            }
         }
 
-        // Right Trigger: Cycle Sorter Outtake Position and cycle bin
+        // Right Trigger: Smart Cycle Sorter - only shoot from filled slots
         if (gamepad2.right_trigger > 0.1 && !gp2_rtPressed) {
             gp2_rtPressed = true;
-            outtakeOn = true;
 
-            // Disable auto ball detection
-            if (autoBallDetectionEnabled) {
-                autoBallDetectionEnabled = false;
-                ballDetector.stop();
-            }
-            joystickIntakeOverride = false;
+            // Check cooldown timer
+            long currentTime = System.currentTimeMillis();
+            long timeSinceLastShot = currentTime - lastShootTime;
 
-            outtakeSorterPosition++;
-            if (outtakeSorterPosition > 3) {
-                outtakeSorterPosition = 1;
+            if (timeSinceLastShot < SHOOT_COOLDOWN_MS) {
+                // Still in cooldown period - ignore trigger press
+                long remainingCooldown = (SHOOT_COOLDOWN_MS - timeSinceLastShot) / 1000;
+                telemetry.addData("⏱️ Cooldown", "%ds remaining", remainingCooldown);
+                telemetry.update();
+                return;
             }
-            switch (outtakeSorterPosition) {
-                case 1:
-                    actuator.setSorterP1();
-                    break;
-                case 2:
-                    actuator.setSorterP2();
-                    break;
-                case 3:
-                    actuator.setSorterP3();
-                    break;
+
+            // Check if there are any balls to shoot
+            if (ballCount == 0) {
+                // No balls to shoot - do nothing
+                return;
             }
-            actuator.singleShotSequence();
+
+            // Get next filled slot from shooting order
+            int nextSlot = getNextFilledSlot();
+
+            if (nextSlot != -1) {
+                outtakeOn = true;
+
+                // Disable auto ball detection
+                if (autoBallDetectionEnabled) {
+                    autoBallDetectionEnabled = false;
+                    ballDetector.stop();
+                }
+                joystickIntakeOverride = false;
+
+                // Set sorter to the next filled slot
+                switch (nextSlot) {
+                    case 1:
+                        actuator.setSorterP1();
+                        break;
+                    case 2:
+                        actuator.setSorterP2();
+                        break;
+                    case 3:
+                        actuator.setSorterP3();
+                        break;
+                }
+
+                actuator.singleShotSequence();
+
+                // Decrease ball count after shooting
+                ballCount = Math.max(0, ballCount - 1);
+
+                // Mark the specific slot as empty
+                slotFilled[nextSlot - 1] = false;
+
+                // Update last shoot time for cooldown
+                lastShootTime = currentTime;
+            }
         }
         if (gamepad2.right_trigger < 0.1)
             gp2_rtPressed = false;
-
-        // X button: Full shooting sequence
-        if (gamepad2.x && !gp2_xPressed) {
-            gp2_xPressed = true;
-            outtakeOn = true;
-            actuator.justShootAsync();
-        }
-        if (!gamepad2.x)
-            gp2_xPressed = false;
 
         // Left Bumper: Toggle Outtake
         if (gamepad2.left_bumper && !gp2_lbPressed) {
@@ -387,18 +493,168 @@ public class MinervaTeleOp extends OpMode {
         backRight.setPower(backRightPower);
     }
 
+    /**
+     * Update AprilTag turret tracking
+     */
+    private void updateTurretTracking() {
+        turretAprilTag.update();
+
+        if (turretAprilTag.isTagDetected()) {
+            // Get bearing angle from AprilTag
+            double bearing = turretAprilTag.getBearingDegrees();
+
+            // Get current turret angle from encoder
+            int currentTicks = turret.getCurrentPosition();
+            double currentAngle = currentTicks / TICKS_PER_DEGREE;
+
+            // Calculate target angle (invert bearing to fix direction)
+            double targetAngle = currentAngle - bearing;
+
+            // Set turret to target angle (with limits)
+            setTurretAngle(targetAngle);
+        } else {
+            // No tag detected, hold current position
+            turret.setPower(0.1);
+        }
+    }
+
+    /**
+     * Set turret to specific angle using encoder ticks
+     * 
+     * @param angleDegrees Target angle in degrees (-90 to +90)
+     */
+    private void setTurretAngle(double angleDegrees) {
+        // Clamp to physical limits
+        double clampedAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, angleDegrees));
+
+        // Convert to encoder ticks
+        int targetTicks = (int) (clampedAngle * TICKS_PER_DEGREE);
+
+        // Ensure we're in RUN_TO_POSITION mode
+        if (turret.getMode() != DcMotor.RunMode.RUN_TO_POSITION) {
+            turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        }
+
+        // Set target position
+        turret.setTargetPosition(targetTicks);
+        turret.setPower(TRACKING_POWER);
+    }
+
     @Override
     public void stop() {
         if (actuator != null) {
             actuator.stopIntake();
             actuator.stopOuttake();
         }
+        if (turretAprilTag != null) {
+            turretAprilTag.stop();
+        }
         if (turret != null) {
-            turret.stop();
+            turret.setPower(0);
         }
         frontLeft.setPower(0);
         frontRight.setPower(0);
         backLeft.setPower(0);
         backRight.setPower(0);
+    }
+
+    // ===== Smart Sorter Cycling Helper Methods =====
+
+    /**
+     * Update slot status based on ball count
+     * 1 ball -> P1 filled
+     * 2 balls -> P1, P2 filled
+     * >= 3 balls -> P1, P2, P3 filled
+     */
+    private void updateSlotStatus(int count) {
+        // Reset all slots
+        slotFilled[0] = false;
+        slotFilled[1] = false;
+        slotFilled[2] = false;
+
+        // Fill slots based on count
+        if (count >= 1) {
+            slotFilled[0] = true; // P1
+        }
+        if (count >= 2) {
+            slotFilled[1] = true; // P2
+        }
+        if (count >= 3) {
+            slotFilled[2] = true; // P3
+        }
+
+        // Rebuild shooting order
+        buildShootingOrder();
+    }
+
+    /**
+     * Build shooting order based on filled slots
+     * >= 3 balls: P2 -> P1 -> P3
+     * 2 balls: P2 -> P1
+     * 1 ball: P1
+     */
+    private void buildShootingOrder() {
+        shootingOrderLength = 0;
+        currentShootIndex = 0;
+
+        if (ballCount >= 3) {
+            // Order: P2, P1, P3
+            shootingOrder[0] = 2;
+            shootingOrder[1] = 1;
+            shootingOrder[2] = 3;
+            shootingOrderLength = 3;
+        } else if (ballCount == 2) {
+            // Order: P2, P1
+            shootingOrder[0] = 2;
+            shootingOrder[1] = 1;
+            shootingOrderLength = 2;
+        } else if (ballCount == 1) {
+            // Order: P1
+            shootingOrder[0] = 1;
+            shootingOrderLength = 1;
+        }
+    }
+
+    /**
+     * Get next filled slot from shooting order
+     * 
+     * @return slot number (1, 2, or 3) or -1 if no balls
+     */
+    private int getNextFilledSlot() {
+        if (ballCount == 0 || shootingOrderLength == 0) {
+            return -1;
+        }
+
+        if (currentShootIndex >= shootingOrderLength) {
+            currentShootIndex = 0; // Wrap around
+        }
+
+        int slot = shootingOrder[currentShootIndex];
+        currentShootIndex++;
+        return slot;
+    }
+
+    /**
+     * Mark a slot as empty after shooting
+     * 
+     * @param slotNumber 1, 2, or 3
+     */
+    private void markSlotEmpty(int slotNumber) {
+        if (slotNumber >= 1 && slotNumber <= 3) {
+            slotFilled[slotNumber - 1] = false;
+            ballCount = Math.max(0, ballCount - 1);
+
+            // Save current shoot index before updating
+            int savedShootIndex = currentShootIndex;
+
+            // Update slot status (this rebuilds shooting order)
+            updateSlotStatus(ballCount);
+
+            // Restore shoot index if we still have balls
+            // This ensures we continue the cycle instead of restarting
+            if (ballCount > 0 && savedShootIndex < shootingOrderLength) {
+                currentShootIndex = savedShootIndex;
+            }
+        }
     }
 }

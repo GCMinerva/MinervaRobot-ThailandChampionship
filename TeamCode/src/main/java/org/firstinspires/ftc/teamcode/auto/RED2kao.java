@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.archived.auto.test.opmodes;
+package org.firstinspires.ftc.teamcode.auto;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
@@ -18,7 +18,6 @@ import org.firstinspires.ftc.teamcode.archived.auto.test.commands.AutoBallDetect
 import org.firstinspires.ftc.teamcode.archived.auto.test.commands.FollowPath;
 import org.firstinspires.ftc.teamcode.archived.auto.test.commands.WaitUntilPathPercent;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.teamcode.archived.auto.test.commands.OpModeCommand;
 
 @Autonomous(name = "RedFar[KAO] - Only drive", group = "Auton")
