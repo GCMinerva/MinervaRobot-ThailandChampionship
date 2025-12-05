@@ -354,7 +354,7 @@ public class BlueFar9Art2Door extends OpModeCommand {
                 .addPath(new BezierLine(
                         new Pose(107.5, 126.5).mirror(),
                         new Pose(93.35, 94.5).mirror()))
-                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(128))
+                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(123))
                 .build();
     }
 
@@ -364,7 +364,7 @@ public class BlueFar9Art2Door extends OpModeCommand {
                         new Pose(93.35, 94.5).mirror(),
                         new Pose(92.923, 84.321).mirror(),
                         new Pose(100.512, 81.335).mirror()))
-                .setLinearHeadingInterpolation(Math.toRadians(132), Math.toRadians(178))
+                .setLinearHeadingInterpolation(Math.toRadians(123), Math.toRadians(180))
                 .build();
     }
 
@@ -373,7 +373,7 @@ public class BlueFar9Art2Door extends OpModeCommand {
                 .addPath(new BezierLine(
                         new Pose(100.512, 81.335).mirror(),
                         new Pose(117.971, 81.246).mirror()))
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(178))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                 .build();
     }
 
@@ -381,9 +381,9 @@ public class BlueFar9Art2Door extends OpModeCommand {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierCurve(
                         new Pose(117.971, 81.246).mirror(),
-                        new Pose(121.17812061711079, 81.99719495091163).mirror(),
-                        new Pose(117.94670406732118, 74.12061711079943).mirror(),
-                        new Pose(123.602, 71.00).mirror()))
+                        new Pose(121.17812061711079, 83.99719495091163).mirror(),
+                        new Pose(117.94670406732118, 76.12061711079943).mirror(),
+                        new Pose(123.602, 73.00).mirror()))
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(85))
                 .build();
     }
@@ -391,27 +391,27 @@ public class BlueFar9Art2Door extends OpModeCommand {
     private PathChain buildPath5() {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
-                        new Pose(123.602, 71.00).mirror(),
-                        new Pose(93.35, 85).mirror()))
-                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(143.5))
+                        new Pose(123.602, 73.00).mirror(),
+                        new Pose(93.35, 86).mirror()))
+                .setLinearHeadingInterpolation(Math.toRadians(85), Math.toRadians(133))
                 .build();
     }
 
     private PathChain buildPath6() {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierCurve(
-                        new Pose(93.35, 85).mirror(),
+                        new Pose(93.35, 86).mirror(),
                         new Pose(88.174, 59.948).mirror(),
-                        new Pose(100.332, 57.320).mirror()))
-                .setLinearHeadingInterpolation(Math.toRadians(138), Math.toRadians(180))
+                        new Pose(98.332, 57.320).mirror()))
+                .setLinearHeadingInterpolation(Math.toRadians(133), Math.toRadians(180))
                 .build();
     }
 
     private PathChain buildPath7() {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
-                        new Pose(100.332, 57.320).mirror(),
-                        new Pose(123, 57.320).mirror()))
+                        new Pose(98.332, 57.320).mirror(),
+                        new Pose(121, 57.320).mirror()))
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                 .build();
     }
@@ -421,26 +421,26 @@ public class BlueFar9Art2Door extends OpModeCommand {
                 .addPath(new BezierLine(
                         new Pose(123.602, 71.101).mirror(),
                         new Pose(93.5, 86).mirror()))
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(145))
                 .build();
     }
 
     private PathChain buildPath9() {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierCurve(
-                        new Pose(93.5, 86).mirror(),
+                        new Pose(93.5, 83).mirror(),
                         new Pose(93.71107994389902, 46.451612903225815).mirror(),
-                        new Pose(100.795, 34.216).mirror()))
-                .setLinearHeadingInterpolation(Math.toRadians(132), Math.toRadians(180))
+                        new Pose(103.795, 34.216).mirror()))
+                .setLinearHeadingInterpolation(Math.toRadians(145), Math.toRadians(180))
                 .build();
     }
 
     private PathChain buildPath10() {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
-                        new Pose(100.795, 34.216).mirror(),
+                        new Pose(103.795, 34.216).mirror(),
                         new Pose(120.254, 34.306).mirror()))
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(180))
                 .build();
     }
 
@@ -448,24 +448,24 @@ public class BlueFar9Art2Door extends OpModeCommand {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
                         new Pose(120.254, 34.306).mirror(),
-                        new Pose(93.35, 85).mirror()))
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
+                        new Pose(93.35, 83.5).mirror()))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(146))
                 .build();
     }
 
     private PathChain buildPath12() {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
-                        new Pose(93.35, 85).mirror(),
-                        new Pose(100, 76).mirror()))
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(136))
+                        new Pose(93.35, 83.5).mirror(),
+                        new Pose(104, 77).mirror()))
+                .setLinearHeadingInterpolation(Math.toRadians(146), Math.toRadians(143))
                 .build();
     }
 
     private PathChain buildPathDoor2() {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierCurve(
-                        new Pose(123, 57.320).mirror(),
+                        new Pose(121, 57.320).mirror(),
                         new Pose(98.558, 64.830).mirror(),
                         new Pose(113.100, 76.342).mirror(),
                         new Pose(123.602, 71.101).mirror()

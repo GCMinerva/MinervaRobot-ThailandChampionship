@@ -58,24 +58,31 @@ public class TurretAprilTagSubsystem {
     public TurretAprilTagSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
 
-        // Create AprilTag processor
+        // Create AprilTag processor WITH camera calibration for accurate pose
+        // estimation
         aprilTag = new AprilTagProcessor.Builder()
                 .setDrawAxes(true)
                 .setDrawCubeProjection(true)
                 .setDrawTagOutline(true)
+                // Apply camera calibration for accurate 3D pose
+                .setLensIntrinsics(
+                        org.firstinspires.ftc.teamcode.archived.util.CameraCalibrate.FX,
+                        org.firstinspires.ftc.teamcode.archived.util.CameraCalibrate.FY,
+                        org.firstinspires.ftc.teamcode.archived.util.CameraCalibrate.CX,
+                        org.firstinspires.ftc.teamcode.archived.util.CameraCalibrate.CY)
                 .build();
 
         // Set decimation to 1 for better framerate (1 = no decimation, faster
         // processing)
         aprilTag.setDecimation(1);
 
-        // Build vision portal with optimized settings for high framerate
+        // Build vision portal with balanced settings
         if (USE_WEBCAM) {
             visionPortal = new VisionPortal.Builder()
                     .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
                     .addProcessor(aprilTag)
-                    .setCameraResolution(new android.util.Size(320, 240)) // Lower resolution = higher FPS
-                    .setStreamFormat(VisionPortal.StreamFormat.MJPEG) // MJPEG for better performance
+                    .setCameraResolution(new android.util.Size(320, 240)) // Balanced: 30 FPS, good range
+                    .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
                     .enableLiveView(true)
                     .setAutoStopLiveView(true)
                     .build();

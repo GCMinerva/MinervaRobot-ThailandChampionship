@@ -15,10 +15,9 @@ import org.firstinspires.ftc.teamcode.archived.subsystems.TurretAprilTagSubsyste
 import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.util.TeleOpBallDetector;
-import org.firstinspires.ftc.teamcode.RobotHardwareConfig;
 
-@TeleOp(name = "MinervaTeleOp V3")
-public class MinervaTeleOpV3 extends OpMode {
+@TeleOp(name = "MinervaTeleOpBLUE")
+public class MinervaTeleOpV3BLUE extends OpMode {
     private Follower follower;
     private ActuatorSubsystem actuator;
     private TurretAprilTagSubsystem turretAprilTag;
@@ -32,23 +31,29 @@ public class MinervaTeleOpV3 extends OpMode {
     private boolean gp1_dpad_up_pressed = false;
     private boolean liftAct = false;
 
+    // Field-centric control
+    private boolean fieldCentricEnabled = true;
+    private double referenceHeading = Math.toRadians(180); // 180° is forward (Blue alliance)
+    private boolean gp1_ltPressed = false;
+
     private boolean autoNavigating = false;
     private PathChain autoPath;
     private long autoNavStartTime = 0;
     private final long AUTO_NAV_TIMEOUT_MS = 5000;
 
     // RED GOAL
-    private final Pose startPose = new Pose(110, 129.5, Math.toRadians(90));
-    private final Pose targetPoseX = new Pose(80, 16, Math.toRadians(65));
-    private final Pose targetPoseY = new Pose(73.91865357643759, 90.68162692847125, Math.toRadians(38));
-    private final Pose targetPoseA = new Pose(105.4249649368864, 41.20056100981767, Math.toRadians(90));
-
-    // BLUE GOAL
     // private final Pose startPose = new Pose(110, 129.5, Math.toRadians(90));
-    // private final Pose targetPoseX = new Pose(64, 16, Math.toRadians(65));
-    // private final Pose targetPoseY = new Pose(73.7, 90.1, Math.toRadians(142));
+    // private final Pose targetPoseX = new Pose(80, 16, Math.toRadians(65));
+    // private final Pose targetPoseY = new Pose(73.91865357643759,
+    // 90.68162692847125, Math.toRadians(38));
     // private final Pose targetPoseA = new Pose(38.57503506311361, 39.382889200561,
     // Math.toRadians(90));
+
+    // BLUE GOAL
+    private final Pose startPose = new Pose(110, 129.5, Math.toRadians(90));
+    private final Pose targetPoseX = new Pose(64, 16, Math.toRadians(65));
+    private final Pose targetPoseY = new Pose(73.7, 90.1, Math.toRadians(142));
+    private final Pose targetPoseA = new Pose(105.4249649368864, 41.20056100981767, Math.toRadians(90));
     private Pose currentTargetPose = null;
 
     private boolean gp1_yPressed = false;
@@ -60,7 +65,7 @@ public class MinervaTeleOpV3 extends OpMode {
     private boolean turretTrackingEnabled = true;
 
     // Turret configuration
-    private int targetAprilTagId = 24; // Default: Tag 24 (Red goal)
+    private int targetAprilTagId = 20; // Default: Tag 24 (Red goal)
     // private int targetAprilTagId = 20; // Default: Tag 20 (Blue goal)
     private double turretStartingAngle = 0.0; // Starting angle
     private static final double TICKS_PER_DEGREE = 6.208;
@@ -82,7 +87,7 @@ public class MinervaTeleOpV3 extends OpMode {
 
     // Right trigger cooldown timer
     private long lastShootTime = 0;
-    private static final long SHOOT_COOLDOWN_MS = 1400; // 1.4 seconds cooldown
+    private static final long SHOOT_COOLDOWN_MS = 1000; // 1.0 second cooldown
 
     // Smart sorter cycling variables
     private int ballCount = 0;
@@ -90,6 +95,7 @@ public class MinervaTeleOpV3 extends OpMode {
     private int[] shootingOrder = new int[3]; // Dynamic shooting order
     private int shootingOrderLength = 0;
     private int currentShootIndex = 0;
+    private boolean isFirstShotInSequence = true; // Track if this is the first shot
 
     @Override
     public void init() {
@@ -106,6 +112,8 @@ public class MinervaTeleOpV3 extends OpMode {
         } else {
             telemetry.addData("ℹ️ Using Default Start Pose", "");
         }
+        telemetry.addData("Field-Centric Mode", fieldCentricEnabled ? "ENABLED" : "DISABLED");
+        telemetry.addData("Reference Heading", "%.1f° (180° = forward)", Math.toDegrees(referenceHeading));
         telemetry.update();
 
         follower.setStartingPose(initialPose);
@@ -186,6 +194,11 @@ public class MinervaTeleOpV3 extends OpMode {
             telemetry.addData("Position", "X: %.1f, Y: %.1f", currentPose.getX(), currentPose.getY());
             telemetry.addData("Heading", "%.1f°", Math.toDegrees(currentPose.getHeading()));
             telemetry.addData("Speed Multiplier", "%.1f", speedMultiplier);
+            telemetry.addData("Drive Mode", fieldCentricEnabled ? "FIELD-CENTRIC" : "ROBOT-CENTRIC");
+            if (fieldCentricEnabled) {
+                double headingOffset = currentPose.getHeading() - referenceHeading;
+                telemetry.addData("Heading Offset", "%.1f°", Math.toDegrees(headingOffset));
+            }
         } else {
             telemetry.addData("Position", "INITIALIZING");
         }
@@ -226,6 +239,14 @@ public class MinervaTeleOpV3 extends OpMode {
             }
         }
 
+        // Left Trigger: Toggle field-centric mode
+        if (gamepad1.left_trigger > 0.1 && !gp1_ltPressed) {
+            gp1_ltPressed = true;
+            fieldCentricEnabled = !fieldCentricEnabled;
+        }
+        if (gamepad1.left_trigger < 0.1)
+            gp1_ltPressed = false;
+
         if (gamepad1.right_bumper && !gp1_rbPressed) {
             gp1_rbPressed = true;
             if (autoNavigating) {
@@ -236,7 +257,7 @@ public class MinervaTeleOpV3 extends OpMode {
             gp1_rbPressed = false;
 
         if (!autoNavigating) {
-            setManualDrive(forwardSpeed, strafeSpeed, turnSpeed);
+            setManualDrive(forwardSpeed, strafeSpeed, turnSpeed, currentPose);
         }
 
         if (gamepad1.y && !gp1_yPressed && currentPose != null) {
@@ -255,6 +276,7 @@ public class MinervaTeleOpV3 extends OpMode {
 
         if (gamepad1.a && !gp1_aPressed && currentPose != null) {
             gp1_aPressed = true;
+            speedMultiplier = 0.4; // Set drive speed to low
             startAutoNavigation(currentPose, targetPoseA);
         }
         if (!gamepad1.a)
@@ -282,9 +304,9 @@ public class MinervaTeleOpV3 extends OpMode {
             gp1_dpad_up_pressed = false;
 
         // Clamp lifter position and update servos
-        lifterPos = Range.clip(lifterPos, 0, 1);
+        lifterPos = Range.clip(lifterPos, 0.7, 1);
         lifter.setPosition(lifterPos);
-        lifter1.setPosition(1 - lifterPos);
+        lifter1.setPosition(1 - lifterPos - 0.05);
 
         // Turret tracking toggle with dpad_left
         if (gamepad1.dpad_left && !gp1_dpad_left_pressed) {
@@ -376,6 +398,9 @@ public class MinervaTeleOpV3 extends OpMode {
             int nextSlot = getNextFilledSlot();
 
             if (nextSlot != -1) {
+                // Check if outtake is already running
+                boolean outtakeWasOn = outtakeOn;
+
                 outtakeOn = true;
 
                 // Disable auto ball detection
@@ -398,7 +423,26 @@ public class MinervaTeleOpV3 extends OpMode {
                         break;
                 }
 
+                // Add delay if: (first shot with 1-2 balls) OR (outtake wasn't already on)
+                // No delay for 3 balls
+                if ((isFirstShotInSequence && (ballCount == 1 || ballCount == 2)) || !outtakeWasOn) {
+                    try {
+                        Thread.sleep(630); // 0.63 second delay
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                } else {
+                    try {
+                        Thread.sleep(450); // 0.45 second delay
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+
                 actuator.singleShotSequence();
+
+                // Mark that we've done the first shot
+                isFirstShotInSequence = false;
 
                 // Decrease ball count after shooting
                 ballCount = Math.max(0, ballCount - 1);
@@ -468,23 +512,43 @@ public class MinervaTeleOpV3 extends OpMode {
         follower.setMaxPower(1.0); // Reset to default
         autoNavigating = false;
         currentTargetPose = null;
-        setManualDrive(0, 0, 0);
+        setManualDrive(0, 0, 0, follower.getPose());
     }
 
-    private void setManualDrive(double forward, double strafe, double turn) {
-        double frontLeftPower = (forward + strafe + turn) * speedMultiplier;
-        double frontRightPower = (forward - strafe - turn) * speedMultiplier;
-        double backLeftPower = (forward - strafe + turn) * speedMultiplier;
-        double backRightPower = (forward + strafe - turn) * speedMultiplier;
+    private void setManualDrive(double forward, double strafe, double turn, Pose currentPose) {
+        double frontLeftPower, frontRightPower, backLeftPower, backRightPower;
 
-        double maxPower = Math.max(Math.abs(frontLeftPower), Math.max(Math.abs(frontRightPower),
-                Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
+        if (fieldCentricEnabled && currentPose != null) {
+            // Field-centric mode: rotate inputs by heading offset from 180°
+            double botHeading = currentPose.getHeading() - referenceHeading;
 
-        if (maxPower > 1.0) {
-            frontLeftPower /= maxPower;
-            frontRightPower /= maxPower;
-            backLeftPower /= maxPower;
-            backRightPower /= maxPower;
+            // Rotate the movement direction counter to the bot's rotation (GM0 standard)
+            double rotX = strafe * Math.cos(-botHeading) - forward * Math.sin(-botHeading);
+            double rotY = strafe * Math.sin(-botHeading) + forward * Math.cos(-botHeading);
+
+            // Calculate motor powers with normalization
+            double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(turn), 1);
+            frontLeftPower = ((rotY + rotX + turn) / denominator) * speedMultiplier;
+            frontRightPower = ((rotY - rotX - turn) / denominator) * speedMultiplier;
+            backLeftPower = ((rotY - rotX + turn) / denominator) * speedMultiplier;
+            backRightPower = ((rotY + rotX - turn) / denominator) * speedMultiplier;
+        } else {
+            // Robot-centric mode: use raw inputs
+            frontLeftPower = (forward + strafe + turn) * speedMultiplier;
+            frontRightPower = (forward - strafe - turn) * speedMultiplier;
+            backLeftPower = (forward - strafe + turn) * speedMultiplier;
+            backRightPower = (forward + strafe - turn) * speedMultiplier;
+
+            // Normalize for robot-centric mode
+            double maxPower = Math.max(Math.abs(frontLeftPower), Math.max(Math.abs(frontRightPower),
+                    Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
+
+            if (maxPower > 1.0) {
+                frontLeftPower /= maxPower;
+                frontRightPower /= maxPower;
+                backLeftPower /= maxPower;
+                backRightPower /= maxPower;
+            }
         }
 
         frontLeft.setPower(frontLeftPower);
@@ -585,6 +649,9 @@ public class MinervaTeleOpV3 extends OpMode {
 
         // Rebuild shooting order
         buildShootingOrder();
+
+        // Reset first shot flag when new balls are detected
+        isFirstShotInSequence = true;
     }
 
     /**

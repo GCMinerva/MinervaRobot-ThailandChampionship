@@ -64,277 +64,286 @@ public class BlueFar12Art extends OpModeCommand {
                 PathChain path11 = buildPath11();
                 PathChain path12 = buildPath12();
 
-                // Schedule command sequence
-                schedule(
-                                // Telemetry display - COMMENTED OUT FOR TESTING
-                                /*
-                                 * new RunCommand(() -> {
-                                 * Pose p = follower.getPose();
-                                 * telemetry.addData("Pose", "X: %.1f, Y: %.1f, H: %.1f°",
-                                 * (double)p.getX(), (double)p.getY(), (double)Math.toDegrees(p.getHeading()));
-                                 * telemetry.addData("Follower Busy", follower.isBusy());
-                                 * telemetry.addData("Path Progress", "%.1f%%",
-                                 * (double)(follower.getCurrentTValue() * 100));
-                                 * telemetry.update();
-                                 * }),
-                                 */
+            // Schedule command sequence
+            schedule(
+                    // Telemetry display - COMMENTED OUT FOR TESTING
+                    /*
+                     * new RunCommand(() -> {
+                     * Pose p = follower.getPose();
+                     * telemetry.addData("Pose", "X: %.1f, Y: %.1f, H: %.1f°",
+                     * (double)p.getX(), (double)p.getY(), (double)Math.toDegrees(p.getHeading()));
+                     * telemetry.addData("Follower Busy", follower.isBusy());
+                     * telemetry.addData("Path Progress", "%.1f%%",
+                     * (double)(follower.getCurrentTValue() * 100));
+                     * telemetry.update();
+                     * }),
+                     */
 
-                                // Main autonomous sequence
-                                new SequentialCommandGroup(
-                                                // Wait for start
-                                                new WaitCommand(10),
+                    // Main autonomous sequence
+                    new SequentialCommandGroup(
+                            // Wait for start
+                            new WaitCommand(10),
 
-                                                // Path 1: Initial scoring - complete path THEN shoot while stationary
-                                                new FollowPath(follower, path1)
-                                                                .setMaxPower(1)
-                                                                .alongWith(
-                                                                                new SequentialCommandGroup(
-                                                                                                new WaitCommand(20)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.runOuttake(
-                                                                                                                                                -0.74))),
+                            // Path 1: Initial scoring - complete path THEN shoot while stationary
+                            new FollowPath(follower, path1)
+                                    .setMaxPower(1)
+                                    .alongWith(
+                                            new SequentialCommandGroup(
+                                                    new WaitCommand(20)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.runOuttake(-0.81))),
 
-                                                                                                new WaitCommand(60) // 1400
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> turret.turnToAngle(
-                                                                                                                                                -90))),
-                                                                                                new WaitCommand(200)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.runShooterClose()))
-                                                                                // At 1% of path, start
-                                                                                // shooter to spin up
-                                                                                ))
-                                                                // After path completes, hold current position
-                                                                .andThen(new InstantCommand(() -> follower
-                                                                                .holdPoint(follower.getPose())))
-                                                                // Then shoot while stationary
-                                                                .andThen(new InstantCommand(
-                                                                                () -> actuator.justShoot())),
-                                                // .andThen(new WaitCommand(4000)), // Wait 4 seconds for justShoot() to
-                                                // complete
+                                                    new WaitCommand(60) // 1400
+                                                            .andThen(new InstantCommand(
+                                                                    () -> turret.turnToAngle(
+                                                                            -90))),
+                                                    new WaitCommand(200)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.runShooterClose()))
+                                                    // At 1% of path, start
+                                                    // shooter to spin up
+                                            ))
+                                    // After path completes, hold current position
+                                    .andThen(new InstantCommand(() -> follower
+                                            .holdPoint(follower.getPose())))
+                                    // Then shoot while stationary
+                                    .andThen(new InstantCommand(
+                                            () -> actuator.justShoot())),
+                            // .andThen(new WaitCommand(4000)), // Wait 4 seconds for justShoot() to
+                            // complete
 
-                                                // Release hold point and prepare for path 2
-                                                new InstantCommand(() -> follower.breakFollowing()),
-                                                new WaitCommand(200), // Short wait to ensure follower is ready
+                            // Release hold point and prepare for path 2
+                            new InstantCommand(() -> follower.breakFollowing()),
+                            new WaitCommand(200), // Short wait to ensure follower is ready
 
-                                                // Path 2: First sample pickup
-                                                new FollowPath(follower, path2).setMaxPower(1.0)
-                                                                .alongWith(
-                                                                                new SequentialCommandGroup(
-                                                                                                // At 1% stop shooter
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.01)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.stopShooter())),
-                                                                                                // At 60% run intake
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.40)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.runIntake())),
-                                                                                                // At 90% sorter IN1
-                                                                                                new WaitCommand(400)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.setSorterIN1())))),
+                            // Path 2: First sample pickup
+                            new FollowPath(follower, path2).setMaxPower(1.0)
+                                    .alongWith(
+                                            new SequentialCommandGroup(
+                                                    // At 1% stop shooter
+                                                    new WaitUntilPathPercent(
+                                                            follower,
+                                                            0.01)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.stopShooter())),
+                                                    // At 60% run intake
+                                                    new WaitUntilPathPercent(
+                                                            follower,
+                                                            0.40)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.runIntake())),
+                                                    // At 90% sorter IN1
+                                                    new WaitCommand(400)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.setSorterIN1())))),
 
-                                                // Path 3: Continue to sample with automatic ball detection
-                                                new FollowPath(follower, path3).setMaxPower(0.26) // 21
-                                                                .alongWith(
-                                                                                new SequentialCommandGroup(
-                                                                                                // Start automatic ball
-                                                                                                // detection
-                                                                                                new InstantCommand(
-                                                                                                                () -> actuator.initBallDetection()),
-                                                                                                // Start shooter after
-                                                                                                // brief delay
-                                                                                                new WaitCommand(10)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.runShooterClose())),
-                                                                                                // Run automatic ball
-                                                                                                // detection until 3
-                                                                                                // balls collected
-                                                                                                new AutoBallDetection(
-                                                                                                                actuator))),
-                                                new WaitCommand(100),
+                            // Path 3: Continue to sample with automatic ball detection
+                            new FollowPath(follower, path3).setMaxPower(0.26) // 21
+                                    .alongWith(
+                                            new SequentialCommandGroup(
+                                                    // Start automatic ball
+                                                    // detection
+                                                    new InstantCommand(
+                                                            () -> actuator.initBallDetection()),
+                                                    // Start shooter after
+                                                    // brief delay
+                                                    new WaitCommand(10)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.runShooterClose())),
+                                                    // Run automatic ball
+                                                    // detection until 3
+                                                    // balls collected
+                                                    new AutoBallDetection(
+                                                            actuator))),
+                            new WaitCommand(100),
 
-                                                // Path 4: Return to shooting position
-                                                new FollowPath(follower, path4).setMaxPower(1),
+                            // Path 4: Return to shooting position
+                            new FollowPath(follower, path4).setMaxPower(1),
 
-                                                new WaitCommand(300),
+                            new WaitCommand(300),
 
-                                                // Path 5: Shoot first sample
-                                                new FollowPath(follower, path5).setMaxPower(1.0)
-                                                                .alongWith(
-                                                                                new SequentialCommandGroup(
-                                                                                                // At 10% stop intake
-                                                                                                new InstantCommand(
-                                                                                                                () -> actuator.FarGOready()),
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.90)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.stopIntake()))
+                            // Path 5: Shoot first sample
+                            new FollowPath(follower, path5).setMaxPower(1.0)
+                                    .alongWith(
+                                            new SequentialCommandGroup(
+                                                    // At 10% stop intake
+                                                    new InstantCommand(
+                                                            () -> actuator.FarGOready()),
+                                                    new WaitUntilPathPercent(
+                                                            follower,
+                                                            0.90)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.stopIntake()))
 
-                                                                                ))
-                                                                // // After path completes, hold current position
-                                                                .andThen(new InstantCommand(() -> follower
-                                                                                .holdPoint(follower.getPose()))),
-                                                // // Then shoot while stationary
-                                                new WaitCommand(100)
-                                                                .andThen(new InstantCommand(
-                                                                                () -> actuator.FarGO())),
-                                                // .andThen(new WaitCommand(4000)), // Wait 4 seconds for justShoot() to
-                                                // complete
+                                            ))
+                                    // // After path completes, hold current position
+                                    .andThen(new InstantCommand(() -> follower
+                                            .holdPoint(follower.getPose()))),
+                            // // Then shoot while stationary
+                            new WaitCommand(100)
+                                    .andThen(new InstantCommand(
+                                            () -> actuator.FarGO())),
+                            // .andThen(new WaitCommand(4000)), // Wait 4 seconds for justShoot() to
+                            // complete
 
-                                                // Release hold point and prepare for path 2
-                                                new InstantCommand(() -> follower.breakFollowing()),
-                                                new WaitCommand(100),
-                                                // // .andThen(new WaitCommand(4000)), // Wait 4 seconds for justShoot()
-                                                // to complete
-                                                //
-                                                // ========== PATHS 6-11 COMMENTED OUT FOR TESTING ==========
-                                                // Uncomment when ready to test full autonomous sequence
+                            // Release hold point and prepare for path 2
+                            new InstantCommand(() -> follower.breakFollowing()),
+                            new WaitCommand(100),
+                            // // .andThen(new WaitCommand(4000)), // Wait 4 seconds for justShoot()
+                            // to complete
+                            //
+                            // ========== PATHS 6-11 COMMENTED OUT FOR TESTING ==========
+                            // Uncomment when ready to test full autonomous sequence
 
-                                                // /*
+                            // /*
 
-                                                // Path 6: Second sample pickup
-                                                new FollowPath(follower, path6).setMaxPower(1.0)
-                                                                .alongWith(
-                                                                                new SequentialCommandGroup(
-                                                                                                // At 1% stop shooter
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.01)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.stopShooter())),
-                                                                                                // At 60% run intake
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.40)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.runIntake())),
-                                                                                                // At 90% sorter IN1
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.40)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.setSorterIN1())))),
+                            // Path 6: Second sample pickup
+                            new FollowPath(follower, path6).setMaxPower(1.0)
+                                    .alongWith(
+                                            new SequentialCommandGroup(
+                                                    // At 1% stop shooter
+                                                    new WaitUntilPathPercent(
+                                                            follower,
+                                                            0.01)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.stopShooter())),
+                                                    // At 60% run intake
+                                                    new WaitUntilPathPercent(
+                                                            follower,
+                                                            0.40)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.runIntake())),
+                                                    // At 90% sorter IN1
+                                                    new WaitUntilPathPercent(
+                                                            follower,
+                                                            0.40)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.setSorterIN1())))),
 
-                                                // Path 7: Continue to second sample
-                                                new FollowPath(follower, path7).setMaxPower(0.25)
-                                                                .alongWith(
-                                                                                new SequentialCommandGroup(
-                                                                                                // Start automatic ball
-                                                                                                // detection
-                                                                                                new InstantCommand(
-                                                                                                                () -> actuator.initBallDetection()),
-                                                                                                // Start shooter after
-                                                                                                // brief delay
-                                                                                                new WaitCommand(10)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.runShooterClose())),
-                                                                                                // Run automatic ball
-                                                                                                // detection until 3
-                                                                                                // balls collected
-                                                                                                new AutoBallDetection(
-                                                                                                                actuator))),
+                            // Path 7: Continue to second sample
+                            new FollowPath(follower, path7).setMaxPower(0.23)
+                                    .alongWith(
+                                            new SequentialCommandGroup(
+                                                    // Start automatic ball
+                                                    // detection
+                                                    new InstantCommand(
+                                                            () -> actuator.initBallDetection()),
+                                                    // Start shooter after
+                                                    // brief delay
+                                                    new WaitCommand(10)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.runShooterClose())),
+                                                    // Run automatic ball
+                                                    // detection until 3
+                                                    // balls collected
+                                                    new AutoBallDetection(
+                                                            actuator))),
 
-                                                // /*
-                                                // Path 8: Shoot second sample
-                                                new FollowPath(follower, path8).setMaxPower(1.0)
-                                                                .alongWith(
-                                                                                new SequentialCommandGroup(
-                                                                                                // At 10% stop intake
-                                                                                                new WaitCommand(500)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.MidGoready())),
+                            // /*
+                            // Path 8: Shoot second sample
+                            new FollowPath(follower, path8).setMaxPower(1.0)
+                                    .alongWith(
+                                            new SequentialCommandGroup(
 
-                                                                                                new WaitCommand(500)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.stopIntake()))
+                                                    new WaitCommand(600)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.stopIntake())),
+                                                    // At 10% stop intake
+                                                    new WaitCommand(100).andThen( new InstantCommand(() -> actuator.MidGoready())
+                                                    ),
+                                                    new WaitCommand(50).andThen(new InstantCommand(  () -> actuator.setIntakePower(1))),
+                                                    new WaitCommand(300).andThen(new InstantCommand( () -> actuator.stopIntake()))
 
-                                                                                ))
-                                                                // // After path completes, hold current position
-                                                                .andThen(new InstantCommand(() -> follower
-                                                                                .holdPoint(follower.getPose())))
-                                                // // Then shoot while stationary
-                                                ,
-                                                // // Then shoot while stationary
-                                                new WaitCommand(100)
-                                                                .andThen(new InstantCommand(() -> actuator.MidGO())),
 
-                                                new InstantCommand(() -> follower.breakFollowing()),
-                                                new WaitCommand(300),
 
-                                                new FollowPath(follower, path9).setMaxPower(1.0)
-                                                                .alongWith(
-                                                                                new SequentialCommandGroup(
-                                                                                                // At 1% stop shooter
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.01)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.stopShooter())),
-                                                                                                // At 60% run intake
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.40)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.runIntake())),
-                                                                                                // At 90% sorter IN1
-                                                                                                new WaitUntilPathPercent(
-                                                                                                                follower,
-                                                                                                                0.40)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.setSorterIN1())))),
+                                            ))
+                                    // // After path completes, hold current position
+                                    .andThen(new InstantCommand(() -> follower
+                                            .holdPoint(follower.getPose())))
+                            // // Then shoot while stationary
+                            ,
+                            // // Then shoot while stationary
+                            new WaitCommand(50)
+                                    .andThen(new InstantCommand(() -> actuator.MidGO())),
 
-                                                new FollowPath(follower, path10).setMaxPower(0.25)
-                                                                .alongWith(
-                                                                                new SequentialCommandGroup(
-                                                                                                // Start automatic ball
-                                                                                                // detection
-                                                                                                new InstantCommand(
-                                                                                                                () -> actuator.initBallDetection()),
-                                                                                                // Start shooter after
-                                                                                                // brief delay
-                                                                                                new WaitCommand(10)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.runShooterClose())),
-                                                                                                // Run automatic ball
-                                                                                                // detection until 3
-                                                                                                // balls collected
-                                                                                                new AutoBallDetection(
-                                                                                                                actuator))),
 
-                                                new FollowPath(follower, path11).setMaxPower(1.0)
-                                                                .alongWith(
-                                                                                new SequentialCommandGroup(
-                                                                                                // At 10% stop intake
-                                                                                                new WaitCommand(700)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.NearGOready())),
+                            new InstantCommand(() -> follower.breakFollowing()),
+                            new WaitCommand(300),
 
-                                                                                                new WaitCommand(300)
-                                                                                                                .andThen(new InstantCommand(
-                                                                                                                                () -> actuator.stopIntake()))
 
-                                                                                ))
-                                                                // // After path completes, hold current position
-                                                                .andThen(new InstantCommand(() -> follower
-                                                                                .holdPoint(follower.getPose()))),
+                            new FollowPath(follower, path9).setMaxPower(1.0)
+                                    .alongWith(
+                                            new SequentialCommandGroup(
+                                                    // At 1% stop shooter
+                                                    new WaitUntilPathPercent(
+                                                            follower,
+                                                            0.01)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.stopShooter())),
+                                                    // At 60% run intake
+                                                    new WaitUntilPathPercent(
+                                                            follower,
+                                                            0.40)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.runIntake())),
+                                                    // At 90% sorter IN1
+                                                    new WaitUntilPathPercent(
+                                                            follower,
+                                                            0.40)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.setSorterIN1())))),
 
-                                                // // Then shoot while stationary
-                                                new WaitCommand(100)
-                                                                .andThen(new InstantCommand(() -> actuator.NearGO())),
 
-                                                new InstantCommand(() -> follower.breakFollowing()),
-                                                new WaitCommand(300),
 
-                                                new FollowPath(follower, path12).setMaxPower(1.0)
+                            new FollowPath(follower, path10).setMaxPower(0.25)
+                                    .alongWith(
+                                            new SequentialCommandGroup(
+                                                    // Start automatic ball
+                                                    // detection
+                                                    new InstantCommand(
+                                                            () -> actuator.initBallDetection()),
+                                                    // Start shooter after
+                                                    // brief delay
+                                                    new WaitCommand(10)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.runShooterClose())),
+                                                    // Run automatic ball
+                                                    // detection until 3
+                                                    // balls collected
+                                                    new AutoBallDetection(
+                                                            actuator))),
 
-                                                                .andThen(new InstantCommand(() -> follower
-                                                                                .holdPoint(follower.getPose())))
+                            new FollowPath(follower, path11).setMaxPower(1.0)
+                                    .alongWith(
+                                            new SequentialCommandGroup(
+
+                                                    new WaitCommand(700)
+                                                            .andThen(new InstantCommand(
+                                                                    () -> actuator.stopIntake())),
+                                                    // At 10% stop intake
+                                                    new WaitCommand(100).andThen( new InstantCommand(() -> actuator.NearGOready())
+                                                    ),
+                                                    new WaitCommand(50).andThen(new InstantCommand(  () -> actuator.setIntakePower(1))),
+                                                    new WaitCommand(300).andThen(new InstantCommand( () -> actuator.stopIntake()))
+
+
+
+                                            ))
+                                    // // After path completes, hold current position
+                                    .andThen(new InstantCommand(() -> follower
+                                            .holdPoint(follower.getPose()))),
+
+                            // // Then shoot while stationary
+                            new WaitCommand(100)
+                                    .andThen(new InstantCommand(() -> actuator.NearGO())),
+
+                            new InstantCommand(() -> follower.breakFollowing()),
+                            new WaitCommand(300),
+
+                            new FollowPath(follower, path12).setMaxPower(1.0)
+
+                                    .andThen(new InstantCommand(() -> follower
+                                            .holdPoint(follower.getPose())))
 
                                 /*
                                  *
@@ -411,7 +420,7 @@ public class BlueFar12Art extends OpModeCommand {
                                 .addPath(new BezierLine(
                                                 new Pose(107.5, 126.5).mirror(),
                                                 new Pose(93.35, 94.5).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(128))
+                                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(123))
                                 .build();
         }
 
@@ -421,7 +430,7 @@ public class BlueFar12Art extends OpModeCommand {
                                                 new Pose(93.35, 94.5).mirror(),
                                                 new Pose(92.923, 84.321).mirror(),
                                                 new Pose(100.512, 81.335).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(132), Math.toRadians(178))
+                                .setLinearHeadingInterpolation(Math.toRadians(123), Math.toRadians(180))
                                 .build();
         }
 
@@ -430,7 +439,7 @@ public class BlueFar12Art extends OpModeCommand {
                                 .addPath(new BezierLine(
                                                 new Pose(100.512, 81.335).mirror(),
                                                 new Pose(117.971, 81.246).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(178))
+                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                                 .build();
         }
 
@@ -438,9 +447,9 @@ public class BlueFar12Art extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
                                                 new Pose(117.971, 81.246).mirror(),
-                                                new Pose(121.17812061711079, 81.99719495091163).mirror(),
-                                                new Pose(117.94670406732118, 74.12061711079943).mirror(),
-                                                new Pose(123.602, 71.00).mirror()))
+                                                new Pose(121.17812061711079, 83.99719495091163).mirror(),
+                                                new Pose(117.94670406732118, 76.12061711079943).mirror(),
+                                                new Pose(123.602, 73.00).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(85))
                                 .build();
         }
@@ -448,27 +457,27 @@ public class BlueFar12Art extends OpModeCommand {
         private PathChain buildPath5() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(123.602, 71.00).mirror(),
-                                                new Pose(93.35, 85).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(143.5))
+                                                new Pose(123.602, 73.00).mirror(),
+                                                new Pose(93.35, 86).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(85), Math.toRadians(133))
                                 .build();
         }
 
         private PathChain buildPath6() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
-                                                new Pose(93.35, 85).mirror(),
+                                                new Pose(93.35, 86).mirror(),
                                                 new Pose(88.174, 59.948).mirror(),
-                                                new Pose(100.332, 57.320).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(138), Math.toRadians(180))
+                                                new Pose(98.332, 57.320).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(133), Math.toRadians(180))
                                 .build();
         }
 
         private PathChain buildPath7() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(100.332, 57.320).mirror(),
-                                                new Pose(123, 57.320).mirror()))
+                                                new Pose(98.332, 57.320).mirror(),
+                                                new Pose(121, 57.320).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                                 .build();
         }
@@ -476,26 +485,26 @@ public class BlueFar12Art extends OpModeCommand {
         private PathChain buildPath8() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(123, 54.320).mirror(),
-                                                new Pose(93.5, 86).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
+                                                new Pose(121, 57.320).mirror(),
+                                                new Pose(93.5, 83).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(145))
                                 .build();
         }
 
         private PathChain buildPath9() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
-                                                new Pose(93.5, 86).mirror(),
+                                                new Pose(93.5, 83).mirror(),
                                                 new Pose(93.71107994389902, 46.451612903225815).mirror(),
-                                                new Pose(100.795, 34.216).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(132), Math.toRadians(180))
+                                                new Pose(103.795, 34.216).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(145), Math.toRadians(180))
                                 .build();
         }
 
         private PathChain buildPath10() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(100.795, 34.216).mirror(),
+                                                new Pose(103.795, 34.216).mirror(),
                                                 new Pose(120.254, 34.306).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                                 .build();
@@ -505,17 +514,17 @@ public class BlueFar12Art extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
                                                 new Pose(120.254, 34.306).mirror(),
-                                                new Pose(93.35, 85).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
+                                                new Pose(93.35, 83.5).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(146))
                                 .build();
         }
 
         private PathChain buildPath12() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(93.35, 85).mirror(),
-                                                new Pose(100, 76).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(136))
+                                                new Pose(93.35, 83.5).mirror(),
+                                                new Pose(104, 77).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(146), Math.toRadians(143))
                                 .build();
         }
 }

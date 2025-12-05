@@ -71,7 +71,7 @@ public class ActuatorSubsystem {
         // Default servo positions
         binit.setPosition(0.1);
         brinit.setPosition(0.8);
-        sorter.setPosition(0.441);
+        sorter.setPosition(0.592);
 
         // telemetry.addLine("Actuator Initialized");
         // telemetry.update();
@@ -346,17 +346,18 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.66);
+            runOuttake(-0.64);
 
             setSorterP2();
             sleep(0.62); // Medium wait - P3 to P2 distance
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.68);
+            runOuttake(-0.65);
 
             setSorterP1();
             sleep(0.33); // Longer wait - P2 to P1 is farther distance
             feedBall(0.3);
+            sleep(0.3);
 
         } else if (tag == 22) {
             sleep(0.1);
@@ -373,7 +374,7 @@ public class ActuatorSubsystem {
             setSorterP2();
             sleep(0.6); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
-            sleep(0.45);
+            sleep(0.3);
 
         } else if (tag == 23) {
 
@@ -391,7 +392,7 @@ public class ActuatorSubsystem {
             setSorterP3();
             sleep(0.6); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
-            sleep(0.45);
+            sleep(0.3);
 
         } else {
             sleep(0.1);
@@ -435,6 +436,7 @@ public class ActuatorSubsystem {
         int tag = GlobalData.detectedTagId;
 
         if (tag == 21) {
+            runOuttake(-0.60);
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
@@ -447,9 +449,9 @@ public class ActuatorSubsystem {
             runOuttake(-0.64);
 
             setSorterP1();
-            sleep(0.5); // Wait for sorter to move to P3
+            sleep(0.33); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
-            sleep(0.45);
+            sleep(0.3);
 
         } else if (tag == 22) {
             sleep(0.1);
@@ -457,14 +459,14 @@ public class ActuatorSubsystem {
             sleep(0.45); // Wait before next position
 
             setSorterP2();
-            sleep(0.5); // Wait for sorter to move to P3
+            sleep(0.33); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
 
             setSorterP3();
             sleep(0.6); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
-            sleep(0.45);
+            sleep(0.3);
 
         } else if (tag == 23) {
             sleep(0.1);
@@ -476,12 +478,12 @@ public class ActuatorSubsystem {
             sleep(0.3); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.61);
+            runOuttake(-0.59);
 
             setSorterP2();
             sleep(0.6); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
-            sleep(0.45);
+            sleep(0.3);
 
         } else {
             // telemetry.addLine("Invalid Tag for MidGO");
@@ -527,10 +529,11 @@ public class ActuatorSubsystem {
         int tag = GlobalData.detectedTagId;
 
         if (tag == 21) {
+            runOuttake(-0.60);
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.65);
+            runOuttake(-0.62);
 
             setSorterP2();
             sleep(0.35); // Wait for sorter to move to P3
@@ -547,13 +550,13 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.65);
+            runOuttake(-0.63);
 
             setSorterP1();
             sleep(0.3); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.65);
+            runOuttake(-0.63);
 
             setSorterP3();
             sleep(0.25); // Wait for sorter to move to P3
@@ -574,7 +577,7 @@ public class ActuatorSubsystem {
 
             setSorterP1();
             sleep(0.3); // Wait for sorter to move to P3
-            feedBall(0.3); // Feed ball (non-blocking)
+//            feedBall(0.3); // Feed ball (non-blocking)
 
         } else {
             sleep(0.1);
@@ -582,13 +585,14 @@ public class ActuatorSubsystem {
             sleep(0.45); // Wait before next position
 
             setSorterP2();
-            sleep(0.3); // Medium wait - P3 to P2 distance
+            sleep(0.6); // Medium wait - P3 to P2 distance
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
 
             setSorterP1();
             sleep(0.5); // Longer wait - P2 to P1 is farther distance
             feedBall(0.3);
+            sleep(0.3);
             // telemetry.addLine("Invalid Tag for NearGO");
             // telemetry.update();
         }
@@ -640,14 +644,16 @@ public class ActuatorSubsystem {
     public void singleShotSequence() {
         new Thread(() -> {
             try {
-                Thread.sleep(600); // wait 0.2s
+//                Thread.sleep(450); // wait 0.2s
 
                 // This is the content of feedBall, but made blocking for this sequence
-                closeBin();
-                Thread.sleep(420); // feedBall(0.3)
-                openBin();
+//                closeBin();
+//                Thread.sleep(420); // feedBall(0.3)
+//                openBin();
+                Thread.sleep(20);
+                feedBall(0.3);
 
-                Thread.sleep(400); // wait 0.45s
+//                Thread.sleep(450); // wait 0.45s
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

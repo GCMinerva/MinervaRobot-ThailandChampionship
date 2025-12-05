@@ -201,7 +201,7 @@ public class RobotHardwareConfig {
         // Heading PIDF
         public static final double HEADING_P = 1.0;
         public static final double HEADING_I = 0.0;
-        public static final double HEADING_D = 0.0;
+        public static final double HEADING_D = 0.01;
         public static final double HEADING_F = 0.005;
 
         // Drive PIDF (filtered)

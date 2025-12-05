@@ -51,6 +51,11 @@ public class Constants {
                     RobotHardwareConfig.PIDFCoefficients.TRANS_D,
                     RobotHardwareConfig.PIDFCoefficients.TRANS_F
             ))
+            .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(
+                    3,
+                    0,
+                    .04,
+                    0))
             .headingPIDFCoefficients(new PIDFCoefficients(
                     RobotHardwareConfig.PIDFCoefficients.HEADING_P,
                     RobotHardwareConfig.PIDFCoefficients.HEADING_I,
