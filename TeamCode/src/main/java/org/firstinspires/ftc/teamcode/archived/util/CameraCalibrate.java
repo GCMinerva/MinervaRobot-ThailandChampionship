@@ -7,29 +7,30 @@ package org.firstinspires.ftc.teamcode.archived.util;
  * Calibration Pattern Results:
  *
  * Focals (pixels):
- *   Fx: 1449.18
- *   Fy: 1449.18
+ * Fx: 1449.18
+ * Fy: 1449.18
  *
  * Optical Center:
- *   Cx: 954.863
- *   Cy: 544.831
+ * Cx: 954.863
+ * Cy: 544.831
  *
  * Radial Distortion (Brown's Model):
- *   K1: 0.0421727
- *   K2: -0.205409
- *   K3: 0.184011
- *   P1: -0.00186866
- *   P2: -0.00161809
+ * K1: 0.0421727
+ * K2: -0.205409
+ * K3: 0.184011
+ * P1: -0.00186866
+ * P2: -0.00161809
  *
  * Skew: 0
  *
  * Statistics:
- *   Mean Square Reprojection Error: 0.370918 pixels
+ * Mean Square Reprojection Error: 0.370918 pixels
  *
  * Note: This calibration is specific to the camera, lens, and resolution used.
  * Do not transfer calibration between different cameras or resolution settings.
  *
- * Reference: https://ftc-docs.firstinspires.org/en/latest/programming_resources/vision/camera_calibration/camera-calibration.html
+ * Reference:
+ * https://ftc-docs.firstinspires.org/en/latest/programming_resources/vision/camera_calibration/camera-calibration.html
  */
 public class CameraCalibrate {
 

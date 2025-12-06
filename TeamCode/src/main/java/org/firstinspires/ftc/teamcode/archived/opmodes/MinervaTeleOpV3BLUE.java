@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.archived.subsystems.ActuatorSubsystem;
-import org.firstinspires.ftc.teamcode.archived.subsystems.TurretAprilTagSubsystem;
+import org.firstinspires.ftc.teamcode.archived.subsystems.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.util.TeleOpBallDetector;
@@ -20,8 +20,7 @@ import org.firstinspires.ftc.teamcode.util.TeleOpBallDetector;
 public class MinervaTeleOpV3BLUE extends OpMode {
     private Follower follower;
     private ActuatorSubsystem actuator;
-    private TurretAprilTagSubsystem turretAprilTag;
-    private DcMotor turret;
+    private TurretSubsystem turret;
     private TeleOpBallDetector ballDetector;
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
@@ -53,7 +52,7 @@ public class MinervaTeleOpV3BLUE extends OpMode {
     private final Pose startPose = new Pose(110, 129.5, Math.toRadians(90));
     private final Pose targetPoseX = new Pose(64, 16, Math.toRadians(65));
     private final Pose targetPoseY = new Pose(73.7, 90.1, Math.toRadians(142));
-    private final Pose targetPoseA = new Pose(105.4249649368864, 41.20056100981767, Math.toRadians(90));
+    private final Pose targetPoseA = new Pose(105.4249649368864, 35.20056100981767, Math.toRadians(90));
     private Pose currentTargetPose = null;
 
     private boolean gp1_yPressed = false;
@@ -63,15 +62,6 @@ public class MinervaTeleOpV3BLUE extends OpMode {
     private boolean gp1_xPressed = false;
     private boolean gp1_dpad_left_pressed = false;
     private boolean turretTrackingEnabled = true;
-
-    // Turret configuration
-    private int targetAprilTagId = 20; // Default: Tag 24 (Red goal)
-    // private int targetAprilTagId = 20; // Default: Tag 20 (Blue goal)
-    private double turretStartingAngle = 0.0; // Starting angle
-    private static final double TICKS_PER_DEGREE = 6.208;
-    private static final double MIN_ANGLE = -90.0;
-    private static final double MAX_ANGLE = 90.0;
-    private static final double TRACKING_POWER = 0.55;
 
     private int outtakeSorterPosition = 1;
     private boolean outtakeOn = false;
@@ -118,19 +108,8 @@ public class MinervaTeleOpV3BLUE extends OpMode {
 
         follower.setStartingPose(initialPose);
         actuator = new ActuatorSubsystem(hardwareMap, telemetry);
-
-        // Initialize AprilTag turret
-        turretAprilTag = new TurretAprilTagSubsystem(hardwareMap, telemetry);
-        turretAprilTag.setTargetTagId(targetAprilTagId);
-
-        // Initialize turret motor
-        turret = hardwareMap.get(DcMotor.class, "turret");
-        turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        turret.setTargetPosition(0);
-        turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        turret.setPower(0.0);
-
+        turret = new TurretSubsystem(hardwareMap);
+        turret.setGoalPosition(0, 143); // Blue goal position (index 1)
         ballDetector = new TeleOpBallDetector(actuator);
 
         actuator.openBin();
@@ -146,11 +125,7 @@ public class MinervaTeleOpV3BLUE extends OpMode {
         lifter.setPosition(1);
         lifter1.setPosition(0);
 
-        // Set turret to starting angle
-        setTurretAngle(turretStartingAngle);
-
         telemetry.addData("Status", "Initialized");
-        telemetry.addData("Turret Target Tag", targetAprilTagId);
         telemetry.update();
     }
 
@@ -178,9 +153,8 @@ public class MinervaTeleOpV3BLUE extends OpMode {
         follower.update();
         Pose currentPose = follower.getPose();
 
-        // Update AprilTag turret tracking
-        if (turretTrackingEnabled) {
-            updateTurretTracking();
+        if (currentPose != null && turretTrackingEnabled) {
+            turret.update(currentPose);
         }
 
         // Gamepad 1 controls
@@ -314,22 +288,13 @@ public class MinervaTeleOpV3BLUE extends OpMode {
             turretTrackingEnabled = !turretTrackingEnabled;
 
             if (!turretTrackingEnabled) {
-                // Disable tracking - turn turret to 0 degrees
-                setTurretAngle(0);
+                // Disable tracking - turn turret to 0 degrees (robot heading)
+                turret.turnToAngle(0);
             }
+            // If enabling tracking, the turret.update() in loop() will handle it
         }
         if (!gamepad1.dpad_left)
             gp1_dpad_left_pressed = false;
-
-        // Switch target tag with dpad_right (Red/Blue goal)
-        if (gamepad1.dpad_right) {
-            targetAprilTagId = (targetAprilTagId == 24) ? 20 : 24;
-            turretAprilTag.setTargetTagId(targetAprilTagId);
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-            }
-        }
     }
 
     private void handleGamepad2() {
@@ -557,64 +522,15 @@ public class MinervaTeleOpV3BLUE extends OpMode {
         backRight.setPower(backRightPower);
     }
 
-    /**
-     * Update AprilTag turret tracking
-     */
-    private void updateTurretTracking() {
-        turretAprilTag.update();
-
-        if (turretAprilTag.isTagDetected()) {
-            // Get bearing angle from AprilTag
-            double bearing = turretAprilTag.getBearingDegrees();
-
-            // Get current turret angle from encoder
-            int currentTicks = turret.getCurrentPosition();
-            double currentAngle = currentTicks / TICKS_PER_DEGREE;
-
-            // Calculate target angle (invert bearing to fix direction)
-            double targetAngle = currentAngle - bearing;
-
-            // Set turret to target angle (with limits)
-            setTurretAngle(targetAngle);
-        } else {
-            // No tag detected, hold current position
-            turret.setPower(0.1);
-        }
-    }
-
-    /**
-     * Set turret to specific angle using encoder ticks
-     * 
-     * @param angleDegrees Target angle in degrees (-90 to +90)
-     */
-    private void setTurretAngle(double angleDegrees) {
-        // Clamp to physical limits
-        double clampedAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, angleDegrees));
-
-        // Convert to encoder ticks
-        int targetTicks = (int) (clampedAngle * TICKS_PER_DEGREE);
-
-        // Ensure we're in RUN_TO_POSITION mode
-        if (turret.getMode() != DcMotor.RunMode.RUN_TO_POSITION) {
-            turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        }
-
-        // Set target position
-        turret.setTargetPosition(targetTicks);
-        turret.setPower(TRACKING_POWER);
-    }
-
     @Override
     public void stop() {
         if (actuator != null) {
             actuator.stopIntake();
             actuator.stopOuttake();
-        }
-        if (turretAprilTag != null) {
-            turretAprilTag.stop();
+            actuator.stopShooter();
         }
         if (turret != null) {
-            turret.setPower(0);
+            turret.stop();
         }
         frontLeft.setPower(0);
         frontRight.setPower(0);

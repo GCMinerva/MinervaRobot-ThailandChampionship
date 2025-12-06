@@ -576,6 +576,8 @@ public class ActuatorSubsystem {
             runOuttake(-0.65);
 
             setSorterP1();
+            sleep(0.25); // Wait for sorter to move to P3
+            feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.3); // Wait for sorter to move to P3
 //            feedBall(0.3); // Feed ball (non-blocking)
 
@@ -666,7 +668,7 @@ public class ActuatorSubsystem {
     }
 
     // === Sleep helper (used for waiting without blocking callbacks) ===
-    private void sleep(double seconds) {
+    public void sleep(double seconds) {
         try {
             Thread.sleep((long) (seconds * 1000)); // Convert to milliseconds
         } catch (InterruptedException e) {
