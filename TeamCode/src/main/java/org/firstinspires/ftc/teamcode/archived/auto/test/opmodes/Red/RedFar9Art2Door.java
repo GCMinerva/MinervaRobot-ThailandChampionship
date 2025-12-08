@@ -358,7 +358,7 @@ public class RedFar9Art2Door extends OpModeCommand {
                 .addPath(new BezierLine(
                         new Pose(110.5, 129.5),
                         new Pose(93.35, 94.5)))
-                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(52))
+                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(45))
                 .build();
     }
 
@@ -366,16 +366,16 @@ public class RedFar9Art2Door extends OpModeCommand {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierCurve(
                         new Pose(93.35, 94.5),
-                        new Pose(92.923, 84.321),
-                        new Pose(100.512, 83.335)))
-                .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(2))
+                        new Pose(90.923, 84.321),
+                        new Pose(95.512, 83.335)))
+                .setLinearHeadingInterpolation(Math.toRadians(50), Math.toRadians(2))
                 .build();
     }
 
     private PathChain buildPath3() {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
-                        new Pose(100.512, 83.335),
+                        new Pose(95.512, 83.335),
                         new Pose(117.971, 83.246)))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(2))
                 .build();
@@ -387,7 +387,7 @@ public class RedFar9Art2Door extends OpModeCommand {
                         new Pose(117.971, 85.246),
                         new Pose(121.17812061711079, 83.99719495091163),
                         new Pose(117.94670406732118, 76.12061711079943),
-                        new Pose(124.602, 73.00)))
+                        new Pose(126.602, 73.00)))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(95))
                 .build();
     }
@@ -395,9 +395,9 @@ public class RedFar9Art2Door extends OpModeCommand {
     private PathChain buildPath5() {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
-                        new Pose(124.602, 73.00),
+                        new Pose(126.602, 73.00),
                         new Pose(93.35, 86)))
-                .setLinearHeadingInterpolation(Math.toRadians(95), Math.toRadians(45))
+                .setLinearHeadingInterpolation(Math.toRadians(95), Math.toRadians(41))
                 .build();
     }
 
@@ -405,16 +405,16 @@ public class RedFar9Art2Door extends OpModeCommand {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierCurve(
                         new Pose(93.35, 86),
-                        new Pose(88.174, 62.948),
-                        new Pose(100.332, 60.320)))
-                .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0))
+                        new Pose(86.174, 62.948),
+                        new Pose(93.332, 60.320)))
+                .setLinearHeadingInterpolation(Math.toRadians(41), Math.toRadians(0))
                 .build();
     }
 
     private PathChain buildPath7() {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
-                        new Pose(100.332, 60.320),
+                        new Pose(93.332, 60.320),
                         new Pose(123, 60.320)))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
@@ -433,8 +433,8 @@ public class RedFar9Art2Door extends OpModeCommand {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierCurve(
                         new Pose(93.5, 86),
-                        new Pose(93.71107994389902, 46.451612903225815),
-                        new Pose(104.795, 38.216)))
+                        new Pose(91.71107994389902, 46.451612903225815),
+                        new Pose(98.795, 38.216)))
                 .setLinearHeadingInterpolation(Math.toRadians(38), Math.toRadians(0))
                 .build();
     }
@@ -442,7 +442,7 @@ public class RedFar9Art2Door extends OpModeCommand {
     private PathChain buildPath10() {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
-                        new Pose(104.795, 38.216),
+                        new Pose(98.795, 38.216),
                         new Pose(120.254, 38.306)))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
@@ -456,6 +456,7 @@ public class RedFar9Art2Door extends OpModeCommand {
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(38))
                 .build();
     }
+
     private PathChain buildPath12() {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierLine(
@@ -467,7 +468,7 @@ public class RedFar9Art2Door extends OpModeCommand {
     private PathChain buildPathDoor2() {
         return new PathBuilder(follower, Constants.pathConstraints)
                 .addPath(new BezierCurve(
-                        new Pose(123.000, 63.320),
+                        new Pose(123.000, 60.320),
                         new Pose(98.558, 64.830),
                         new Pose(113.100, 76.342),
                         new Pose(127.641, 72.101)

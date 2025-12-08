@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.archived.auto.test.opmodes.Red;
+package org.firstinspires.ftc.teamcode.auto;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
@@ -7,7 +7,6 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
@@ -21,9 +20,9 @@ import org.firstinspires.ftc.teamcode.archived.auto.test.commands.WaitUntilPathP
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.teamcode.archived.auto.test.commands.OpModeCommand;
-@Disabled
-@Autonomous(name = "RedFar[12Art-TIMER]", group = "Auton")
-public class RedFar12Art_TIMER extends OpModeCommand {
+
+@Autonomous(name = "BlueFar[12Art-TIMER]", group = "Auton")
+public class BlueFar12Art_TIMER extends OpModeCommand {
 
         private Follower follower;
         private AprilTagSubsystem tagSubsystem;
@@ -35,7 +34,7 @@ public class RedFar12Art_TIMER extends OpModeCommand {
         private static final long AUTONOMOUS_DURATION_MS = 30000; // 30 seconds
 
         // Starting pose
-        private final Pose startPose = new Pose(110.5, 129.5, Math.toRadians(90));
+        private final Pose startPose = new Pose(107.5, 126.5, Math.toRadians(90)).mirror();
 
         /**
          * Check if autonomous should continue based on remaining time
@@ -117,7 +116,7 @@ public class RedFar12Art_TIMER extends OpModeCommand {
                                                                                                 new WaitCommand(60) // 1400
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> turret.turnToAngle(
-                                                                                                                                                90))),
+                                                                                                                                                -90))),
                                                                                                 new WaitCommand(200)
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.runShooterClose()))
@@ -242,7 +241,7 @@ public class RedFar12Art_TIMER extends OpModeCommand {
                                                                                                                                 () -> actuator.setSorterIN1())))),
 
                                                 // Path 7: Continue to second sample
-                                                new FollowPath(follower, path7).setMaxPower(0.24)
+                                                new FollowPath(follower, path7).setMaxPower(0.23)
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
                                                                                                 // Start automatic ball
@@ -338,7 +337,7 @@ public class RedFar12Art_TIMER extends OpModeCommand {
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
 
-                                                                                                new WaitCommand(600)
+                                                                                                new WaitCommand(700)
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.stopIntake())),
                                                                                                 // At 10% stop intake
@@ -375,7 +374,7 @@ public class RedFar12Art_TIMER extends OpModeCommand {
                                                                                 .holdPoint(follower.getPose())))
 
                                 /*
-                                 * 
+                                 *
                                  * // Path 10: Continue to third sample
                                  * new FollowPath(follower, path10).setMaxPower(0.25)
                                  * .alongWith(
@@ -593,113 +592,113 @@ public class RedFar12Art_TIMER extends OpModeCommand {
         private PathChain buildPath1() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(110.5, 129.5),
-                                                new Pose(93.35, 94.5)))
-                                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(52))
+                                                new Pose(107.5, 126.5).mirror(),
+                                                new Pose(93.35, 94.5).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(123))
                                 .build();
         }
 
         private PathChain buildPath2() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
-                                                new Pose(93.35, 94.5),
-                                                new Pose(92.923, 84.321),
-                                                new Pose(100.512, 83.335)))
-                                .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(2))
+                                                new Pose(93.35, 94.5).mirror(),
+                                                new Pose(92.923, 84.321).mirror(),
+                                                new Pose(100.512, 81.335).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(123), Math.toRadians(180))
                                 .build();
         }
 
         private PathChain buildPath3() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(100.512, 83.335),
-                                                new Pose(117.971, 83.246)))
-                                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(2))
+                                                new Pose(100.512, 81.335).mirror(),
+                                                new Pose(117.971, 81.246).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                                 .build();
         }
 
         private PathChain buildPath4() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
-                                                new Pose(117.971, 85.246),
-                                                new Pose(121.17812061711079, 83.99719495091163),
-                                                new Pose(117.94670406732118, 76.12061711079943),
-                                                new Pose(124.602, 73.00)))
-                                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(95))
+                                                new Pose(117.971, 81.246).mirror(),
+                                                new Pose(121.17812061711079, 83.99719495091163).mirror(),
+                                                new Pose(117.94670406732118, 76.12061711079943).mirror(),
+                                                new Pose(123.602, 73.00).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(85))
                                 .build();
         }
 
         private PathChain buildPath5() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(124.602, 73.00),
-                                                new Pose(93.35, 86)))
-                                .setLinearHeadingInterpolation(Math.toRadians(95), Math.toRadians(45))
+                                                new Pose(123.602, 73.00).mirror(),
+                                                new Pose(93.35, 86).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(85), Math.toRadians(133))
                                 .build();
         }
 
         private PathChain buildPath6() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
-                                                new Pose(93.35, 86),
-                                                new Pose(88.174, 62.948),
-                                                new Pose(100.332, 60.320)))
-                                .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0))
+                                                new Pose(93.35, 86).mirror(),
+                                                new Pose(88.174, 59.948).mirror(),
+                                                new Pose(98.332, 57.320).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(133), Math.toRadians(180))
                                 .build();
         }
 
         private PathChain buildPath7() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(100.332, 60.320),
-                                                new Pose(123, 60.320)))
-                                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                                                new Pose(98.332, 57.320).mirror(),
+                                                new Pose(121, 57.320).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                                 .build();
         }
 
         private PathChain buildPath8() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(123, 59.320),
-                                                new Pose(93.5, 86)))
-                                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(38))
+                                                new Pose(121, 57.320).mirror(),
+                                                new Pose(93.5, 83).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(145))
                                 .build();
         }
 
         private PathChain buildPath9() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
-                                                new Pose(93.5, 86),
-                                                new Pose(93.71107994389902, 46.451612903225815),
-                                                new Pose(104.795, 38.216)))
-                                .setLinearHeadingInterpolation(Math.toRadians(38), Math.toRadians(0))
+                                                new Pose(93.5, 83).mirror(),
+                                                new Pose(93.71107994389902, 46.451612903225815).mirror(),
+                                                new Pose(103.795, 34.216).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(145), Math.toRadians(180))
                                 .build();
         }
 
         private PathChain buildPath10() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(104.795, 38.216),
-                                                new Pose(120.254, 38.306)))
-                                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                                                new Pose(103.795, 34.216).mirror(),
+                                                new Pose(120.254, 34.306).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                                 .build();
         }
 
         private PathChain buildPath11() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(120.254, 34.306),
-                                                new Pose(92.35, 88)))
-                                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(38))
+                                                new Pose(120.254, 34.306).mirror(),
+                                                new Pose(93.35, 83.5).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(146))
                                 .build();
         }
 
         private PathChain buildPath12() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(93.35, 86),
-                                                new Pose(100, 76)))
-                                .setLinearHeadingInterpolation(Math.toRadians(38), Math.toRadians(41))
+                                                new Pose(93.35, 83.5).mirror(),
+                                                new Pose(104, 77).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(146), Math.toRadians(143))
                                 .build();
         }
 }

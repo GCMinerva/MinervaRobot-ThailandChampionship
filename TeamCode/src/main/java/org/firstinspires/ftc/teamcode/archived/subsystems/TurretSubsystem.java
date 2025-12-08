@@ -57,6 +57,9 @@ public class TurretSubsystem {
     private double currentAngle = 0.0;
     private double targetAngle = 0.0;
 
+    // Angle offset for fine-tuning (degrees)
+    private double angleOffset = 0.0;
+
     // Control parameters
     private double maxPower = 1.0;
     private double minPower = 0.2;
@@ -227,6 +230,9 @@ public class TurretSubsystem {
         targetAngle = relativeAngleRad * 180.0 / Math.PI;
         // System.out.println("relativeAngle (after norm): " + targetAngle + "°");
 
+        // Apply angle offset for fine-tuning
+        targetAngle += angleOffset;
+
         // Clamp to turret's physical limits (±90°)
         targetAngle = Math.max(minAngle, Math.min(maxAngle, targetAngle));
         // System.out.println("targetAngle (after clamp): " + targetAngle + "°");
@@ -388,8 +394,40 @@ public class TurretSubsystem {
      * Reset turret to center (0° = robot heading)
      */
     public void resetToCenter() {
-        currentAngle = 0.0;
-        targetAngle = 0.0;
-        turretMotor.setPower(0.0);
+        turnToAngle(0.0);
+    }
+
+    /**
+     * Add offset to turret angle for fine-tuning
+     * 
+     * @param offsetDegrees Offset in degrees (positive = clockwise)
+     */
+    public void addAngleOffset(double offsetDegrees) {
+        this.angleOffset += offsetDegrees;
+    }
+
+    /**
+     * Set angle offset for fine-tuning
+     * 
+     * @param offsetDegrees Offset in degrees (positive = clockwise)
+     */
+    public void setAngleOffset(double offsetDegrees) {
+        this.angleOffset = offsetDegrees;
+    }
+
+    /**
+     * Get current angle offset
+     * 
+     * @return Offset in degrees
+     */
+    public double getAngleOffset() {
+        return angleOffset;
+    }
+
+    /**
+     * Reset angle offset to zero
+     */
+    public void resetAngleOffset() {
+        this.angleOffset = 0.0;
     }
 }

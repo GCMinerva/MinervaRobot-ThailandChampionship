@@ -139,7 +139,7 @@ public class RedFar12Art extends OpModeCommand {
                                                                                                                                 () -> actuator.setSorterIN1())))),
 
                                                 // Path 3: Continue to sample with automatic ball detection
-                                                new FollowPath(follower, path3).setMaxPower(0.26) // 21
+                                                new FollowPath(follower, path3).setMaxPower(0.3) // 21
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
                                                                                                 // Start automatic ball
@@ -222,7 +222,7 @@ public class RedFar12Art extends OpModeCommand {
                                                                                                                                 () -> actuator.setSorterIN1())))),
 
                                                 // Path 7: Continue to second sample
-                                                new FollowPath(follower, path7).setMaxPower(0.27)
+                                                new FollowPath(follower, path7).setMaxPower(0.3)
                                                                 .alongWith(
                                                                                 new SequentialCommandGroup(
                                                                                                 // Start automatic ball
@@ -425,7 +425,7 @@ public class RedFar12Art extends OpModeCommand {
                                 .addPath(new BezierLine(
                                                 new Pose(110.5, 129.5),
                                                 new Pose(93.35, 94.5)))
-                                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(50))
+                                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(45))
                                 .build();
         }
 
@@ -433,8 +433,8 @@ public class RedFar12Art extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
                                                 new Pose(93.35, 94.5),
-                                                new Pose(92.923, 84.321),
-                                                new Pose(100.512, 83.335)))
+                                                new Pose(90.923, 84.321),
+                                                new Pose(95.512, 83.335)))
                                 .setLinearHeadingInterpolation(Math.toRadians(50), Math.toRadians(2))
                                 .build();
         }
@@ -442,7 +442,7 @@ public class RedFar12Art extends OpModeCommand {
         private PathChain buildPath3() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(100.512, 83.335),
+                                                new Pose(95.512, 83.335),
                                                 new Pose(117.971, 83.246)))
                                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(2))
                                 .build();
@@ -464,7 +464,7 @@ public class RedFar12Art extends OpModeCommand {
                                 .addPath(new BezierLine(
                                                 new Pose(126.602, 73.00),
                                                 new Pose(93.35, 86)))
-                                .setLinearHeadingInterpolation(Math.toRadians(95), Math.toRadians(43))
+                                .setLinearHeadingInterpolation(Math.toRadians(95), Math.toRadians(41))
                                 .build();
         }
 
@@ -472,16 +472,16 @@ public class RedFar12Art extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
                                                 new Pose(93.35, 86),
-                                                new Pose(88.174, 62.948),
-                                                new Pose(100.332, 60.320)))
-                                .setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+                                                new Pose(86.174, 62.948),
+                                                new Pose(93.332, 60.320)))
+                                .setLinearHeadingInterpolation(Math.toRadians(41), Math.toRadians(0))
                                 .build();
         }
 
         private PathChain buildPath7() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(100.332, 60.320),
+                                                new Pose(93.332, 60.320),
                                                 new Pose(123, 60.320)))
                                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                                 .build();
@@ -500,8 +500,8 @@ public class RedFar12Art extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
                                                 new Pose(93.5, 86),
-                                                new Pose(93.71107994389902, 46.451612903225815),
-                                                new Pose(104.795, 38.216)))
+                                                new Pose(91.71107994389902, 46.451612903225815),
+                                                new Pose(98.795, 38.216)))
                                 .setLinearHeadingInterpolation(Math.toRadians(38), Math.toRadians(0))
                                 .build();
         }
@@ -509,7 +509,7 @@ public class RedFar12Art extends OpModeCommand {
         private PathChain buildPath10() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(104.795, 38.216),
+                                                new Pose(98.795, 38.216),
                                                 new Pose(120.254, 38.306)))
                                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                                 .build();

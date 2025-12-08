@@ -72,6 +72,8 @@ public class MinervaTeleOpV3BLUE extends OpMode {
     private boolean gp2_rbPressed = false;
     private boolean gp2_dpad_up_pressed = false;
     private boolean gp2_dpad_down_pressed = false;
+    private boolean gp2_dpad_left_pressed = false;
+    private boolean gp2_dpad_right_pressed = false;
     private boolean autoBallDetectionEnabled = false;
     private boolean joystickIntakeOverride = false;
 
@@ -109,7 +111,7 @@ public class MinervaTeleOpV3BLUE extends OpMode {
         follower.setStartingPose(initialPose);
         actuator = new ActuatorSubsystem(hardwareMap, telemetry);
         turret = new TurretSubsystem(hardwareMap);
-        turret.setGoalPosition(0, 143); // Blue goal position (index 1)
+        turret.setGoalPosition(0, 144); // Blue goal position (index 1)
         ballDetector = new TeleOpBallDetector(actuator);
 
         actuator.openBin();
@@ -187,6 +189,7 @@ public class MinervaTeleOpV3BLUE extends OpMode {
 
         telemetry.addData("Auto Ball Detection", autoBallDetectionEnabled ? "Running" : "Idle");
         telemetry.addData("Outtake Speed", "%.2f", Math.abs(outtakeSpeed));
+        telemetry.addData("Turret Offset", "%.1f°", turret.getAngleOffset());
 
         // Smart sorter status (show in shooting order: P2, P1, P3)
         String slotStatus = String.format("P2:%s P1:%s P3:%s",
@@ -313,6 +316,22 @@ public class MinervaTeleOpV3BLUE extends OpMode {
         if (!gamepad2.dpad_down)
             gp2_dpad_down_pressed = false;
 
+        // D-Pad Left: Decrease turret angle offset (subtract 1 degree)
+        if (gamepad2.dpad_left && !gp2_dpad_left_pressed) {
+            gp2_dpad_left_pressed = true;
+            turret.addAngleOffset(-1.0);
+        }
+        if (!gamepad2.dpad_left)
+            gp2_dpad_left_pressed = false;
+
+        // D-Pad Right: Increase turret angle offset (add 1 degree)
+        if (gamepad2.dpad_right && !gp2_dpad_right_pressed) {
+            gp2_dpad_right_pressed = true;
+            turret.addAngleOffset(1.0);
+        }
+        if (!gamepad2.dpad_right)
+            gp2_dpad_right_pressed = false;
+
         // Left Trigger: Toggle Auto Ball Detection
         if (gamepad2.left_trigger > 0.1 && !gp2_ltPressed) {
             gp2_ltPressed = true;
@@ -390,7 +409,7 @@ public class MinervaTeleOpV3BLUE extends OpMode {
 
                 // Add delay if: (first shot with 1-2 balls) OR (outtake wasn't already on)
                 // No delay for 3 balls
-                if ((isFirstShotInSequence && (ballCount == 1 || ballCount == 2)) || !outtakeWasOn) {
+                if ((isFirstShotInSequence && (ballCount == 1 || ballCount == 2 || ballCount == 3)) || !outtakeWasOn) {
                     try {
                         Thread.sleep(630); // 0.63 second delay
                     } catch (InterruptedException e) {

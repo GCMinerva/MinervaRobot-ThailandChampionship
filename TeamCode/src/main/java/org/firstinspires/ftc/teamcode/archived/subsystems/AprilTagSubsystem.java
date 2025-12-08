@@ -66,7 +66,7 @@ public class AprilTagSubsystem {
                 if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
                     exposureControl.setMode(ExposureControl.Mode.Manual);
                 }
-                exposureControl.setExposure(6, TimeUnit.MILLISECONDS);
+                exposureControl.setExposure(15, TimeUnit.MILLISECONDS);
 
                 GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
                 gainControl.setGain(250);
