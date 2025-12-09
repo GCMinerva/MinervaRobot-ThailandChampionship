@@ -181,6 +181,35 @@ public class TurretSubsystem {
     }
 
     /**
+     * Set turret to target angle WITHOUT blocking (non-blocking version).
+     * Use this during autonomous when you want to position the turret
+     * but don't want to freeze the command sequence.
+     * The turret will move to the target angle in the background.
+     * 
+     * @param angleDegrees Target angle in degrees relative to robot heading:
+     *                     0° = straight ahead
+     *                     +90° = full right
+     *                     -90° = full left
+     */
+    public void setTargetAngle(double angleDegrees) {
+        // Clamp to physical limits
+        double clampedAngle = Math.max(-90.0, Math.min(90.0, angleDegrees));
+
+        // Convert to encoder ticks
+        int targetTicks = (int) (clampedAngle * TICKS_PER_DEGREE);
+
+        // Set target position (non-blocking)
+        turretMotor.setTargetPosition(targetTicks);
+        turretMotor.setPower(0.5);
+
+        // Update internal state
+        targetAngle = clampedAngle;
+
+        // NO while loop = non-blocking!
+        // Motor will move to target in background
+    }
+
+    /**
      * Update turret alignment based on robot's current pose.
      * Call this continuously in your autonomous loop while following paths.
      *

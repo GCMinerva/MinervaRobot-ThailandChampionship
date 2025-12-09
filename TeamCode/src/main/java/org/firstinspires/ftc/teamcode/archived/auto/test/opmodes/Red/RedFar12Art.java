@@ -94,9 +94,16 @@ public class RedFar12Art extends OpModeCommand {
                                                                                                                                 () -> actuator.runOuttake(
                                                                                                                                                 -0.81))),
 
+                                                                                                // new WaitCommand(60)
+                                                                                                // // 1400
+                                                                                                // .andThen(new
+                                                                                                // InstantCommand(
+                                                                                                // () ->
+                                                                                                // turret.turnToAngle(
+                                                                                                // 90))),
                                                                                                 new WaitCommand(60) // 1400
                                                                                                                 .andThen(new InstantCommand(
-                                                                                                                                () -> turret.turnToAngle(
+                                                                                                                                () -> turret.setTargetAngle(
                                                                                                                                                 90))),
                                                                                                 new WaitCommand(200)
                                                                                                                 .andThen(new InstantCommand(

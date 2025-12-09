@@ -9,4 +9,8 @@ public class GlobalData {
     // Autonomous end pose for Manual OpMode handoff
     public static Pose autonomousEndPose = null;
     public static boolean hasAutonomousRun = false;
+
+    // Turret tracking state for autonomous-to-teleop handoff
+    public static boolean turretTrackingEnabled = true;
+    public static double turretAngleOffset = 0.0;
 }

@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.util.TeleOpBallDetector;
 
-@TeleOp(name = "MinervaTeleOpBLUE")
+@TeleOp(name = "MinervaTeleOpV3BLUE")
 public class MinervaTeleOpV3BLUE extends OpMode {
     private Follower follower;
     private ActuatorSubsystem actuator;
@@ -65,7 +65,7 @@ public class MinervaTeleOpV3BLUE extends OpMode {
 
     private int outtakeSorterPosition = 1;
     private boolean outtakeOn = false;
-    private double outtakeSpeed = -0.62; // Default outtake speed
+    private double outtakeSpeed = -0.63; // Default outtake speed
     private boolean gp2_ltPressed = false;
     private boolean gp2_rtPressed = false;
     private boolean gp2_lbPressed = false;
@@ -409,15 +409,15 @@ public class MinervaTeleOpV3BLUE extends OpMode {
 
                 // Add delay if: (first shot with 1-2 balls) OR (outtake wasn't already on)
                 // No delay for 3 balls
-                if ((isFirstShotInSequence && (ballCount == 1 || ballCount == 2 || ballCount == 3)) || !outtakeWasOn) {
+                if ((isFirstShotInSequence && (ballCount == 1 || ballCount == 2)) || !outtakeWasOn) {
                     try {
-                        Thread.sleep(630); // 0.63 second delay
+                        Thread.sleep(500); // 0.5 second delay
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
                 } else {
                     try {
-                        Thread.sleep(450); // 0.45 second delay
+                        Thread.sleep(250); // 0.25 second delay
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
