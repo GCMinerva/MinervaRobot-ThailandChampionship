@@ -148,6 +148,7 @@ public class MinervaTeleOpV3BLUE extends OpMode {
     @Override
     public void start() {
         actuator.openBin();
+
     }
 
     @Override
@@ -189,6 +190,10 @@ public class MinervaTeleOpV3BLUE extends OpMode {
 
         telemetry.addData("Auto Ball Detection", autoBallDetectionEnabled ? "Running" : "Idle");
         telemetry.addData("Outtake Speed", "%.2f", Math.abs(outtakeSpeed));
+        telemetry.addData("Outtake1 Current", "%.2f A", actuator.getOuttake1Current());
+        telemetry.addData("Outtake2 Current", "%.2f A", actuator.getOuttake2Current());
+        telemetry.addData("Outtake1 RPM", "%.0f", actuator.getOuttake1RPM());
+        telemetry.addData("Outtake2 RPM", "%.0f", actuator.getOuttake2RPM());
         telemetry.addData("Turret Offset", "%.1f°", turret.getAngleOffset());
 
         // Smart sorter status (show in shooting order: P2, P1, P3)
