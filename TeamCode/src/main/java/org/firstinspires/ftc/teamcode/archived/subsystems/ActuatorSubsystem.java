@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.archived.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -18,7 +20,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  */
 public class ActuatorSubsystem {
 
-    private DcMotor outtake1, outtake2, intake;
+    private DcMotorEx outtake1, outtake2, intake;
     private Servo binit, brinit, sorter;
     private DistanceSensor distanceSensor;
     private final Telemetry telemetry;
@@ -44,16 +46,16 @@ public class ActuatorSubsystem {
         this.telemetry = telemetry;
 
         // Initialize motors
-        outtake1 = hardwareMap.get(DcMotor.class, "outtake1");
-        outtake2 = hardwareMap.get(DcMotor.class, "outtake2");
-        intake = hardwareMap.get(DcMotor.class, "intake");
+        outtake1 = hardwareMap.get(DcMotorEx.class, "outtake1");
+        outtake2 = hardwareMap.get(DcMotorEx.class, "outtake2");
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
 
         // Set motor directions and behaviors
-        outtake1.setDirection(DcMotor.Direction.REVERSE);
-        outtake2.setDirection(DcMotor.Direction.REVERSE);
-        outtake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        outtake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        outtake1.setDirection(DcMotorEx.Direction.FORWARD);
+        outtake2.setDirection(DcMotorEx.Direction.FORWARD);
+        outtake1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        outtake2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
         // Initialize servos
         binit = hardwareMap.get(Servo.class, "binit");
@@ -275,13 +277,13 @@ public class ActuatorSubsystem {
         sleep(0.2); // Wait for sorter to move to P3
         feedBall(0.3); // Feed ball (non-blocking)
         sleep(0.45); // Wait before next position
-        runOuttake(-0.64);
+        runOuttake(-0.65);
 
         setSorterP1();
         sleep(0.33); // Medium wait - P3 to P2 distance
         feedBall(0.3); // Feed ball (non-blocking)
         sleep(0.45); // Wait before next position
-        runOuttake(-0.65);
+        runOuttake(-0.66);
 
         setSorterP2();
         sleep(0.3); // Longer wait - P2 to P1 is farther distance
@@ -346,13 +348,13 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.633);
+            runOuttake(-0.643);
 
             setSorterP2();
             sleep(0.62); // Medium wait - P3 to P2 distance
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.62);
+            runOuttake(-0.63);
 
             setSorterP1();
             sleep(0.33); // Longer wait - P2 to P1 is farther distance
@@ -363,13 +365,13 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.63);
+            runOuttake(-0.64);
 
             setSorterP3();
             sleep(0.27); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.63);
+            runOuttake(-0.64);
 
             setSorterP2();
             sleep(0.6); // Wait for sorter to move to P3
@@ -381,13 +383,13 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.65);
+            runOuttake(-0.66);
 
             setSorterP2();
             sleep(0.3); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.61);
+            runOuttake(-0.625);
 
             setSorterP3();
             sleep(0.6); // Wait for sorter to move to P3
@@ -436,17 +438,17 @@ public class ActuatorSubsystem {
         int tag = GlobalData.detectedTagId;
 
         if (tag == 21) {
-            runOuttake(-0.615);
+            runOuttake(-0.63);
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.64);
+            runOuttake(-0.65);
 
             setSorterP3();
             sleep(0.6); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.64);
+            runOuttake(-0.65);
 
             setSorterP1();
             sleep(0.33); // Wait for sorter to move to P3
@@ -457,7 +459,7 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.64);
+            runOuttake(-0.65);
 
             setSorterP2();
             sleep(0.33); // Wait for sorter to move to P3
@@ -473,13 +475,13 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.65);
+            runOuttake(-0.66);
 
             setSorterP3();
             sleep(0.3); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.59);
+            runOuttake(-0.61);
 
             setSorterP2();
             sleep(0.6); // Wait for sorter to move to P3
@@ -530,17 +532,17 @@ public class ActuatorSubsystem {
         int tag = GlobalData.detectedTagId;
 
         if (tag == 21) {
-            runOuttake(-0.60);
+            runOuttake(-0.61);
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.62);
+            runOuttake(-0.63);
 
             setSorterP2();
             sleep(0.35); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.61);
+            runOuttake(-0.62);
 
             setSorterP3();
             sleep(0.5); // Wait for sorter to move to P3
@@ -551,13 +553,13 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.63);
+            runOuttake(-0.64);
 
             setSorterP1();
             sleep(0.3); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.63);
+            runOuttake(-0.64);
 
             setSorterP3();
             sleep(0.25); // Wait for sorter to move to P3
@@ -568,19 +570,19 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.60);
+            runOuttake(-0.615);
 
             setSorterP2();
             sleep(0.63); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.65);
+            runOuttake(-0.66);
 
             setSorterP1();
             sleep(0.25); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.3); // Wait for sorter to move to P3
-//            feedBall(0.3); // Feed ball (non-blocking)
+            // feedBall(0.3); // Feed ball (non-blocking)
 
         } else {
             sleep(0.1);
@@ -613,8 +615,8 @@ public class ActuatorSubsystem {
 
     /** Run shooter for close distance (lower speed) */
     public void runShooterClose() {
-        outtake1.setPower(-0.595); // Lower power for close shot
-        outtake2.setPower(-0.595); // Lower power for close shot
+        outtake1.setPower(-0.615); // Lower power for close shot
+        outtake2.setPower(-0.615); // Lower power for close shot
         // telemetry.addData("Shooter", "Close shot running at 0.6");
         // telemetry.update();
     }
@@ -647,16 +649,16 @@ public class ActuatorSubsystem {
     public void singleShotSequence() {
         new Thread(() -> {
             try {
-//                Thread.sleep(450); // wait 0.2s
+                // Thread.sleep(450); // wait 0.2s
 
                 // This is the content of feedBall, but made blocking for this sequence
-//                closeBin();
-//                Thread.sleep(420); // feedBall(0.3)
-//                openBin();
+                // closeBin();
+                // Thread.sleep(420); // feedBall(0.3)
+                // openBin();
                 Thread.sleep(20);
                 feedBall(0.3);
 
-//                Thread.sleep(450); // wait 0.45s
+                // Thread.sleep(450); // wait 0.45s
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -675,5 +677,29 @@ public class ActuatorSubsystem {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    // === Motor Current Getters ===
+
+    /** Get outtake1 motor current in amps */
+    public double getOuttake1Current() {
+        return outtake1.getCurrent(CurrentUnit.AMPS);
+    }
+
+    /** Get outtake2 motor current in amps */
+    public double getOuttake2Current() {
+        return outtake2.getCurrent(CurrentUnit.AMPS);
+    }
+
+    // === Motor Velocity Getters ===
+
+    /** Get outtake1 motor velocity in RPM */
+    public double getOuttake1RPM() {
+        return outtake1.getVelocity();
+    }
+
+    /** Get outtake2 motor velocity in RPM */
+    public double getOuttake2RPM() {
+        return outtake2.getVelocity();
     }
 }
