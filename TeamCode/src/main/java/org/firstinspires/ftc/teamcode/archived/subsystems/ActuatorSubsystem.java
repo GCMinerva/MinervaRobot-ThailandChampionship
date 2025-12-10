@@ -203,7 +203,7 @@ public class ActuatorSubsystem {
 
     /**
      * Update ball detection - call this periodically in a loop
-     * 
+     *
      * @return true if still collecting, false if 3+ balls collected
      */
     public boolean updateBallDetection() {
@@ -277,13 +277,13 @@ public class ActuatorSubsystem {
         sleep(0.2); // Wait for sorter to move to P3
         feedBall(0.3); // Feed ball (non-blocking)
         sleep(0.45); // Wait before next position
-        runOuttake(-0.74);
+        runOuttake(-0.67);
 
         setSorterP1();
         sleep(0.33); // Medium wait - P3 to P2 distance
         feedBall(0.3); // Feed ball (non-blocking)
         sleep(0.45); // Wait before next position
-        runOuttake(-0.75);
+        runOuttake(-0.68);
 
         setSorterP2();
         sleep(0.3); // Longer wait - P2 to P1 is farther distance
@@ -348,13 +348,13 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.703);
+            runOuttake(-0.633);
 
             setSorterP2();
             sleep(0.62); // Medium wait - P3 to P2 distance
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.69);
+            runOuttake(-0.62);
 
             setSorterP1();
             sleep(0.33); // Longer wait - P2 to P1 is farther distance
@@ -365,13 +365,13 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.7);
+            runOuttake(-0.63);
 
             setSorterP3();
             sleep(0.27); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.7);
+            runOuttake(-0.63);
 
             setSorterP2();
             sleep(0.6); // Wait for sorter to move to P3
@@ -383,13 +383,13 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.72);
+            runOuttake(-0.65);
 
             setSorterP2();
             sleep(0.3); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.695);
+            runOuttake(-0.615);
 
             setSorterP3();
             sleep(0.6); // Wait for sorter to move to P3
@@ -438,17 +438,17 @@ public class ActuatorSubsystem {
         int tag = GlobalData.detectedTagId;
 
         if (tag == 21) {
-            runOuttake(-0.66);
+            runOuttake(-0.62);
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.71);
+            runOuttake(-0.64);
 
             setSorterP3();
             sleep(0.6); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.71);
+            runOuttake(-0.64);
 
             setSorterP1();
             sleep(0.33); // Wait for sorter to move to P3
@@ -459,7 +459,7 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.71);
+            runOuttake(-0.64);
 
             setSorterP2();
             sleep(0.33); // Wait for sorter to move to P3
@@ -475,13 +475,13 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.72);
+            runOuttake(-0.65);
 
             setSorterP3();
             sleep(0.3); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.67);
+            runOuttake(-0.60);
 
             setSorterP2();
             sleep(0.6); // Wait for sorter to move to P3
@@ -532,17 +532,17 @@ public class ActuatorSubsystem {
         int tag = GlobalData.detectedTagId;
 
         if (tag == 21) {
-            runOuttake(-0.67);
+            runOuttake(-0.60);
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.69);
+            runOuttake(-0.62);
 
             setSorterP2();
             sleep(0.35); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.68);
+            runOuttake(-0.61);
 
             setSorterP3();
             sleep(0.5); // Wait for sorter to move to P3
@@ -553,13 +553,13 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.7);
+            runOuttake(-0.63);
 
             setSorterP1();
             sleep(0.3); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.7);
+            runOuttake(-0.63);
 
             setSorterP3();
             sleep(0.25); // Wait for sorter to move to P3
@@ -570,13 +570,13 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.675);
+            runOuttake(-0.605);
 
             setSorterP2();
             sleep(0.63); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.72);
+            runOuttake(-0.65);
 
             setSorterP1();
             sleep(0.25); // Wait for sorter to move to P3
@@ -615,8 +615,8 @@ public class ActuatorSubsystem {
 
     /** Run shooter for close distance (lower speed) */
     public void runShooterClose() {
-        outtake1.setPower(-0.72); // Lower power for close shot
-        outtake2.setPower(-0.72); // Lower power for close shot
+        outtake1.setPower(-0.605); // Lower power for close shot
+        outtake2.setPower(-0.605); // Lower power for close shot
         // telemetry.addData("Shooter", "Close shot running at 0.6");
         // telemetry.update();
     }

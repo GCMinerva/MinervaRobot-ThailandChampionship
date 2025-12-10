@@ -409,6 +409,9 @@ public class MinervaTeleOpV4RED extends OpMode {
                 int nextSlot = getNextFilledSlot();
 
                 if (nextSlot != -1) {
+                    // Update cooldown timer immediately when trigger is pressed
+                    lastShootTime = currentTime;
+
                     // Check if outtake is already running BEFORE we set it
                     boolean outtakeWasOn = outtakeOn;
 
@@ -519,9 +522,6 @@ public class MinervaTeleOpV4RED extends OpMode {
                 if (elapsedTime >= shootingDelayMs) {
                     // Delay complete, execute shot
                     actuator.singleShotSequence();
-
-                    // Update last shoot time for cooldown
-                    lastShootTime = currentTime;
 
                     // Return to idle state
                     shootingState = ShootingState.IDLE;
