@@ -65,6 +65,7 @@ public class MinervaTeleOpV4BLUE extends OpMode {
     private int outtakeSorterPosition = 1;
     private boolean outtakeOn = false;
     private double outtakeSpeed = -0.63; // Default outtake speed
+    private double lastOuttakeSpeedBeforeX = -0.63; // Stores outtakeSpeed before X is pressed
     private boolean gp2_ltPressed = false;
     private boolean gp2_rtPressed = false;
     private boolean gp2_lbPressed = false;
@@ -73,6 +74,7 @@ public class MinervaTeleOpV4BLUE extends OpMode {
     private boolean gp2_dpad_down_pressed = false;
     private boolean gp2_dpad_left_pressed = false;
     private boolean gp2_dpad_right_pressed = false;
+    private boolean gp2_xWasPressed = false;
     private boolean autoBallDetectionEnabled = false;
     private boolean joystickIntakeOverride = false;
 
@@ -331,6 +333,7 @@ public class MinervaTeleOpV4BLUE extends OpMode {
         if (gamepad2.dpad_up && !gp2_dpad_up_pressed) {
             gp2_dpad_up_pressed = true;
             outtakeSpeed = Math.max(-1.0, outtakeSpeed - 0.01);
+            lastOuttakeSpeedBeforeX = outtakeSpeed; // Update this too
         }
         if (!gamepad2.dpad_up)
             gp2_dpad_up_pressed = false;
@@ -338,9 +341,24 @@ public class MinervaTeleOpV4BLUE extends OpMode {
         if (gamepad2.dpad_down && !gp2_dpad_down_pressed) {
             gp2_dpad_down_pressed = true;
             outtakeSpeed = Math.min(0.0, outtakeSpeed + 0.01);
+            lastOuttakeSpeedBeforeX = outtakeSpeed; // Update this too
         }
         if (!gamepad2.dpad_down)
             gp2_dpad_down_pressed = false;
+
+        // X button: reverse outtake speed
+        if (gamepad2.x) {
+            if (!gp2_xWasPressed) { // Only on the first press
+                lastOuttakeSpeedBeforeX = outtakeSpeed; // Store current speed before reversing
+            }
+            outtakeSpeed = lastOuttakeSpeedBeforeX * -1; // Apply reversed speed
+            gp2_xWasPressed = true;
+        } else {
+            if (gp2_xWasPressed) { // Only on release
+                outtakeSpeed = lastOuttakeSpeedBeforeX; // Restore original speed
+            }
+            gp2_xWasPressed = false;
+        }
 
         // D-Pad Left: Decrease turret angle offset (subtract 1 degree)
         if (gamepad2.dpad_left) {
