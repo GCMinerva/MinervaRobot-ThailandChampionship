@@ -30,7 +30,7 @@ public class BlueFar12Art extends OpModeCommand {
         private TurretSubsystem turret;
 
         // Starting pose
-        private final Pose startPose = new Pose(107.5, 126.5, Math.toRadians(90)).mirror();
+        private final Pose startPose = new Pose(108.5, 126.5, Math.toRadians(90)).mirror();
 
         @Override
         public void initialize() {
@@ -104,7 +104,7 @@ public class BlueFar12Art extends OpModeCommand {
                                                                                                 new WaitCommand(60) // 1400
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> turret.setTargetAngle(
-                                                                                                                                                90))),
+                                                                                                                                                -90))),
                                                                                                 new WaitCommand(200)
                                                                                                                 .andThen(new InstantCommand(
                                                                                                                                 () -> actuator.runShooterClose()))
@@ -430,7 +430,7 @@ public class BlueFar12Art extends OpModeCommand {
         private PathChain buildPath1() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(107.5, 126.5).mirror(),
+                                                new Pose(108.5, 126.5).mirror(),
                                                 new Pose(93.35, 94.5).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(120))
                                 .build();
@@ -450,7 +450,7 @@ public class BlueFar12Art extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
                                                 new Pose(95.512, 81.335).mirror(),
-                                                new Pose(117.971, 81.246).mirror()))
+                                                new Pose(120.971, 81.246).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                                 .build();
         }
@@ -458,8 +458,8 @@ public class BlueFar12Art extends OpModeCommand {
         private PathChain buildPath4() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierCurve(
-                                                new Pose(117.971, 81.246).mirror(),
-                                                new Pose(121.17812061711079, 83.99719495091163).mirror(),
+                                                new Pose(120.971, 81.246).mirror(),
+                                                new Pose(121.17812061711079, 85.99719495091163).mirror(),
                                                 new Pose(117.94670406732118, 76.12061711079943).mirror(),
                                                 new Pose(126.602, 73.00).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(85))
@@ -471,7 +471,7 @@ public class BlueFar12Art extends OpModeCommand {
                                 .addPath(new BezierLine(
                                                 new Pose(126.602, 73.00).mirror(),
                                                 new Pose(93.35, 86).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(85), Math.toRadians(133))
+                                .setLinearHeadingInterpolation(Math.toRadians(85), Math.toRadians(129))
                                 .build();
         }
 
@@ -499,7 +499,7 @@ public class BlueFar12Art extends OpModeCommand {
                                 .addPath(new BezierLine(
                                                 new Pose(121, 57.320).mirror(),
                                                 new Pose(93.5, 83).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(145))
+                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(139))
                                 .build();
         }
 
@@ -508,7 +508,7 @@ public class BlueFar12Art extends OpModeCommand {
                                 .addPath(new BezierCurve(
                                                 new Pose(93.5, 83).mirror(),
                                                 new Pose(91.71107994389902, 46.451612903225815).mirror(),
-                                                new Pose(98.795, 34.216).mirror()))
+                                                new Pose(96.795, 34.216).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(145), Math.toRadians(180))
                                 .build();
         }
@@ -516,7 +516,7 @@ public class BlueFar12Art extends OpModeCommand {
         private PathChain buildPath10() {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
-                                                new Pose(98.795, 34.216).mirror(),
+                                                new Pose(96.795, 34.216).mirror(),
                                                 new Pose(120.254, 34.306).mirror()))
                                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                                 .build();
@@ -526,8 +526,8 @@ public class BlueFar12Art extends OpModeCommand {
                 return new PathBuilder(follower, Constants.pathConstraints)
                                 .addPath(new BezierLine(
                                                 new Pose(120.254, 34.306).mirror(),
-                                                new Pose(93.35, 83.5).mirror()))
-                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(146))
+                                                new Pose(93.35, 85.5).mirror()))
+                                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(143))
                                 .build();
         }
 

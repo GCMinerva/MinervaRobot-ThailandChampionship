@@ -432,7 +432,7 @@ public class RedFar12Art extends OpModeCommand {
                                 .addPath(new BezierLine(
                                                 new Pose(110.5, 129.5),
                                                 new Pose(93.35, 94.5)))
-                                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(45))
+                                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(47))
                                 .build();
         }
 
@@ -471,7 +471,7 @@ public class RedFar12Art extends OpModeCommand {
                                 .addPath(new BezierLine(
                                                 new Pose(126.602, 73.00),
                                                 new Pose(93.35, 86)))
-                                .setLinearHeadingInterpolation(Math.toRadians(95), Math.toRadians(41))
+                                .setLinearHeadingInterpolation(Math.toRadians(95), Math.toRadians(44))
                                 .build();
         }
 

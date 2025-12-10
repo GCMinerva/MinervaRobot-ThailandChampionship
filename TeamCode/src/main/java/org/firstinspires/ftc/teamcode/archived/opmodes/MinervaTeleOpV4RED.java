@@ -343,7 +343,7 @@ public class MinervaTeleOpV4RED extends OpMode {
             gp2_dpad_down_pressed = false;
 
         // D-Pad Left: Decrease turret angle offset (subtract 1 degree)
-        if (gamepad2.dpad_left && !gp2_dpad_left_pressed) {
+        if (gamepad2.dpad_left) {
             gp2_dpad_left_pressed = true;
             turret.addAngleOffset(-1.0);
         }
@@ -351,7 +351,7 @@ public class MinervaTeleOpV4RED extends OpMode {
             gp2_dpad_left_pressed = false;
 
         // D-Pad Right: Increase turret angle offset (add 1 degree)
-        if (gamepad2.dpad_right && !gp2_dpad_right_pressed) {
+        if (gamepad2.dpad_right) {
             gp2_dpad_right_pressed = true;
             turret.addAngleOffset(1.0);
         }

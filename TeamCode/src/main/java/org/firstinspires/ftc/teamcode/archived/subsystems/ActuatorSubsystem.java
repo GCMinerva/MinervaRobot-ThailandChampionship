@@ -277,13 +277,13 @@ public class ActuatorSubsystem {
         sleep(0.2); // Wait for sorter to move to P3
         feedBall(0.3); // Feed ball (non-blocking)
         sleep(0.45); // Wait before next position
-        runOuttake(-0.67);
+        runOuttake(-0.63);
 
         setSorterP1();
         sleep(0.33); // Medium wait - P3 to P2 distance
         feedBall(0.3); // Feed ball (non-blocking)
         sleep(0.45); // Wait before next position
-        runOuttake(-0.68);
+        runOuttake(-0.62);
 
         setSorterP2();
         sleep(0.3); // Longer wait - P2 to P1 is farther distance
@@ -380,10 +380,11 @@ public class ActuatorSubsystem {
 
         } else if (tag == 23) {
 
+            runOuttake(-0.62);
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.65);
+            runOuttake(-0.615);
 
             setSorterP2();
             sleep(0.3); // Wait for sorter to move to P3
@@ -448,7 +449,7 @@ public class ActuatorSubsystem {
             sleep(0.6); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.64);
+            runOuttake(-0.625);
 
             setSorterP1();
             sleep(0.33); // Wait for sorter to move to P3
@@ -459,7 +460,7 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.64);
+            runOuttake(-0.625);
 
             setSorterP2();
             sleep(0.33); // Wait for sorter to move to P3
@@ -475,7 +476,7 @@ public class ActuatorSubsystem {
             sleep(0.1);
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45); // Wait before next position
-            runOuttake(-0.65);
+            runOuttake(-0.63);
 
             setSorterP3();
             sleep(0.3); // Wait for sorter to move to P3
@@ -576,7 +577,7 @@ public class ActuatorSubsystem {
             sleep(0.63); // Wait for sorter to move to P3
             feedBall(0.3); // Feed ball (non-blocking)
             sleep(0.45);
-            runOuttake(-0.65);
+            runOuttake(-0.615);
 
             setSorterP1();
             sleep(0.25); // Wait for sorter to move to P3
@@ -615,8 +616,8 @@ public class ActuatorSubsystem {
 
     /** Run shooter for close distance (lower speed) */
     public void runShooterClose() {
-        outtake1.setPower(-0.605); // Lower power for close shot
-        outtake2.setPower(-0.605); // Lower power for close shot
+        outtake1.setPower(-0.595); // Lower power for close shot
+        outtake2.setPower(-0.595); // Lower power for close shot
         // telemetry.addData("Shooter", "Close shot running at 0.6");
         // telemetry.update();
     }

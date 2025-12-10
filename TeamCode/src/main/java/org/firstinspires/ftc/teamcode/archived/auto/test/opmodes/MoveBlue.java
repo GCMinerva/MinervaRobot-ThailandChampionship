@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.archived.util.GlobalData;
 import org.firstinspires.ftc.teamcode.archived.auto.test.commands.OpModeCommand;
 
-@Autonomous(name = "MoveBluekmm ,", group = "Auton")
+@Autonomous(name = "MoveBlue", group = "Auton")
 public class MoveBlue extends OpModeCommand {
 
     private Follower follower;
