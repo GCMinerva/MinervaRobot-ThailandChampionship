@@ -1,3 +1,15 @@
+```
+██▄  ▄██ ▄▄ ▄▄  ▄▄ ▄▄▄▄▄ ▄▄▄▄  ▄▄ ▄▄  ▄▄▄  █████▄   ▄▄▄  ▄▄▄▄   ▄▄▄ ▄▄▄▄▄▄
+██ ▀▀ ██ ██ ███▄██ ██▄▄  ██▄█▄ ██▄██ ██▀██ ██▄▄██▄ ██▀██ ██▄██ ██▀██  ██
+██    ██ ██ ██ ▀██ ██▄▄▄ ██ ██  ▀█▀  ██▀██ ██   ██ ▀███▀ ██▄█▀ ▀███▀  ██
+```
+
+> [!CAUTION]
+> This repository has been archived following the conclusion of the FTC DECODE 2025–2026 Thailand Championship.
+
+                                                                           
+
+<br><br><br><br>
 # MinervaRobot - FTC Robot Controller
 
 FTC (FIRST Tech Challenge) robot control system with advanced autonomous capabilities, command-based programming, and ultra-fast hot-reload deployment.
